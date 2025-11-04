@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Travelo · Privacy Policy</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+  <meta name="description" content="Travelo Privacy Policy—how we collect, use, share, and protect your data.">
+  <meta property="og:title" content="Travelo · Privacy Policy">
+  <meta property="og:description" content="How Travelo handles your personal data with transparency and care.">
+  <meta property="og:type" content="website">
+
+  <style>
+    :root{
+      --accent:#6c63ff; --accent-2:#872bff;
+      --bg:#ffffff; --bg-soft:#f7f8fb; --card:#ffffff;
+      --text:#1f2937; --muted:#6b7280; --border:#e8e8ee;
+      --radius:18px; --shadow:0 15px 50px rgba(9,10,22,.08);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0; color:var(--text); background:var(--bg);
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      line-height:1.6;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+
+        .topbar{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter:saturate(1.2) blur(8px);
+      background:color-mix(in oklab, var(--bg) 80%, white);
+      border-bottom:1px solid var(--border);
+    }
+    .topbar .inner{
+      height:68px; display:flex; align-items:center; justify-content:space-between;
+      max-width:1100px; margin:0 auto; padding:0 20px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:700; color:var(--text)}
+    .logo{width:34px; height:34px; object-fit:contain}
+    .top-actions{display:flex; gap:16px}
+    .top-link{color:var(--muted); font-weight:600}
+    .top-link.active,.top-link:focus-visible{color:var(--accent)}
+
+        .wrap{max-width:1100px; margin:28px auto; padding:0 20px; display:grid; gap:24px;
+      grid-template-columns: 280px 1fr;
+    }
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr}
+      aside.toc{order:2}
+    }
+
+        .toc-card{
+      position:sticky; top:92px;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:16px 14px;
+    }
+    .toc-title{display:flex; align-items:center; gap:8px; font-size:15px; margin:0 0 10px}
+    #tocNav{display:flex; flex-direction:column; gap:6px}
+    #tocNav a{
+      padding:8px 10px; border-radius:12px; color:var(--text); font-size:14px; font-weight:600;
+      border:1px solid transparent;
+    }
+    #tocNav a:hover{background:var(--bg-soft)}
+    #tocNav a.active{
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:#fff; border-color:transparent; box-shadow:0 6px 18px rgba(108,99,255,.25);
+    }
+
+        .policy{
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:28px;
+    }
+    .policy-hero h1{margin:0 0 8px; font-size:34px}
+    .subtitle{color:var(--muted); margin:0 0 14px}
+    .meta{display:flex; gap:12px; align-items:center; color:var(--muted); font-size:14px}
+    .version-badge{
+      display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+      background:var(--bg-soft); border:1px dashed var(--border); color:#4b5563; font-weight:700; font-size:12px;
+    }
+    section{padding:8px 0 10px; border-top:1px solid var(--border); margin-top:18px}
+    section:first-of-type{border-top:none; margin-top:8px}
+    h2{font-size:22px; margin:6px 0 10px}
+    p{margin:0 0 10px}
+    ul{margin:0 0 10px 18px}
+    details{
+      border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:var(--bg-soft);
+    }
+    details summary{cursor:pointer; font-weight:600}
+    code.inline{background:#f1f2f6; padding:2px 6px; border-radius:6px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+
+        .cookie{
+      position: fixed; inset:auto 16px 16px 16px; z-index:60;
+      display:none; gap:14px; align-items:flex-start;
+      background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow);
+      padding:14px 16px;
+    }
+    .cookie.show{display:flex}
+    .cookie .msg{flex:1; color:var(--muted); font-size:14px}
+    .cookie .actions{display:flex; gap:10px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      height:40px; padding:0 14px; border-radius:12px; border:1px solid var(--border);
+      background:#fff; color:var(--text); font-weight:700; cursor:pointer;
+    }
+    .btn.primary{
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:#fff; border-color:transparent;
+    }
+    .btn:hover{filter:brightness(1.03)}
+    .note{
+      display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px;
+      background:var(--bg-soft); border:1px dashed var(--border); color:#4b5563; font-size:14px;
+    }
+
+        .mini-footer{max-width:1100px; margin:20px auto 60px; padding:0 20px; color:var(--muted); font-size:14px}
+  </style>
+</head>
+<body>
+    <header class="topbar" role="banner">
+    <div class="inner">
+      <a class="brand" href="index.html" aria-label="Back to Travelo Home">
+        <img src="./assets/images/logo.svg" alt="Travelo Logo" class="logo">
+        <span class="brand-name">Travelo</span>
+      </a>
+      <nav class="top-actions" aria-label="Top navigation">
+        <a class="top-link" href="index.html">Home</a>
+        <a class="top-link" href="flights.html">Flights</a>
+        <a class="top-link" href="hotels.html">Hotels</a>
+        <a class="top-link active" href="#top" aria-current="page">Privacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top" class="wrap" role="main">
+        <aside class="toc" aria-label="Table of contents">
+      <div class="toc-card">
+        <h3 class="toc-title"><i class="bi bi-shield-check"></i> Contents</h3>
+        <nav id="tocNav"></nav>
+      </div>
+    </aside>
+
+        <article class="policy" id="policyArticle">
+      <header class="policy-hero">
+        <h1>Privacy Policy</h1>
+        <p class="subtitle">We respect your privacy and are committed to protecting your personal data.</p>
+        <div class="meta">
+          <span>Last updated: <time id="lastUpdated"></time></span>
+          <span class="version-badge" id="policyVersion">v1.0</span>
+        </div>
+      </header>
+
+      <section id="who-we-are">
+        <h2>1. Who We Are</h2>
+        <p>Travelo (“we”, “us”, “our”) provides travel search and booking services. This policy explains how we collect, use, share, and protect your information when you use our websites, apps, and services (“Services”).</p>
+      </section>
+
+      <section id="data-we-collect">
+        <h2>2. Data We Collect</h2>
+        <ul>
+          <li><strong>Account &amp; Contact:</strong> name, email, phone.</li>
+          <li><strong>Booking details:</strong> itineraries, passengers, preferences, payment tokens (processed by PCI-compliant providers).</li>
+          <li><strong>Usage &amp; device:</strong> pages viewed, clicks, IP, browser, OS, identifiers (cookies/SDKs).</li>
+          <li><strong>Location:</strong> approximate geolocation derived from IP or with your consent.</li>
+        </ul>
+        <details>
+          <summary>Sources (expand)</summary>
+          <ul>
+            <li>Directly from you (forms, bookings, support).</li>
+            <li>Automatically via cookies, SDKs, and analytics.</li>
+            <li>Partners (airlines, hotels, payment providers) for fulfilling bookings and fraud prevention.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="how-we-use">
+        <h2>3. How We Use Your Data</h2>
+        <ul>
+          <li>Provide, operate, and improve the Services.</li>
+          <li>Process bookings, payments, refunds, and customer support.</li>
+          <li>Personalize content (saved searches, recommendations).</li>
+          <li>Security, fraud detection, debugging, and analytics.</li>
+          <li>Marketing &amp; communications where permitted; you can opt out anytime.</li>
+        </ul>
+      </section>
+
+      <section id="legal-bases">
+        <h2>4. Legal Bases (EEA/UK)</h2>
+        <ul>
+          <li><em>Contract</em> – to deliver the Services you request.</li>
+          <li><em>Legitimate interests</em> – security, analytics, product improvement.</li>
+          <li><em>Consent</em> – cookies/marketing where required; you may withdraw at any time.</li>
+          <li><em>Legal obligation</em> – comply with applicable laws.</li>
+        </ul>
+      </section>
+
+      <section id="cookies">
+        <h2>5. Cookies &amp; Similar Technologies</h2>
+        <p>We use cookies/SDKs for essential operations, analytics, and personalization. You can manage preferences via your browser and the banner below.</p>
+        <p class="note"><i class="bi bi-gear-wide-connected"></i> Tip: For a strict setup, block third-party cookies and enable “Do Not Track” in your browser.</p>
+      </section>
+
+      <section id="sharing">
+        <h2>6. Sharing Your Information</h2>
+        <ul>
+          <li><strong>Vendors/Processors:</strong> hosting, analytics, payments, customer support.</li>
+          <li><strong>Travel partners:</strong> airlines/hotels to fulfill bookings.</li>
+          <li><strong>Legal &amp; safety:</strong> to comply with law or protect rights.</li>
+          <li><strong>Business transfers:</strong> merger, acquisition, or asset sale.</li>
+        </ul>
+      </section>
+
+      <section id="intl-transfers">
+        <h2>7. International Transfers</h2>
+        <p>We may transfer data internationally using safeguards such as Standard Contractual Clauses (SCCs) or other lawful mechanisms.</p>
+      </section>
+
+      <section id="retention">
+        <h2>8. Data Retention</h2>
+        <p>We retain personal data only as long as necessary for the purposes described or as required by law and accounting obligations.</p>
+      </section>
+
+      <section id="your-rights">
+        <h2>9. Your Rights</h2>
+        <ul>
+          <li>Access, correction, deletion, and portability (where applicable).</li>
+          <li>Object to processing or restrict it in certain cases.</li>
+          <li>Withdraw consent without affecting prior lawful processing.</li>
+          <li>Lodge a complaint with your supervisory authority.</li>
+        </ul>
+      </section>
+
+      <section id="security">
+        <h2>10. Security</h2>
+        <p>We apply administrative, technical, and physical safeguards to protect your information. No method is 100% secure; please use strong, unique passwords.</p>
+      </section>
+
+      <section id="children">
+        <h2>11. Children’s Privacy</h2>
+        <p>Our Services are not directed to children under the age required by local law. We do not knowingly collect data from such children.</p>
+      </section>
+
+      <section id="changes">
+        <h2>12. Changes to This Policy</h2>
+        <p>We may update this policy from time to time. Material changes will be highlighted on this page with a new “Last updated” date.</p>
+      </section>
+
+      <section id="contact">
+        <h2>13. Contact Us</h2>
+        <p>If you have questions or requests, contact us at <a href="mailto:privacy@travelo.example">privacy@travelo.example</a>.</p>
+      </section>
+
+      <section id="definitions">
+        <h2>14. Definitions</h2>
+        <ul>
+          <li><strong>Personal data:</strong> any information relating to an identified or identifiable person.</li>
+          <li><strong>Processing:</strong> any operation performed on personal data.</li>
+          <li><strong>Controller/Processor:</strong> as defined by applicable data protection laws.</li>
+        </ul>
+      </section>
+    </article>
+  </main>
+
+    <div class="cookie" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <div class="msg">
+      <strong>Cookies.</strong> We use cookies to operate our site, personalize content, and analyze traffic. You can accept or manage preferences in your browser.
+    </div>
+    <div class="actions">
+      <button class="btn" id="cookieDecline"><i class="bi bi-x-circle"></i> Decline</button>
+      <button class="btn primary" id="cookieAccept"><i class="bi bi-check2-circle"></i> Accept</button>
+    </div>
+  </div>
+
+  <footer class="mini-footer">
+    © <span id="year"></span> Travelo. All rights reserved.
+  </footer>
+
+  <script>
+
+    const qs = (s, el=document)=>el.querySelector(s);
+    const qsa = (s, el=document)=>[...el.querySelectorAll(s)];
+
+    (function setDates(){
+      const lastUpdated = qs('#lastUpdated');
+      const year = qs('#year');
+      const now = new Date();
+      const fmt = new Intl.DateTimeFormat(undefined, {year:'numeric', month:'long', day:'numeric'});
+      if(lastUpdated) lastUpdated.textContent = fmt.format(now);
+      if(year) year.textContent = now.getFullYear();
+    })();
+
+    (function buildTOC(){
+      const tocNav = qs('#tocNav');
+      const sections = qsa('article.policy section[id]');
+      if(!tocNav) return;
+
+      sections.forEach(sec=>{
+        const h2 = qs('h2', sec);
+        if(!h2) return;
+        const a = document.createElement('a');
+        a.href = `#${sec.id}`;
+        a.textContent = h2.textContent.replace(/^\d+\.\s*/, '');
+        a.setAttribute('data-target', sec.id);
+        tocNav.appendChild(a);
+      });
+    })();
+
+    (function enhanceAnchorScroll(){
+      document.addEventListener('click', (e)=>{
+        const a = e.target.closest('a[href^="#"]');
+        if(!a) return;
+        const id = a.getAttribute('href').slice(1);
+        const target = document.getElementById(id);
+        if(!target) return;
+        e.preventDefault();
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+        history.pushState(null, '', `#${id}`);
+        target.setAttribute('tabindex', '-1');
+        target.focus({preventScroll:true});
+      });
+    })();
+
+    (function scrollSpy(){
+      const links = qsa('#tocNav a');
+      const map = new Map(links.map(a=>[a.getAttribute('data-target'), a]));
+      const opts = { rootMargin:'-40% 0px -55% 0px', threshold:[0, 1.0] };
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting){
+            const id = entry.target.id;
+            links.forEach(l=>l.classList.remove('active'));
+            const link = map.get(id);
+            if(link) link.classList.add('active');
+          }
+        });
+      }, opts);
+      qsa('article.policy section[id]').forEach(sec=>io.observe(sec));
+    })();
+
+    (function cookieConsent(){
+      const KEY = 'travelo_cookie_consent';
+      const banner = qs('#cookieBanner');
+      const acceptBtn = qs('#cookieAccept');
+      const declineBtn = qs('#cookieDecline');
+      try{
+        const saved = localStorage.getItem(KEY);
+        if(!saved) banner.classList.add('show');
+        acceptBtn.addEventListener('click', ()=>{
+          localStorage.setItem(KEY, JSON.stringify({status:'accepted', ts:Date.now()}));
+          banner.classList.remove('show');
+        });
+        declineBtn.addEventListener('click', ()=>{
+          localStorage.setItem(KEY, JSON.stringify({status:'declined', ts:Date.now()}));
+          banner.classList.remove('show');
+        });
+      }catch(e){
+
+        acceptBtn.addEventListener('click', ()=>banner.classList.remove('show'));
+        declineBtn.addEventListener('click', ()=>banner.classList.remove('show'));
+      }
+    })();
+  </script>
+</body>
+</html>

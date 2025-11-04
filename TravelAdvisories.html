@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Travelo · Safety & Travel Advisories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#0f172a; --muted:#64748b; --bg:#ffffff; --surface:#ffffff;
+      --accent:#872bff; --accent2:#6c63ff; --border:#e8eaf3; --radius:18px;
+      --shadow:0 14px 42px rgba(9,10,22,.12); --halo:rgba(135,43,255,.14);
+      --critical:#dc2626; --high:#f97316; --moderate:#eab308; --info:#3b82f6;
+      --ok:#10b981;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{
+      font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink); background:var(--bg); overflow-x:hidden;
+    }
+
+        .progress{position:fixed;inset:0 0 auto 0;height:4px;width:0;z-index:9999;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 0 10px rgba(135,43,255,.35)
+    }
+
+        .hero{
+      position:relative; height:420px; display:grid; place-items:center; text-align:center; color:#fff; overflow:hidden
+    }
+    .hero::before{
+      content:""; position:absolute; inset:0;
+      background:
+        radial-gradient(900px 540px at 10% 10%, rgba(135,43,255,.33), transparent 60%),
+        radial-gradient(900px 540px at 90% 90%, rgba(108,99,255,.28), transparent 60%),
+        linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.60)),
+        url("https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=1600&q=80");
+      background-size:cover; background-position:center
+    }
+    .hero .wrap{position:relative; z-index:1; padding:0 18px; max-width:1100px; animation:fadeUp .8s ease both}
+    .hero h1{margin:0; font-size:56px; line-height:1.04; letter-spacing:.2px}
+    .hero p{margin:12px 0 0; font-size:18px; opacity:.96}
+    @media (max-width:720px){ .hero{height:360px} .hero h1{font-size:36px} }
+
+        .strip{background:#0f172a; color:#e5e7eb; padding:10px 18px; font-weight:700; display:flex; gap:12px; align-items:center; justify-content:center}
+    .strip b{color:#fff; display:inline-flex; align-items:center; gap:8px}
+    .badge-dot{display:inline-block; width:8px; height:8px; border-radius:50%}
+
+        main{max-width:1280px; margin:40px auto; padding:0 18px}
+    .grid{display:grid; grid-template-columns: 1.65fr .35fr; gap:18px}
+    @media (max-width:1100px){ .grid{grid-template-columns:1fr} }
+
+        .controls{
+      background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow);
+      padding:14px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; position:sticky; top:14px; z-index:5
+    }
+    .search{flex:1 1 300px; display:flex; align-items:center; gap:8px}
+    .search input{
+      width:100%; border:1px solid var(--border); border-radius:12px; padding:10px 12px; outline:none;
+      box-shadow:inset 0 1px 0 rgba(17,17,17,.04)
+    }
+    .select, .chip{border:1px solid var(--border); background:#fff; border-radius:12px; padding:10px 12px; font-weight:800; cursor:pointer}
+    .chip{border-radius:999px; font-size:12px}
+    .chip.active{border-color:var(--accent); box-shadow:0 0 0 6px var(--halo)}
+    .legend{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+    .legend .i{display:flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:#475569}
+
+        .list{display:grid; gap:14px}
+    .card{
+      display:grid; grid-template-columns: 1fr 2fr; gap:16px; align-items:stretch;
+      background:var(--surface); border:1px solid var(--border); border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .card:hover{ transform:translateY(-3px); box-shadow:0 18px 54px rgba(9,10,22,.16) }
+    @media (max-width:900px){ .card{grid-template-columns:1fr} }
+
+    .media{position:relative; min-height:220px; overflow:hidden}
+    .media img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.06); opacity:0; transition:opacity .6s, transform 1s; filter:saturate(1.02) contrast(1.03)}
+    .media.loaded img{opacity:1; transform:scale(1)}
+    .sev{position:absolute; top:12px; left:12px; font-weight:900; font-size:12px; padding:6px 10px; border-radius:999px; color:#fff}
+    .sev.critical{background:linear-gradient(135deg,#ef4444,#dc2626)}
+    .sev.high{background:linear-gradient(135deg,#fb923c,#f97316)}
+    .sev.moderate{background:linear-gradient(135deg,#facc15,#eab308); color:#1f2937}
+    .sev.info{background:linear-gradient(135deg,#60a5fa,#3b82f6)}
+
+    .body{padding:14px}
+    .title{margin:0 0 6px; font-size:20px; font-weight:900; letter-spacing:.2px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+    .pill{background:#f8fafc; border:1px solid var(--border); color:#334155; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:800}
+    .meta{display:flex; gap:10px; align-items:center; color:#64748b; font-size:12px; font-weight:800}
+    .dot{width:6px; height:6px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2))}
+    .summary{margin:10px 0 0; color:#1f2937; line-height:1.6}
+    .actions{display:flex; gap:8px; margin-top:12px}
+    .btn{border:1px solid var(--border); background:#fff; padding:9px 12px; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer}
+    .btn:hover{border-color:var(--accent); box-shadow:0 0 0 6px var(--halo)}
+
+        .side{display:grid; gap:14px}
+    .panel{
+      background:#fff; border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:14px
+    }
+    .panel h3{margin:4px 0 10px; font-size:16px}
+    .checklist{display:grid; gap:8px}
+    .check{display:flex; align-items:center; gap:10px; font-weight:700; color:#334155}
+    .num{display:inline-block; min-width:28px; height:28px; border-radius:999px; background:#f1f5f9; border:1px solid var(--border); text-align:center; line-height:26px; font-weight:900}
+    .tips{display:grid; gap:8px}
+    .tip{border:1px dashed #e5e7eb; border-radius:12px; padding:10px; background:#fafafa; font-size:13px; color:#475569}
+
+        .snap{display:grid; gap:10px}
+    .snap .rail{display:grid; grid-auto-flow:column; grid-auto-columns: 280px; gap:12px; overflow:auto; scroll-snap-type:x mandatory; padding-bottom:6px}
+    .snap .rail::-webkit-scrollbar{height:8px}
+    .snap .rail::-webkit-scrollbar-thumb{background:#d9def9; border-radius:999px}
+    .card-mini{scroll-snap-align:center; position:relative; border-radius:14px; overflow:hidden; height:160px; border:1px solid var(--border)}
+    .card-mini img{width:100%; height:100%; object-fit:cover}
+    .card-mini .label{position:absolute; left:10px; bottom:10px; background:rgba(0,0,0,.45); color:#fff; font-weight:900; padding:6px 10px; border-radius:999px}
+
+        .reveal{opacity:0; transform:translateY(22px) scale(.985); transition:opacity .6s ease, transform .6s ease}
+    .reveal.in{opacity:1; transform:translateY(0) scale(1)}
+
+        .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.45); z-index:50; padding:18px}
+    .modal.in{display:flex}
+    .dialog{max-width:760px; width:100%; background:#fff; border-radius:16px; border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden}
+    .dialog .cover{position:relative; height:220px; overflow:hidden}
+    .dialog .cover img{width:100%; height:100%; object-fit:cover}
+    .dialog .content{padding:16px}
+    .dialog .content h3{margin:0 0 6px}
+    .dialog .content p{margin:8px 0}
+    .dialog .footer{display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-top:1px solid var(--border)}
+    .x{border:none; background:#fff; border-left:1px solid var(--border); padding:10px 14px; font-weight:900; cursor:pointer}
+
+    @keyframes fadeUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)}}
+    @media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important} }
+  </style>
+</head>
+<body>
+
+  <div class="progress" id="progress"></div>
+
+    <header class="hero" aria-label="Safety & Travel Advisories">
+    <div class="wrap">
+      <h1>Safety & Travel Advisories</h1>
+      <p>Clear, practical guidance—so you can plan with confidence and react fast when plans change.</p>
+    </div>
+  </header>
+
+    <div class="strip">
+    <b><span class="badge-dot" style="background:var(--critical)"></span> Critical</b>
+    <b><span class="badge-dot" style="background:var(--high)"></span> High</b>
+    <b><span class="badge-dot" style="background:var(--moderate)"></span> Moderate</b>
+    <b><span class="badge-dot" style="background:var(--info)"></span> Info</b>
+  </div>
+
+  <main>
+    <div class="grid">
+
+            <section class="left">
+        <div class="controls reveal" id="controls">
+          <div class="search">
+            <input id="q" type="search" placeholder="Search country, city, keyword… (e.g., Tokyo, flooding, protest)"/>
+          </div>
+          <select id="region" class="select" title="Region">
+            <option value="all">All Regions</option>
+            <option>Africa</option><option>Americas</option><option>Asia</option><option>Europe</option><option>Oceania</option><option>Middle East</option>
+          </select>
+          <div class="legend">
+            <button class="chip" data-sev="all">All</button>
+            <button class="chip" data-sev="critical">Critical</button>
+            <button class="chip" data-sev="high">High</button>
+            <button class="chip active" data-sev="moderate">Moderate</button>
+            <button class="chip" data-sev="info">Info</button>
+          </div>
+        </div>
+
+        <div class="list" id="list"></div>
+      </section>
+
+            <aside class="side">
+        <div class="panel reveal">
+          <h3>Trip Safety Checklist</h3>
+          <div class="checklist" id="cl">
+            <label class="check"><input type="checkbox"> Passport valid 6+ months</label>
+            <label class="check"><input type="checkbox"> Entry visa / eTA confirmed</label>
+            <label class="check"><input type="checkbox"> Travel insurance (medical & trip)</label>
+            <label class="check"><input type="checkbox"> Offline copies (ID, tickets, meds)</label>
+            <label class="check"><input type="checkbox"> Local emergency numbers saved</label>
+            <label class="check"><input type="checkbox"> Consent for minors (if applicable)</label>
+          </div>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Quick Tips</h3>
+          <div class="tips">
+            <div class="tip">Register your trip with your embassy when traveling for extended stays.</div>
+            <div class="tip">Keep small cash for power outages or network issues at payment terminals.</div>
+            <div class="tip">Use offline maps + save your hotel pin and a local taxi number.</div>
+            <div class="tip">Pack a small first-aid kit (pain relief, rehydration salts, bandages).</div>
+          </div>
+        </div>
+
+        <div class="panel reveal snap">
+          <h3>Situational Awareness</h3>
+          <div class="rail">
+            <div class="card-mini"><img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=70" alt=""><div class="label">Crowds</div></div>
+            <div class="card-mini"><img src="https://images.unsplash.com/photo-1502303756787-90e6c7a0a62a?auto=format&fit=crop&w=800&q=70" alt=""><div class="label">Weather</div></div>
+            <div class="card-mini"><img src="https://images.unsplash.com/photo-1520975922372-2c9532b2b8f8?auto=format&fit=crop&w=800&q=70" alt=""><div class="label">Transit</div></div>
+            <div class="card-mini"><img src="https://images.unsplash.com/photo-1502982720700-bfff97f2ecac?auto=format&fit=crop&w=800&q=70" alt=""><div class="label">Night</div></div>
+            <div class="card-mini"><img src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=800&q=70" alt=""><div class="label">Coast</div></div>
+          </div>
+        </div>
+
+        <div class="panel reveal">
+          <h3>Emergency Numbers</h3>
+          <div class="tips">
+            <div class="tip"><b>EU</b>: 112 · <b>US/CA</b>: 911 · <b>UK</b>: 999/112 · <b>AU/NZ</b>: 000/111</div>
+            <div class="tip"><b>Global</b>: store your airline, hotel, and insurer hotlines.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+    <div class="modal" id="modal" aria-hidden="true">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="m-title">
+      <div class="cover"><img id="m-img" alt=""></div>
+      <div class="content">
+        <h3 id="m-title"></h3>
+        <div id="m-meta" class="meta" style="margin:6px 0 8px"></div>
+        <p id="m-desc"></p>
+        <p id="m-adv"></p>
+      </div>
+      <div class="footer">
+        <small id="m-src"></small>
+        <button class="x" id="m-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+  const ADVISORIES = [
+    {
+      id:'tokyo-heat', title:'Heatwave & typhoon season guidance',
+      country:'Japan', region:'Asia', city:'Tokyo', severity:'moderate',
+      updated:'2025-07-18', image:'https://images.unsplash.com/photo-1554797589-7241bb691973?auto=format&fit=crop&w=1600&q=80',
+      summary:'High humidity and periodic typhoons. Expect transit delays; carry water and check rail updates.',
+      details:'Avoid riverbanks during heavy rain. Enable emergency alerts on your phone. Many shelters accept travelers—follow local ward announcements.',
+      sources:[{name:'JR East Status', url:'https://www.jreast.co.jp/e/'}]
+    },
+    {
+      id:'paris-gatherings', title:'Large gatherings & transit disruptions',
+      country:'France', region:'Europe', city:'Paris', severity:'high',
+      updated:'2025-05-29', image:'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1600&q=80',
+      summary:'Periodic protests can affect central districts. Metro and bus lines may close with short notice.',
+      details:'Avoid dense crowds; monitor official city alerts. Keep extra time for airport transfers. Some museums adjust hours during events.',
+      sources:[{name:'RATP Updates', url:'https://www.ratp.fr/en'}]
+    },
+    {
+      id:'california-wildfire', title:'Wildfire smoke & park closures',
+      country:'United States', region:'Americas', city:'California', severity:'high',
+      updated:'2025-08-30', image:'https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=1600&q=80',
+      summary:'Air quality can deteriorate quickly; closures possible in affected counties.',
+      details:'Check AQI before outdoor plans. Carry N95 masks if sensitive. Keep your itinerary flexible and share location with a contact.',
+      sources:[{name:'CalFire', url:'https://www.fire.ca.gov/'}]
+    },
+    {
+      id:'cairo-heat', title:'Extreme heat safety reminders',
+      country:'Egypt', region:'Africa', city:'Cairo', severity:'moderate',
+      updated:'2025-07-04', image:'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1600&q=80',
+      summary:'Daytime temperatures above 40°C. Hydration and shade planning essential.',
+      details:'Plan outdoor sites for early morning. Electrolytes help. Respect local advisories regarding desert excursions.',
+      sources:[{name:'Met Office', url:'https://www.metoffice.gov.uk/'}]
+    },
+    {
+      id:'sydney-surf', title:'Hazardous surf & rip currents',
+      country:'Australia', region:'Oceania', city:'Sydney', severity:'info',
+      updated:'2025-11-12', image:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80',
+      summary:'Heavy swell forecast on some beaches. Lifeguard flags indicate safe zones.',
+      details:'Swim between red-yellow flags. If caught in a rip, stay calm and swim parallel to shore.',
+      sources:[{name:'Surf Life Saving', url:'https://sls.com.au/'}]
+    },
+    {
+      id:'istanbul-ferry', title:'Bosphorus ferry schedule changes',
+      country:'Türkiye', region:'Middle East', city:'Istanbul', severity:'info',
+      updated:'2025-09-08', image:'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1600&q=80',
+      summary:'Maintenance affects late-night crossings; expect longer intervals.',
+      details:'Use contactless cards (Istanbulkart). Consider metro as backup after 22:00.',
+      sources:[{name:'City Lines', url:'https://www.sehirhatlari.istanbul/'}]
+    },
+    {
+      id:'mumbai-rains', title:'Monsoon flooding risk',
+      country:'India', region:'Asia', city:'Mumbai', severity:'critical',
+      updated:'2025-07-01', image:'https://images.unsplash.com/photo-1520975922372-2c9532b2b8f8?auto=format&fit=crop&w=1600&q=80',
+      summary:'Flash floods cause rapid transit outages. Ground floors in some areas may flood.',
+      details:'Avoid underpasses, carry waterproof pouch, and keep power bank. Local trains can halt entirely—track alerts before departure.',
+      sources:[{name:'MMRDA', url:'https://mmrda.maharashtra.gov.in/'}]
+    }
+  ];
+
+  const FALLBACK = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80";
+
+  const list = document.getElementById('list');
+  const q = document.getElementById('q');
+  const region = document.getElementById('region');
+  const chips = [...document.querySelectorAll('.chip')];
+
+  function severityLabel(sev){
+    return {
+      critical:'Critical',
+      high:'High',
+      moderate:'Moderate',
+      info:'Info'
+    }[sev] || 'Info';
+  }
+
+  function card(a){
+    const wrap = document.createElement('article');
+    wrap.className = 'card reveal';
+    wrap.dataset.severity = a.severity;
+    wrap.dataset.region = a.region;
+    wrap.dataset.country = a.country.toLowerCase();
+    wrap.dataset.city = (a.city||'').toLowerCase();
+    wrap.dataset.text = `${a.title} ${a.summary} ${a.details}`.toLowerCase();
+
+    const media = document.createElement('figure');
+    media.className = 'media';
+    const img = document.createElement('img');
+    img.alt = a.title;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.dataset.src = a.image;
+    img.onerror = ()=>{ img.src = FALLBACK; };
+    media.appendChild(img);
+
+    const sev = document.createElement('span');
+    sev.className = `sev ${a.severity}`;
+    sev.textContent = severityLabel(a.severity);
+    media.appendChild(sev);
+
+    const body = document.createElement('div');
+    body.className = 'body';
+    const title = document.createElement('h3');
+    title.className = 'title';
+    title.innerHTML = `${a.title} <span class="pill">${a.country}${a.city? ' · '+a.city:''}</span>`;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.innerHTML = `<span class="dot"></span><span>Updated ${a.updated}</span><span>•</span><span>${a.region}</span>`;
+
+    const summary = document.createElement('p');
+    summary.className = 'summary';
+    summary.textContent = a.summary;
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    const btn = document.createElement('button');
+    btn.className = 'btn'; btn.textContent = 'View details';
+    btn.addEventListener('click', ()=>openModal(a));
+
+    actions.appendChild(btn);
+
+    body.append(title, meta, summary, actions);
+    wrap.append(media, body);
+    list.appendChild(wrap);
+
+    lazy.observe(img);
+    io.observe(wrap);
+  }
+
+  function render(){
+    list.innerHTML = '';
+    ADVISORIES.forEach(card);
+  }
+
+  function applyFilters(){
+    const term = (q.value||'').trim().toLowerCase();
+    const r = region.value;
+    const sev = chips.find(c=>c.classList.contains('active'))?.dataset.sev || 'moderate';
+
+    list.querySelectorAll('.card').forEach(c=>{
+      const okRegion = (r==='all') || (c.dataset.region === r);
+      const okSev = (sev==='all') || (c.dataset.severity === sev);
+      const hay = (c.dataset.text || '') + ' ' + (c.dataset.country||'') + ' ' + (c.dataset.city||'');
+      const okTerm = term==='' || hay.includes(term);
+      c.style.display = (okRegion && okSev && okTerm) ? '' : 'none';
+    });
+  }
+
+  q.addEventListener('input', applyFilters);
+  region.addEventListener('change', applyFilters);
+  chips.forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      chips.forEach(x=>x.classList.remove('active'));
+      ch.classList.add('active');
+      applyFilters();
+    });
+  });
+
+  const modal = document.getElementById('modal');
+  const mImg = document.getElementById('m-img');
+  const mTitle = document.getElementById('m-title');
+  const mMeta = document.getElementById('m-meta');
+  const mDesc = document.getElementById('m-desc');
+  const mAdv = document.getElementById('m-adv');
+  const mSrc = document.getElementById('m-src');
+
+  function openModal(a){
+    mImg.src = a.image;
+    mTitle.textContent = a.title;
+    mMeta.innerHTML = `<span class="dot"></span><span>${a.country}${a.city?' · '+a.city:''}</span><span>•</span><span>${a.region}</span><span>•</span><span>Updated ${a.updated}</span>`;
+    mDesc.textContent = a.summary;
+    mAdv.textContent = a.details;
+    mSrc.innerHTML = a.sources?.map(s=>`<a href="${s.url}" target="_blank" rel="noopener" style="color:#3b82f6;text-decoration:none;font-weight:800">${s.name}</a>`).join(' · ') || '';
+    modal.classList.add('in');
+    modal.setAttribute('aria-hidden','false');
+  }
+  document.getElementById('m-close').addEventListener('click', ()=>{
+    modal.classList.remove('in'); modal.setAttribute('aria-hidden','true');
+  });
+  modal.addEventListener('click', (e)=>{ if(e.target===modal){ modal.classList.remove('in'); modal.setAttribute('aria-hidden','true'); }});
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') modal.classList.remove('in'); });
+
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.18});
+
+  const lazy = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(!entry.isIntersecting) return;
+      const img = entry.target;
+      img.src = img.dataset.src;
+      img.onload = ()=> img.closest('.media')?.classList.add('loaded');
+      lazy.unobserve(img);
+    });
+  }, {rootMargin:'250px 0px'});
+
+  const progress=document.getElementById('progress');
+  const setProgress=()=>{const h=document.documentElement; const s=h.scrollTop/(h.scrollHeight-h.clientHeight); progress.style.width=(s*100)+'%';};
+  document.addEventListener('scroll',setProgress,{passive:true}); setProgress();
+
+  render();
+  applyFilters();
+  </script>
+</body>
+</html>

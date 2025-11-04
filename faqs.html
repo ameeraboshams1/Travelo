@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Travelo · FAQs</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./assets/css/faqs.css">
+</head>
+<body>
+    <header class="topbar">
+    <div class="container topbar-row">
+      <a class="brand" href="index.html" aria-label="Go to Travelo home">
+        <img src="./assets/images/logo.svg" alt="Travelo" class="logo">
+        <span>Travelo</span>
+      </a>
+      <div class="top-actions">
+        <button id="scrollTop" class="chip ghost" aria-label="Back to top" title="Back to top">↑</button>
+      </div>
+    </div>
+    <div class="glow"></div>
+  </header>
+
+  <main class="container layout">
+        <aside class="sidebar" aria-label="FAQ sections">
+      <div class="side-box">
+        <h3>Sections</h3>
+        <nav id="sideNav" class="side-nav">
+          <a href="#Booking"  class="side-link">Booking</a>
+          <a href="#Payments" class="side-link">Payments</a>
+          <a href="#Flights"  class="side-link">Flights</a>
+          <a href="#Hotels"   class="side-link">Hotels</a>
+          <a href="#Changes"  class="side-link">Changes & Refunds</a>
+          <a href="#Policies" class="side-link">Travel Policies</a>
+          <a href="#Support"  class="side-link">Support & Account</a>
+        </nav>
+      </div>
+
+      <div class="side-box tips">
+        <h3>Quick Tips</h3>
+        <ul>
+          <li>Try “baggage”, “refund”, or “check-in”.</li>
+          <li>Use tabs to narrow results.</li>
+          <li>Click 🔗 to copy a direct link.</li>
+        </ul>
+      </div>
+    </aside>
+
+        <section class="content">
+            <div class="hero">
+        <h1 class="reveal">Frequently Asked Questions</h1>
+        <p class="muted reveal-delay">Instant answers about bookings, flights, hotels, payments, and more.</p>
+      </div>
+
+            <div class="controls">
+        <div class="search-wrap" role="search">
+          <input id="searchInput" type="search" placeholder="Search (e.g., baggage, refund, check-in)..." aria-label="Search FAQs">
+          <button id="clearSearch" class="ghost" aria-label="Clear search" title="Clear">✕</button>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="FAQ categories">
+          <button class="tab is-active" role="tab" aria-selected="true" data-category="All">All</button>
+          <button class="tab" role="tab" aria-selected="false" data-category="Booking">Booking</button>
+          <button class="tab" role="tab" aria-selected="false" data-category="Payments">Payments</button>
+          <button class="tab" role="tab" aria-selected="false" data-category="Flights">Flights</button>
+          <button class="tab" role="tab" aria-selected="false" data-category="Hotels">Hotels</button>
+          <button class="tab" role="tab" aria-selected="false" data-category="Changes">Changes & Refunds</button>
+          <button class="tab" role="tab" aria-selected="false" data-category="Policies">Travel Policies</button>
+          <button class="tab" role="tab" aria-selected="false" data-category="Support">Support & Account</button>
+        </div>
+
+        <div class="bulk-actions">
+          <button id="expandAll" class="soft">Expand all</button>
+          <button id="collapseAll" class="soft">Collapse all</button>
+          <button id="printPage" class="soft ghost">Print</button>
+        </div>
+      </div>
+
+            <div class="pill-row">
+        <span id="resultCount" class="pill muted" aria-live="polite"></span>
+        <span id="recentTag" class="pill hidden">Recently viewed</span>
+        <span id="popularTag" class="pill">Popular</span>
+      </div>
+
+            <div id="Booking"></div>
+      <div id="Payments"></div>
+      <div id="Flights"></div>
+      <div id="Hotels"></div>
+      <div id="Changes"></div>
+      <div id="Policies"></div>
+      <div id="Support"></div>
+
+            <div id="faqList" class="faq-list" role="list"></div>
+
+            <div class="cta">
+        <h3>Still need help?</h3>
+        <p>Leave us your feedback (saved locally). No login or server needed.</p>
+        <div class="cta-actions">
+          <button id="openFeedback" class="btn">Send Feedback</button>
+        </div>
+      </div>
+
+            <div id="feedbackModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Send feedback">
+        <div class="modal-card" role="document">
+          <header class="modal-head">
+            <h3>Tell us what we can improve</h3>
+            <button class="icon-btn" id="closeFeedback" aria-label="Close">✕</button>
+          </header>
+          <div class="modal-body">
+            <label class="field">
+              <span>Topic (optional)</span>
+              <input type="text" id="fbTopic" placeholder="Search, refunds, payments...">
+            </label>
+            <label class="field">
+              <span>Your feedback</span>
+              <textarea id="fbText" rows="5" placeholder="Type your message..."></textarea>
+            </label>
+          </div>
+          <footer class="modal-foot">
+            <button class="btn ghost" id="downloadFeedback" title="Download saved feedback as CSV">Download CSV</button>
+            <div style="flex:1"></div>
+            <button class="btn ghost" id="cancelFeedback">Cancel</button>
+            <button class="btn" id="sendFeedback">Send</button>
+          </footer>
+        </div>
+      </div>
+
+            <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Travelo. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="./assets/js/faqs.js"></script>
+</body>
+</html>

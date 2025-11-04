@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Travelo · About</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #8a8fb9;
+      --bg: #f7f8fb;
+      --surface: #ffffff;
+      --accent: #872bff;
+      --accent-2: #6c63ff;
+      --border: #e8eaf3;
+      --shadow: 0 12px 32px rgba(17, 17, 17, .06);
+      --radius: 18px;
+      --halo: rgba(135, 43, 255, .12);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      margin: 0
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #fff;
+      color: var(--ink);
+      overflow-x: hidden
+    }
+
+        .progress {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      width: 0;
+      z-index: 9999;
+      box-shadow: 0 0 10px rgba(135, 43, 255, .4)
+    }
+
+        .hero {
+      position: relative;
+      height: 600px;
+            display: grid;
+      place-items: center;
+      text-align: center;
+      color: #fff;
+      overflow: hidden;
+
+            background-image: url("./assets/images/about\ profile.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+            background:
+        radial-gradient(900px 540px at 10% 10%, rgba(135, 43, 255, .35), transparent 60%),
+        radial-gradient(900px 540px at 90% 90%, rgba(108, 99, 255, .35), transparent 60%),
+        rgba(18, 20, 39, .55);
+    }
+
+    .hero .inner {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      padding: 0 18px;
+      animation: fadeUp .9s ease both
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 72px;
+      line-height: 1.02;
+      letter-spacing: .5px;
+      text-transform: lowercase
+    }
+
+    .hero p.tag {
+      margin: 8px 0 0;
+      font-size: 18px;
+      opacity: .95
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+        section {
+      max-width: 1100px;
+      margin: 56px auto;
+      padding: 0 18px
+    }
+
+    h2.sec {
+      font-size: 28px;
+      margin: 0 0 10px;
+      color: var(--accent);
+      text-align: center
+    }
+
+    p.sec-sub {
+      color: var(--muted);
+      text-align: center;
+      margin: 0 0 20px
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: .7s
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+        .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px
+    }
+
+    @media (max-width:720px) {
+      .split {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .donut-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center
+    }
+
+    .donut {
+      --val: 0deg;
+      --bg: #eef0ff;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) var(--val), var(--bg) 0);
+      position: relative;
+      box-shadow: inset 0 0 0 1px #e9ecff;
+    }
+
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid #f0f2ff
+    }
+
+    .donut b {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      z-index: 2
+    }
+
+    .donut-card h3 {
+      margin: 0 0 6px
+    }
+
+    .donut-card p {
+      margin: 0;
+      color: #4b5563
+    }
+
+        .concept {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 16px
+    }
+
+    @media (max-width:900px) {
+      .concept {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px
+    }
+
+    .panel h3 {
+      margin: 0 0 8px
+    }
+
+    .panel p {
+      margin: 0 0 10px;
+      color: #444
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .kv .item {
+      background: #fafbff;
+      border: 1px dashed #dde2ff;
+      border-radius: 12px;
+      padding: 10px
+    }
+
+    .kv .k {
+      font-weight: 800;
+      color: #394150;
+      font-size: 12px
+    }
+
+    .kv .v {
+      color: #111;
+      font-weight: 700
+    }
+
+        .pillars {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px
+    }
+
+    @media (max-width:1000px) {
+      .pillars {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+
+    @media (max-width:560px) {
+      .pillars {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .pillar {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .pillar h3 {
+      margin: 6px 0
+    }
+
+    .pillar p {
+      margin: 0;
+      color: #4b5563
+    }
+
+    .pillar .glow {
+      position: absolute;
+      inset: auto -20% -40% -20%;
+      height: 120px;
+      background: radial-gradient(260px 90px at 50% 0, rgba(135, 43, 255, .16), transparent 60%);
+      filter: blur(20px);
+      pointer-events: none
+    }
+
+        .flow {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 16px
+    }
+
+    @media (max-width:900px) {
+      .flow {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .steps {
+      position: sticky;
+      top: 100px;
+      display: grid;
+      gap: 10px;
+      height: max-content
+    }
+
+    .step {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: 800
+    }
+
+    .step.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 6px var(--halo)
+    }
+
+    .panes {
+      display: grid;
+      gap: 10px
+    }
+
+    .pane {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px
+    }
+
+        .arch {
+      background: linear-gradient(180deg, #eef0ff, #fff);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 16px
+    }
+
+    .diagram {
+      position: relative;
+      height: 260px;
+      border: 1px dashed #dae0ff;
+      border-radius: 12px;
+      background: #fff
+    }
+
+    .box {
+      position: absolute;
+      min-width: 240px;
+      text-align: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 12px
+    }
+
+    .box small {
+      display: block;
+      color: #a0a6c8;
+      font-weight: 600
+    }
+
+    .box.left {
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%)
+    }
+
+    .box.right {
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%)
+    }
+
+    .arrow {
+      position: absolute;
+      left: 280px;
+      right: 280px;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2))
+    }
+
+    .arrow::after {
+      content: "";
+      position: absolute;
+      right: -8px;
+      top: -6px;
+      border: 8px solid transparent;
+      border-left-color: var(--accent-2)
+    }
+
+        .road {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 14px
+    }
+
+    .track {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(260px, 320px);
+      gap: 12px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 8px
+    }
+
+    .track::-webkit-scrollbar {
+      height: 8px
+    }
+
+    .track::-webkit-scrollbar-thumb {
+      background: #d8dbff;
+      border-radius: 999px
+    }
+
+    .milestone {
+      scroll-snap-align: center;
+      background: #fafbff;
+      border: 1px dashed #dfe3ff;
+      border-radius: 14px;
+      padding: 12px
+    }
+
+    .milestone h4 {
+      margin: 0 0 6px
+    }
+
+    .milestone p {
+      margin: 0;
+      color: #4b5563
+    }
+
+        .team {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    @media (max-width:720px) {
+      .team {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .member {
+      perspective: 1200px;
+      height: 340px
+    }
+
+    .card3d {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .card3d-inner {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transition: transform .7s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .member:hover .card3d-inner,
+    .member.flipped .card3d-inner {
+      transform: rotateY(180deg)
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: grid;
+      place-content: end stretch;
+    }
+
+    .face.front {
+      color: #fff;
+      background: #000;
+    }
+
+    .face.front img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: .9;
+      transform: scale(1.06)
+    }
+
+    .face.front .top-chip {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(255, 255, 255, .14);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, .25);
+      color: #fff;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 999px
+    }
+
+    .face.front .label {
+      background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .65));
+      padding: 14px;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: .2px
+    }
+
+    .face.back {
+      background:
+        radial-gradient(80% 120% at 10% 10%, rgba(135, 43, 255, .18), transparent 60%),
+        radial-gradient(80% 120% at 90% 90%, rgba(108, 99, 255, .18), transparent 60%),
+        #0f1126;
+      color: #e8eaff;
+      transform: rotateY(180deg);
+      padding: 16px;
+      gap: 10px;
+      align-content: start
+    }
+
+    .face.back h4 {
+      margin: 0 0 2px;
+      font-size: 20px;
+      color: #fff
+    }
+
+    .face.back .role {
+      margin: 0 0 8px;
+      font-weight: 800;
+      color: #cfd2ff
+    }
+
+    .face.back p {
+      margin: 0 0 10px;
+      color: #c0c5ff
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    .tag {
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .18);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800
+    }
+
+        .foot-mini {
+      max-width: 1100px;
+      margin: 56px auto 30px;
+      padding: 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      * {
+        animation: none !important;
+        transition: none !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="progress" id="progress"></div>
+
+
+  <header class="hero" aria-label="About hero">
+    <div class="inner">
+      <h1>about</h1>
+      <p class="tag">Travelo is a booking platform for flights and hotels.
+      </p>
+    </div>
+  </header>
+
+    <section aria-labelledby="split">
+    <h2 class="sec" id="split">Travelo Split</h2>
+    <p class="sec-sub">Realistic effort distribution across the stack</p>
+    <div class="split reveal" id="splitWrap">
+      <div class="donut-card">
+        <div class="donut" data-p="65"><b>0%</b></div>
+        <div>
+          <h3>Frontend — 65%</h3>
+          <p>HTML/CSS/JS: search, filters, results, checkout, state management, responsive UX.</p>
+        </div>
+      </div>
+      <div class="donut-card">
+        <div class="donut" data-p="35"><b>0%</b></div>
+        <div>
+          <h3>Backend (PHP) — 35%</h3>
+          <p>Endpoints for search & booking, reference generation, payment states, validation, idempotency.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <section aria-labelledby="concept">
+    <h2 class="sec" id="concept">What is Travelo?</h2>
+    <p class="sec-sub">A focused journey: search → compare → book → manage</p>
+    <div class="concept reveal">
+      <div class="panel">
+        <h3>Idea</h3>
+        <p>Travelo removes noise from booking. We prioritise clarity (totals without surprises), speed (fewest steps),
+          and control (filters that actually matter). The frontend is plain, readable HTML/CSS/JS; the backend is a
+          small PHP layer with predictable responses.</p>
+        <p>We care about honest states: draft, paid, ticketed, refunded — each one visible and explainable to the user.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Snapshot</h3>
+        <div class="kv">
+          <div class="item">
+            <div class="k">Year</div>
+            <div class="v">2025</div>
+          </div>
+          <div class="item">
+            <div class="k">Scope</div>
+            <div class="v">Flights · Hotels</div>
+          </div>
+          <div class="item">
+            <div class="k">Frontend</div>
+            <div class="v">HTML · CSS · JS</div>
+          </div>
+          <div class="item">
+            <div class="k">Backend</div>
+            <div class="v">PHP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <section aria-labelledby="pillars">
+    <h2 class="sec" id="pillars">Product Pillars</h2>
+    <p class="sec-sub">The principles guiding every screen</p>
+    <div class="pillars reveal">
+      <div class="pillar">
+        <div class="glow"></div>
+        <h3>Clarity</h3>
+        <p>Totals, policies, and refund reasons are never hidden or delayed.</p>
+      </div>
+      <div class="pillar">
+        <div class="glow"></div>
+        <h3>Speed</h3>
+        <p>Three steps to checkout. Predictable inputs. No reload jumps.</p>
+      </div>
+      <div class="pillar">
+        <div class="glow"></div>
+        <h3>Control</h3>
+        <p>Filters that matter: duration, stops, time windows, cabin class.</p>
+      </div>
+      <div class="pillar">
+        <div class="glow"></div>
+        <h3>Trust</h3>
+        <p>Readable states; idempotent booking flow on the PHP side.</p>
+      </div>
+    </div>
+  </section>
+
+    <section aria-labelledby="flow">
+    <h2 class="sec" id="flow">How it Works</h2>
+    <p class="sec-sub">Simple steps with explicit states</p>
+    <div class="flow reveal" id="flowWrap">
+      <div class="steps" id="steps">
+        <div class="step active" data-step="1">1. Search</div>
+        <div class="step" data-step="2">2. Compare</div>
+        <div class="step" data-step="3">3. Checkout</div>
+        <div class="step" data-step="4">4. Confirm</div>
+      </div>
+      <div class="panes" id="panes">
+        <div class="pane" data-step="1">User enters from/to/date/class → JS validates and builds a request for PHP
+          search.</div>
+        <div class="pane" data-step="2">Results render as tidy cards with honest totals and stable filters.</div>
+        <div class="pane" data-step="3">One-page checkout (traveler, payment, policy) → safe POST to PHP (idempotent).
+        </div>
+        <div class="pane" data-step="4">Confirmation with booking reference and a clear state.</div>
+      </div>
+    </div>
+  </section>
+
+    <section aria-labelledby="arch">
+    <h2 class="sec" id="arch">Architecture</h2>
+    <p class="sec-sub">Client (HTML/CSS/JS) ↔ PHP backend</p>
+    <div class="arch reveal">
+      <div class="diagram" id="diagram">
+        <div class="box left">Client: HTML · CSS · JS<small>UI · State · Fetch</small></div>
+        <div class="box right">Backend: PHP<small>search.php · book.php</small></div>
+        <div class="arrow" id="arrow"></div>
+      </div>
+    </div>
+  </section>
+
+    <section aria-labelledby="roadmap">
+    <h2 class="sec" id="roadmap">Roadmap</h2>
+    <p class="sec-sub">Short, student-friendly milestones</p>
+    <div class="road reveal">
+      <div class="track" id="track">
+        <div class="milestone">
+          <h4>v0.1 — Core skeleton</h4>
+          <p>Base layout, tokens, and first screens.</p>
+        </div>
+        <div class="milestone">
+          <h4>v0.2 — Search results</h4>
+          <p>Cards, filters, totals that update instantly.</p>
+        </div>
+        <div class="milestone">
+          <h4>v0.3 — Checkout</h4>
+          <p>One page, validation, draft persistence.</p>
+        </div>
+        <div class="milestone">
+          <h4>v0.4 — PHP booking</h4>
+          <p>Idempotent POST; reference generator.</p>
+        </div>
+        <div class="milestone">
+          <h4>v0.5 — States & refunds</h4>
+          <p>Readable states and reasons.</p>
+        </div>
+        <div class="milestone">
+          <h4>v0.6 — Polish</h4>
+          <p>Keyboard shortcuts, mobile tweaks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <section aria-labelledby="team">
+    <h2 class="sec" id="team">Our Team</h2>
+    <p class="sec-sub">Zeina Anabtawi · Ameer Abo Shams</p>
+    <div class="team reveal" id="teamWrap">
+            <div class="member" tabindex="0" aria-label="Flip card for Zeina Anabtawi">
+        <div class="card3d">
+          <div class="card3d-inner">
+            <div class="face front">
+              <span class="top-chip">Product Design</span>
+              <img src="assets/images/zeina.jpg" alt="Zeina Anabtawi">
+              <div class="label">Zeina Anabtawi</div>
+            </div>
+            <div class="face back">
+              <h4>Zeina Anabtawi</h4>
+              <div class="role">Product Designer</div>
+              <p>Design systems, motion, and accessible UI patterns tailored for booking flows.</p>
+              <div class="tags">
+                <span class="tag">Design System</span>
+                <span class="tag">Motion</span>
+                <span class="tag">Accessibility</span>
+                <span class="tag">Prototyping</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+            <div class="member" tabindex="0" aria-label="Flip card for Ameer Abo Shams">
+        <div class="card3d">
+          <div class="card3d-inner">
+            <div class="face front">
+              <span class="top-chip">Engineering</span>
+              <img src="assets/images/ameer.jpg" alt="Ameer Abo Shams">
+              <div class="label">Ameer Abo Shams</div>
+            </div>
+            <div class="face back">
+              <h4>Ameer Abo Shams</h4>
+              <div class="role">Full-Stack Developer</div>
+              <p>Frontend state and performance with a compact PHP backend for robust booking states.</p>
+              <div class="tags">
+                <span class="tag">HTML</span>
+                <span class="tag">CSS</span>
+                <span class="tag">JavaScript</span>
+                <span class="tag">PHP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot-mini">© 2025 Travelo — Built by Ameer Abo Shams & Zeina Anabtawi.</p>
+
+  <script>
+        const progress = document.getElementById('progress');
+    const setProgress = () => { const h = document.documentElement; const s = (h.scrollTop) / (h.scrollHeight - h.clientHeight); progress.style.width = (s * 100) + '%'; };
+    document.addEventListener('scroll', setProgress, { passive: true }); setProgress();
+
+        const io = new IntersectionObserver((es) => { es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }) }, { threshold: .18 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+        function animateDonut(el) {
+      const target = +el.dataset.p; let v = 0;
+      const num = el.querySelector('b');
+      const id = setInterval(() => {
+        v += 1; if (v >= target) { v = target; clearInterval(id); }
+        el.style.setProperty('--val', (v * 3.6) + 'deg'); num.textContent = v + '%';
+      }, 18);
+    }
+    document.querySelectorAll('.donut').forEach(d => {
+      const ioD = new IntersectionObserver((es) => { es.forEach(e => { if (e.isIntersecting) { animateDonut(d); ioD.unobserve(d); } }) }, { threshold: .5 });
+      ioD.observe(d);
+    });
+
+        const steps = document.querySelectorAll('.step'); const panes = document.querySelectorAll('.pane');
+    const ioSteps = new IntersectionObserver((es) => { es.forEach(e => { if (e.isIntersecting) { const s = e.target.getAttribute('data-step'); steps.forEach(x => x.classList.toggle('active', x.dataset.step === s)); } }) }, { threshold: .6 });
+    panes.forEach(p => ioSteps.observe(p));
+    steps.forEach(s => s.addEventListener('click', () => { document.querySelector('.pane[data-step="' + s.dataset.step + '"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }))
+
+        const arrow = document.getElementById('arrow'); let dir = 1, pos = 0; setInterval(() => { pos += dir * 2; if (pos > 26 || pos < 0) dir *= -1; arrow.style.transform = `translateY(${pos}px)`; }, 48);
+
+        const track = document.getElementById('track');
+    track.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); track.scrollLeft += e.deltaY; } }, { passive: false });
+
+        document.querySelectorAll('.member').forEach(card => {
+      card.addEventListener('click', () => card.classList.toggle('flipped'));
+      card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('flipped'); } });
+    });
+  </script>
+</body>
+
+</html>

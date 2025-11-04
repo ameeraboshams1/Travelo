@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>Travelo · Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/login.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#">
+      <img src="./assets/images/logo.svg" alt="Travelo" class="logo-img">
+      <span class="brand-name">Travelo</span>
+    </a>
+    <nav class="actions">
+      <span class="link active">Login</span>
+      <a class="link" href="#">Register</a>
+    </nav>
+  </header>
+
+  <main class="wrap" id="app">
+    <section class="slider" id="slider">
+      <div class="slides" id="slides">
+        <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1600&auto=format&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600&auto=format&fit=crop" alt="">
+      </div>
+      <div class="indicators" id="indicators"></div>
+    </section>
+
+    <section class="panel" id="panel">
+      <div class="card-wrapper">
+        <div class="card" id="card" tabindex="-1">
+          <div class="gloss" aria-hidden="true"></div>
+          <h1>Welcome back</h1>
+          <p class="subtitle">Sign in to Travelo</p>
+
+          <form id="loginForm" novalidate>
+            <div class="field">
+              <input class="input" id="email" type="text" placeholder=" " required autocomplete="username" inputmode="email">
+              <label for="email">Email or Username</label>
+              <div class="err" id="emailErr"></div>
+            </div>
+
+            <div class="field">
+              <input class="input" id="password" type="password" placeholder=" " minlength="6" required autocomplete="current-password">
+              <label for="password">Password</label>
+              <div class="caps" id="capsNote"></div>
+              <div class="err" id="passErr"></div>
+            </div>
+
+            <div class="row small">
+              <label class="remember"><input id="remember" type="checkbox"> Remember me</label>
+              <a class="help" href="#">Forgot password?</a>
+            </div>
+
+            <button class="btn" type="submit" id="submitBtn" disabled>LOGIN</button>
+
+            <div class="or">OR</div>
+            <div class="alt-actions">
+              <button type="button" class="ghost" id="helpCenter">Help Center</button>
+              <button type="button" class="ghost" id="backHome">Back to Homepage</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="signup-layer">
+          <div class="signup-content">
+            <p class="signup-text">Don't have<br>an account?</p>
+            <a href="#" class="signup-btn">Register Now</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <svg width="0" height="0" style="position:absolute">
+  <defs>
+    <clipPath id="s-curve-left-edge" clipPathUnits="objectBoundingBox">
+      <path d="
+        M1,0
+        L0.70,0
+        C0.965,0.16 0.970,0.30 0.60,0.55
+        S0.920,1 0.85,1
+        L1,1
+        Z
+      "/>
+    </clipPath>
+  </defs>
+</svg>
+
+
+  <script src="./assets/js/login.js"></script>
+</body>
+</html>

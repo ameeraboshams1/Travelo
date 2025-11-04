@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Travelo · Sports Gear & Instruments</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/blogs.css" />
+  <meta name="description" content="Fees, dimensions, and the one call you should make before airport day."/>
+  <style>
+    .post-hero{aspect-ratio:21/9;object-fit:cover;width:100%;border-radius:14px}
+    .post{max-width:820px;margin:0 auto;padding:22px 0}
+    .breadcrumbs{font-size:13px;color:#6b7280;margin:10px 0}
+    .post h1{margin:10px 0 6px}
+    .meta{color:#6b7280;font-size:13px;margin-bottom:16px}
+    .content{line-height:1.85;font-size:17px}
+    .content h2{margin-top:26px}
+    .note{background:#eefcf5;border:1px solid #d2f3e3;border-radius:12px;padding:12px 14px;margin:16px 0}
+    .cta{margin:26px 0;display:flex;gap:10px}
+    .btn{border:none;background:var(--accent);color:#fff;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .share{border:1px solid var(--border);background:#fff;color:#1f2937;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .next-prev{display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:30px;padding-top:16px}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-row">
+      <a class="brand" href="../../index.html"><img src="../../assets/images/logo.svg" class="logo" alt="Travelo"><span>Travelo</span></a>
+      <nav class="actions"><a class="chip" href="./blogs.html">Blog Home</a></nav>
+    </div>
+    <div class="glow"></div>
+  </header>
+
+  <main class="container post">
+    <nav class="breadcrumbs"><a href="../index.html">Blog</a> › Special Items</nav>
+    <img class="post-hero" src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1600&q=60" alt="Sports gear bag at airport" />
+
+    <h1>Sports Gear & Instruments: Fly Without Headaches</h1>
+    <div class="meta">Published <time datetime="2025-03-03">Mar 3, 2025</time> • <span>7 min read</span></div>
+
+    <article class="content">
+      <p>Skis, guitars, surfboards, cellos—special items can travel smoothly if you plan for the fees, dimensions, and handling ahead of time.</p>
+
+      <h2>1) Measure and photograph</h2>
+      <p>Note length × width × height and weight. Take a photo with a tape measure—handy if an agent asks.</p>
+
+      <h2>2) Call the airline (yes, really)</h2>
+      <p>Most carriers require advance notice for oversized or fragile items. Ask about fees, packing, and where to drop them off (oversize counter vs. check-in).</p>
+
+      <h2>3) Pack for rough handling</h2>
+      <ul>
+        <li>Hard cases for instruments; loosen strings slightly.</li>
+        <li>Bubble wrap corners; add “fragile” tags (not magic, but helps).</li>
+        <li>Put your name and number inside the case as well.</li>
+      </ul>
+
+      <div class="note"><strong>Rental hack:</strong> For short trips, renting gear on arrival can beat fees + hassle—especially for bulky items.</div>
+
+      <h2>4) Insurance & declaration</h2>
+      <p>Expensive instruments and pro gear? Check coverage and declare value if the airline offers it.</p>
+
+      <h2>5) Airport day</h2>
+      <ul>
+        <li>Arrive earlier (oversize counters can queue).</li>
+        <li>Keep soft straps taped down to avoid conveyor snags.</li>
+      </ul>
+    </article>
+
+    <div class="cta">
+      <button class="btn" id="checkRules">Go to home</button>
+      <button class="share" id="shareBtn">Share</button>
+    </div>
+
+    <nav class="next-prev">
+      <a href="post8.html">← Previous</a>
+      <a href="post10.html">Next →</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer"><div class="container"><p>© <span id="year"></span> Travelo</p></div></footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('checkRules').addEventListener('click', ()=> location.href='index.html');
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async ()=>{
+      const data = { title: document.title, text: 'Great read on Travelo blog!', url: location.href };
+      if(navigator.share){ try{ await navigator.share(data);}catch(e){} }else{ navigator.clipboard.writeText(location.href); alert('Link copied!'); }
+    });
+  </script>
+</body>
+</html>

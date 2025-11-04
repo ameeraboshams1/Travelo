@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Travelo · Blog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/blogs.css" />
+  <meta name="description" content="Travelo blog: guides, tips, and stories to travel smarter."/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-row">
+      <a class="brand" href="../index.html">
+        <img src="../assets/images/logo.svg" alt="Travelo" class="logo" />
+        <span>Travelo</span>
+      </a>
+      <nav class="actions">
+        <a class="chip" href="../flights">Flights</a>
+        <a class="chip" href="../hotels">Hotels</a>
+        <a class="chip" href="../support">Support</a>
+      </nav>
+    </div>
+    <div class="glow"></div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Travelo Blog</h1>
+      <p class="muted">Guides, deals, and travel wisdom from the Travelo team.</p>
+
+      <div class="controls">
+        <div class="search-wrap">
+          <input id="searchInput" type="search" placeholder="Search articles… (e.g., baggage, visa, Europe)"/>
+          <button id="clearSearch" class="ghost" title="Clear">✕</button>
+        </div>
+        <div class="tags" id="tagStrip">
+                  </div>
+      </div>
+    </section>
+
+    <section id="grid" class="grid" aria-live="polite"></section>
+
+    <div class="pager" id="pager"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Travelo. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="./assets/js/blogs.js"></script>
+</body>
+</html>
