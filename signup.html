@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travelo · Sign Up</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/signup.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="#">
+            <img src="./assets/images/logo.svg" alt="Travelo" class="logo-img">
+            <span class="brand-name">Travelo</span>
+        </a>
+        <nav class="actions">
+            <a class="link" href="login.html">Login</a>
+            <span class="link active">Register</span>
+        </nav>
+    </header>
+
+    <main class="wrap" id="app">
+        <section class="slider" id="slider">
+            <div class="slides" id="slides">
+                <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1600&auto=format&fit=crop" alt="Landscape">
+                <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop" alt="Mountains">
+                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600&auto=format&fit=crop" alt="Beach">
+            </div>
+            <div class="indicators" id="indicators"></div>
+        </section>
+
+        <section class="panel" id="panel">
+            <div class="card-wrapper">
+                <div class="card" id="card" tabindex="-1">
+                    <h1>Create Account</h1>
+                    <p class="subtitle">Join Travelo today</p>
+
+                    <form id="signupForm" novalidate autocomplete="off">
+                                                <div class="name-row">
+                            <div class="field half">
+                                <input class="input" id="firstName" type="text" placeholder=" " required autocomplete="given-name">
+                                <label for="firstName">First Name</label>
+                                <div class="err" id="firstNameErr"></div>
+                            </div>
+
+                            <div class="field half">
+                                <input class="input" id="lastName" type="text" placeholder=" " required autocomplete="family-name">
+                                <label for="lastName">Last Name</label>
+                                <div class="err" id="lastNameErr"></div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <input class="input" id="email" type="email" placeholder=" " required autocomplete="email">
+                            <label for="email">Email Address</label>
+                            <div class="err" id="emailErr"></div>
+                        </div>
+
+                                                <div class="user-birth-row">
+                            <div class="field two-thirds">
+                                <input class="input" id="username" type="text" placeholder=" " required autocomplete="username">
+                                <label for="username">Username</label>
+                                <div class="err" id="usernameErr"></div>
+                            </div>
+
+                            <div class="field one-third">
+                                <input class="input" id="birthDate" type="date" placeholder=" " required autocomplete="bday">
+                                <label for="birthDate">Birth Date</label>
+                                <div class="err" id="birthDateErr"></div>
+                            </div>
+                        </div>
+
+                                                <div class="password-row">
+                            <div class="field half">
+                                <input class="input" id="password" type="password" placeholder=" " minlength="8" required autocomplete="new-password">
+                                <label for="password">Password</label>
+                                <div class="caps" id="capsNote"></div>
+                                <div class="err" id="passErr"></div>
+                            </div>
+
+                            <div class="field half">
+                                <input class="input" id="confirmPassword" type="password" placeholder=" " required autocomplete="new-password">
+                                <label for="confirmPassword">Confirm Password</label>
+                                <div class="err" id="confirmPassErr"></div>
+                            </div>
+                        </div>
+
+                        <div class="row small">
+                            <label class="remember">
+                                <input id="terms" type="checkbox" required> 
+                                I agree to the <a href="#" class="help">Terms & Conditions</a>
+                            </label>
+                        </div>
+
+                        <button class="btn" type="submit" id="submitBtn" disabled>CREATE ACCOUNT</button>
+
+                                                <div class="footer-actions">
+                            <button type="button" class="footer-action-btn" id="helpCenter">Help Center</button>
+                        </div>
+                    </form>
+                </div>
+
+                                <div class="side-panel">
+                    <div class="side-panel-content">
+                        <p class="side-panel-text">Already have<br>an account?</p>
+                        <a href="login.html" class="side-panel-btn">Login Now</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <clipPath id="s-curve-left-edge" clipPathUnits="objectBoundingBox">
+                <path d="
+                    M1,0
+                    L0.70,0
+                    C0.965,0.16 0.970,0.30 0.60,0.55
+                    S0.920,1 0.85,1
+                    L1,1
+                    Z
+                "/>
+            </clipPath>
+        </defs>
+    </svg>
+
+    <script src="./assets/js/signup.js"></script>
+</body>
+</html>
