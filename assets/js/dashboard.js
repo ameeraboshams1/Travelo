@@ -7,7 +7,7 @@
 function toggleTheme() {
   document.documentElement.classList.toggle('dark');
   localStorage.setItem('travelo-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  applyDtDarkSkin();           // re-skin tables after theme change
+  applyDtDarkSkin();           
   updateThemeIcon();
   refreshMapTiles();
 }
@@ -130,12 +130,12 @@ function resolveAlpha(hex, alpha) {
 }
 
 function applyDtDarkSkin() {
-  // helper class for wrappers (optional)
+  
   document.querySelectorAll('.dataTables_wrapper').forEach(w => {
     if (document.documentElement.classList.contains('dark')) w.classList.add('dt-dark');
     else w.classList.remove('dt-dark');
   });
-  // force columns readjust to pick new colors/sizes
+  
   if (typeof $ !== 'undefined' && $.fn && $.fn.DataTable) {
     $('.datatable').each(function () {
       if ($.fn.DataTable.isDataTable(this)) {

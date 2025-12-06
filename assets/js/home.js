@@ -140,8 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const end = Math.min(startIndex + pageSize, total);
     for (let i = startIndex; i < end; i++) {
       const card = cards[i];
-      card.style.display = ""; // يدخل بالـflow
-      requestAnimationFrame(() => setTimeout(() => card.classList.add("show"), 30));
+      card.style.display = "";      requestAnimationFrame(() => setTimeout(() => card.classList.add("show"), 30));
     }
 
     prevBtn.disabled = (startIndex === 0);
@@ -187,12 +186,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const btn = document.getElementById('btnLogin');
   const spinner = document.getElementById('spinner');
 
-  if (!btn || !spinner) return; // حماية لو العناصر مش موجودة
-
+  if (!btn || !spinner) return;
   btn.addEventListener('click', function (e) {
-    e.preventDefault();                 // بس للتأكيد
-    spinner.classList.add('show');      // فرجي السبينر
-
+    e.preventDefault();                    spinner.classList.add('show');     
 
 
     setTimeout(function () {
@@ -200,3 +196,171 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 1000);
   });
 });
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('btnLogin1');
+  const spinner = document.getElementById('spinner');
+
+  if (!btn || !spinner) return; 
+
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();                 
+    spinner.classList.add('show');      
+
+
+    setTimeout(function () {
+      window.location.href = 'signup.html';
+    }, 1000);
+  });
+});
+// Tabs filtering
+const tabs = document.querySelectorAll(".category-btn");
+const cards = document.querySelectorAll(".destination-col");
+
+tabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    tabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const cat = tab.dataset.category;
+    
+    cards.forEach((col) => {
+      if (cat === "all") {
+        col.classList.remove("hidden");
+        col.classList.remove("filtered-out");
+      } else {
+        const c = col.dataset.category;
+        if (c === cat) {
+          col.classList.remove("hidden");
+          col.classList.remove("filtered-out");
+        } else {
+          col.classList.add("hidden");
+          col.classList.add("filtered-out");
+        }
+      }
+    });
+  });
+});
+
+// --------- "See More" → Open Modal ---------
+const modalOverlay = document.getElementById("destinationModal");
+const modalCloseBtn = document.getElementById("destinationModalClose");
+
+const modalImg = document.getElementById("modalDestinationImage");
+const modalTitle = document.getElementById("modalDestinationTitle");
+const modalLocation = document.getElementById("modalDestinationLocation");
+const modalDesc = document.getElementById("modalDestinationDesc");
+const modalVisitors = document.getElementById("modalVisitors");
+const modalSeason = document.getElementById("modalSeason");
+const modalPrice = document.getElementById("modalPrice");
+
+// معلومات إضافية لكل مدينة (بتقدري تعدلي النصوص براحتك)
+const cityDetails = {
+  Tokyo: {
+    desc: "Tokyo blends ultra-modern city life with traditional temples, colorful streets, and unforgettable food experiences. Perfect for both solo travelers and groups.",
+    visitors: "14M / year",
+    season: "Mar – Apr (Sakura)"
+  },
+  Rome: {
+    desc: "Walk through ancient history in Rome – from the Colosseum to the Vatican – with charming streets, cafés, and vibrant Italian culture.",
+    visitors: "9.8M / year",
+    season: "Apr – Jun"
+  },
+  Barcelona: {
+    desc: "Barcelona offers a unique mix of beaches, Gaudí’s architecture, and lively nightlife – making it one of Europe’s most loved destinations.",
+    visitors: "11M / year",
+    season: "May – Sep"
+  },
+  Bangkok: {
+    desc: "Bangkok is full of energy, night markets, temples, and incredible street food – a must-visit hub in Southeast Asia.",
+    visitors: "22M / year",
+    season: "Nov – Feb"
+  },
+  Sydney: {
+    desc: "Famous for its harbour, Opera House, and beaches, Sydney is ideal for outdoor lovers and city explorers alike.",
+    visitors: "10M / year",
+    season: "Dec – Feb"
+  },
+  Toronto: {
+    desc: "Toronto is a modern, multicultural city with iconic skylines, nearby nature, and a rich food scene.",
+    visitors: "8M / year",
+    season: "May – Sep"
+  }
+};
+
+// دالة فتح المودال وتعبئته من الكارد
+function openDestinationModal(card) {
+  const city = card.querySelector(".destination-city")?.textContent.trim() || "";
+  const location = card.querySelector(".location-city")?.textContent.trim() || "";
+  const priceText = card.querySelector(".destination-price")?.childNodes[0].textContent.trim() || "";
+  const imgEl = card.querySelector(".destination-image");
+  const imgSrc = imgEl ? imgEl.src : "";
+
+  // تعبئة البيانات
+  modalTitle.textContent = city || "Destination";
+  modalLocation.textContent = location || "";
+  modalImg.src = imgSrc;
+  modalImg.alt = city;
+
+  const info = cityDetails[city] || {
+    desc: "Discover this wonderful destination with flexible packages, guided trips, and hand-picked hotels tailored to your travel style.",
+    visitors: "Millions / year",
+    season: "All year"
+  };
+
+  modalDesc.textContent = info.desc;
+  modalVisitors.textContent = info.visitors;
+  modalSeason.textContent = info.season;
+  modalPrice.textContent = priceText || "$ ---";
+
+  // إظهار المودال
+  modalOverlay.classList.add("show");
+  document.body.classList.add("no-scroll");
+}
+
+// ربط أزرار See More بالمودال
+document.querySelectorAll(".view-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const card = btn.closest(".destination-card");
+    if (!card) return;
+    openDestinationModal(card);
+  });
+});
+
+// إغلاق المودال
+function closeDestinationModal() {
+  modalOverlay.classList.remove("show");
+  document.body.classList.remove("no-scroll");
+}
+
+modalCloseBtn.addEventListener("click", closeDestinationModal);
+
+// إغلاق عند الضغط خارج الكارد
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) {
+    closeDestinationModal();
+  }
+});
+
+// إغلاق بـ ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modalOverlay.classList.contains("show")) {
+    closeDestinationModal();
+  }
+});
+// SEE ALL + SPINNER REDIRECT
+const seeAllBtn = document.querySelector(".see-all-link");
+const globalSpinner = document.getElementById("spinner");
+
+if (seeAllBtn && globalSpinner) {
+  seeAllBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // Show existing signup spinner
+    globalSpinner.classList.add("show");
+
+    // Redirect after delay
+    setTimeout(function () {
+      window.location.href = "destination.html";
+    }, 1000); // تقدر تعدلي الوقت
+  });
+}

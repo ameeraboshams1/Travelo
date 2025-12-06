@@ -122,7 +122,7 @@ const POSTS = [
 ];
 
 const TAGS = Array.from(new Set(POSTS.flatMap(p=>p.tags))).sort();
-const PER_PAGE = 12; // all visible; change to 6 for pagination demo
+const PER_PAGE = 12; 
 
 const grid = document.getElementById('grid');
 const pager = document.getElementById('pager');

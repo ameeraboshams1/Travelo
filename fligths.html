@@ -1,176 +1,562 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Flight Tickets</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Travelo · Flights (User)</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+   <link rel="stylesheet" href="./assets/css/home.css" />
 
-    <link rel="stylesheet" href="./assets/css/fligth.css">
+    <link rel="stylesheet" href="./assets/css/fligth.css" />
 </head>
 <body>
-  <main class="page">
-    <section class="hero">
-      <div class="title">Flights for you ✈️</div>
-      <div class="subtitle">Big-photo cards, quick chips, route map, and round-trip support.</div>
+     <section class="nav-wrapper">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <img class="img-logo" src="./assets/images/logo.svg" alt="Travelo Logo">
+                    <a href="index.html">Travelo</a>
+                </div>
 
-      <div class="search-card mt-3">
-        <div class="d-flex gap-2 trip-tabs mb-2">
-          <button class="btn btn-sm btn-outline-dark active" data-trip="oneway">One-way</button>
-          <button class="btn btn-sm btn-outline-dark" data-trip="round">Round-trip</button>
+                <div class="nav-links">
+                    <ul class="nav-links-ul">
+                        <li><a href="./index.html" >Home</a></li>
+                        <li><a href="./fligths.html" class="active">Flights</a></li>
+                        <li><a href="./hotel.html">Hotels</a></li>
+                        <li><a href="./packages.html">Packages</a></li>
+
+                        <li><a href="./destination.html">Destinations</a></li>
+
+                    </ul>
+                </div>
+
+                <div class="nav-button">
+                    <button id="btnLogin" type="button" class="sign_in">Login</button>
+                    <button id="btnLogin1" class="sign_up">Sign up</button>
+                </div>
+
+                <button class="menu-toggle" aria-label="Open menu"><span></span></button>
+            </nav>
         </div>
-        <form id="searchForm" class="row g-2" autocomplete="off">
-          <div class="col-md-4">
-            <label class="form-label">From</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-geo"></i></span>
-              <input class="form-control" id="from" name="from" placeholder="AMM" required>
-            </div>
-          </div>
-          <div class="col-md-1 d-grid">
-            <button type="button" id="swap" class="btn btn-light swap-btn" title="Swap"><i class="bi bi-arrow-left-right"></i></button>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">To</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-              <input class="form-control" id="to" name="to" placeholder="DXB" required>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Depart</label>
-            <input class="form-control" type="date" id="depart" name="depart" required>
-          </div>
+    </section>
+    <div class="spinner-overlay" id="spinner">
+        <div class="spinner"></div>
+    </div>
+    <div class="flash-section">
+        <div class="airplane">✈</div>
+    <div class="airplane">✈</div>
+    <div class="airplane">✈</div>
+    
+    <div class="flash-content">
+      <h1 class="main-title text-reveal">FLIGHT</h1>
+      
+      <div class="tagline float-effect">
+        <span>Your Journey Begins Here</span>
+      </div>
+      
+    </div>
+  </div>
 
-          <div class="col-md-4 d-none" id="returnWrap">
-            <label class="form-label">Return</label>
-            <input class="form-control" type="date" id="return" name="return">
+    <div class="container my-5">
+        <div class="row g-3 align-items-center mb-3">
+      <div class="col-12 col-lg-6">
+        <div class="d-flex gap-3">
+          <div class="tab-item active" data-sort="cheapest">
+            <h4>Cheapest</h4>
+            <p>Show lowest prices first</p>
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Passengers</label>
-            <input class="form-control" type="number" min="1" value="1" id="pax" name="pax">
+          <div class="tab-item" data-sort="fastest">
+            <h4>Fastest</h4>
+            <p>Show shortest trips first</p>
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Class</label>
-            <select class="form-select" id="cabin" name="cabin">
-              <option>Economy</option><option>Premium Economy</option><option>Business</option><option>First</option>
-            </select>
-          </div>
-
-          <div class="col-md-12 d-grid mt-1">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Search flights</button>
-          </div>
-        </form>
-
-        <div class="chips mt-3" id="quickChips">
-          <button class="btn btn-sm btn-outline-secondary" data-chip="cheapest"><i class="bi bi-cash-coin me-1"></i>Cheapest</button>
-          <button class="btn btn-sm btn-outline-secondary" data-chip="fastest"><i class="bi bi-lightning-charge me-1"></i>Fastest</button>
-          <button class="btn btn-sm btn-outline-secondary" data-chip="morning"><i class="bi bi-sunrise me-1"></i>Morning</button>
-          <button class="btn btn-sm btn-outline-secondary" data-chip="evening"><i class="bi bi-moon-stars me-1"></i>Evening</button>
-          <button class="btn btn-sm btn-outline-secondary" data-chip="nonstop"><i class="bi bi-slash-circle me-1"></i>Nonstop</button>
         </div>
       </div>
-    </section>
 
-    <div class="alert pro-strip">
-      <div class="d-flex align-items-center gap-3 p-2 flex-wrap">
-        <div class="d-flex align-items-center gap-2"><i class="bi bi-trophy"></i><span class="small">Best value highlighted</span></div>
-        <div class="d-flex align-items-center gap-2"><i class="bi bi-lightning-charge"></i><span class="small">Fastest marked</span></div>
-        <div class="d-flex align-items-center gap-2"><i class="bi bi-cash-coin"></i><span class="small">Cheapest tagged</span></div>
+            <div class="col-12 col-lg-6">
+        <div class="trip-type-wrapper">
+          <span class="trip-type-label">Trip type</span>
+          <div class="trip-type-chips">
+            <button class="trip-chip active" data-trip="all">All</button>
+            <button class="trip-chip" data-trip="oneway">One Way</button>
+            <button class="trip-chip" data-trip="roundtrip">Round Trip</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <section class="layout">
-      <div class="panel results">
-        <div class="sortbar">
-          <div class="text-muted small" id="resultCount">Showing 0 flights</div>
-          <div class="d-flex align-items-center gap-2 view-toggle">
-            <select id="sortBy" class="form-select form-select-sm" style="width:auto">
-              <option value="price">Sort: Price</option>
-              <option value="duration">Sort: Duration</option>
-              <option value="depart">Sort: Departure</option>
-            </select>
-            <button class="btn btn-sm btn-outline-secondary" id="refreshBtn" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-          </div>
-        </div>
-        <div id="banner" class="alert alert-danger d-none" role="alert"></div>
-
-                <div id="cards" class="cards">
-          <div class="skeleton"></div>
-          <div class="skeleton"></div>
-          <div class="skeleton"></div>
+        <div class="row g-4 align-items-start">
+            <div class="col-12 col-lg-8">
+        <div class="results-header mb-2">
+          <h3>Available flights</h3>
+          <span class="results-count">4 results found</span>
         </div>
 
-        <div class="d-grid mt-3">
-          <button class="btn btn-outline-primary d-none" id="loadMore">Load more</button>
+        <div id="flightList" class="d-flex flex-column gap-3 mt-3">
+                    <article
+            class="flight-card ticket"
+            data-price="220"
+            data-duration="4"
+            data-stops="0"
+            data-trip="oneway"
+          >
+            <div class="ticket-inner">
+              <div class="ticket-left">
+                <div class="ticket-row-top">
+                  <div class="airline">
+                    <div class="logo-circle">SKY</div>
+                    <div>
+                      <div class="airline-name">SkyLine Airways</div>
+                      <div class="airline-sub">Economy • Baggage included</div>
+                    </div>
+                  </div>
+                  <div class="ticket-code">SL 214</div>
+                </div>
+
+                <div class="ticket-route">
+                  <span class="city" data-code="AMM">Amman</span>
+                  <span class="arrow">→</span>
+                  <span class="city" data-code="IST">Istanbul</span>
+                </div>
+
+                <div class="ticket-times">
+                  <div class="time">
+                    <strong>08:30</strong>
+                    <span class="code">AMM</span>
+                  </div>
+
+                  <div class="time-line">
+                    <span class="duration-label">4h</span>
+                    <div class="dashed-line"></div>
+                    <span class="nonstop-label">Non stop</span>
+                  </div>
+
+                  <div class="time text-end">
+                    <strong>12:30</strong>
+                    <span class="code">IST</span>
+                  </div>
+                </div>
+
+                <div class="ticket-extra">
+                  <span>Free meal</span>
+                  <span>Changeable</span>
+                </div>
+              </div>
+
+              <div class="ticket-divider"></div>
+
+              <div class="ticket-right">
+                <span class="fare-label">From</span>
+                <strong class="price">$220</strong>
+                <button class="btn-primary">Book Now</button>
+              </div>
+            </div>
+
+            <div class="flight-footer">
+              <button class="details-btn">
+                <span>View details</span>
+                <span class="chevron">▼</span>
+              </button>
+            </div>
+          </article>
+
+                    <article
+            class="flight-card ticket"
+            data-price="380"
+            data-duration="7.5"
+            data-stops="1"
+            data-trip="roundtrip"
+          >
+            <div class="ticket-inner">
+              <div class="ticket-left">
+                <div class="ticket-row-top">
+                  <div class="airline">
+                    <div class="logo-circle">AIR</div>
+                    <div>
+                      <div class="airline-name">AirNova</div>
+                      <div class="airline-sub">Round trip • Flexible</div>
+                    </div>
+                  </div>
+                  <div class="ticket-code">AN 502</div>
+                </div>
+
+                <div class="ticket-route">
+                  <span class="city" data-code="DOH">Doha</span>
+                  <span class="arrow">⇄</span>
+                  <span class="city" data-code="CDG">Paris</span>
+                </div>
+
+                <div class="ticket-times">
+                  <div class="time">
+                    <strong>14:10</strong>
+                    <span class="code">DOH</span>
+                  </div>
+
+                  <div class="time-line">
+                    <span class="duration-label">7h 30m</span>
+                    <div class="dashed-line"></div>
+                    <span class="nonstop-label">1 stop</span>
+                  </div>
+
+                  <div class="time text-end">
+                    <strong>21:40</strong>
+                    <span class="code">CDG</span>
+                  </div>
+                </div>
+
+                <div class="ticket-extra">
+                  <span>Includes return</span>
+                  <span>1 checked bag</span>
+                </div>
+              </div>
+
+              <div class="ticket-divider"></div>
+
+              <div class="ticket-right">
+                <span class="fare-label">From</span>
+                <strong class="price">$380</strong>
+                <button class="btn-primary">Book Now</button>
+              </div>
+            </div>
+
+            <div class="flight-footer">
+              <button class="details-btn">
+                <span>View details</span>
+                <span class="chevron">▼</span>
+              </button>
+            </div>
+          </article>
+
+                    <article
+            class="flight-card ticket"
+            data-price="150"
+            data-duration="3"
+            data-stops="0"
+            data-trip="oneway"
+          >
+            <div class="ticket-inner">
+              <div class="ticket-left">
+                <div class="ticket-row-top">
+                  <div class="airline">
+                    <div class="logo-circle">JET</div>
+                    <div>
+                      <div class="airline-name">JetStar Express</div>
+                      <div class="airline-sub">Light fare • Hand bag only</div>
+                    </div>
+                  </div>
+                  <div class="ticket-code">JS 118</div>
+                </div>
+
+                <div class="ticket-route">
+                  <span class="city" data-code="RUH">Riyadh</span>
+                  <span class="arrow">→</span>
+                  <span class="city" data-code="DXB">Dubai</span>
+                </div>
+
+                <div class="ticket-times">
+                  <div class="time">
+                    <strong>18:15</strong>
+                    <span class="code">RUH</span>
+                  </div>
+
+                  <div class="time-line">
+                    <span class="duration-label">3h</span>
+                    <div class="dashed-line"></div>
+                    <span class="nonstop-label">Non stop</span>
+                  </div>
+
+                  <div class="time text-end">
+                    <strong>21:15</strong>
+                    <span class="code">DXB</span>
+                  </div>
+                </div>
+
+                <div class="ticket-extra">
+                  <span>Mobile check-in</span>
+                  <span>Seat selection</span>
+                </div>
+              </div>
+
+              <div class="ticket-divider"></div>
+
+              <div class="ticket-right">
+                <span class="fare-label">From</span>
+                <strong class="price">$150</strong>
+                <button class="btn-primary">Book Now</button>
+              </div>
+            </div>
+
+            <div class="flight-footer">
+              <button class="details-btn">
+                <span>View details</span>
+                <span class="chevron">▼</span>
+              </button>
+            </div>
+          </article>
+
+                    <article
+            class="flight-card ticket"
+            data-price="410"
+            data-duration="9"
+            data-stops="1"
+            data-trip="roundtrip"
+          >
+            <div class="ticket-inner">
+              <div class="ticket-left">
+                <div class="ticket-row-top">
+                  <div class="airline">
+                    <div class="logo-circle">GLB</div>
+                    <div>
+                      <div class="airline-name">Global Wings</div>
+                      <div class="airline-sub">Round trip • Premium</div>
+                    </div>
+                  </div>
+                  <div class="ticket-code">GW 930</div>
+                </div>
+
+                <div class="ticket-route">
+                  <span class="city" data-code="CAI">Cairo</span>
+                  <span class="arrow">⇄</span>
+                  <span class="city" data-code="LHR">London</span>
+                </div>
+
+                <div class="ticket-times">
+                  <div class="time">
+                    <strong>09:00</strong>
+                    <span class="code">CAI</span>
+                  </div>
+
+                  <div class="time-line">
+                    <span class="duration-label">9h</span>
+                    <div class="dashed-line"></div>
+                    <span class="nonstop-label">1 stop</span>
+                  </div>
+
+                  <div class="time text-end">
+                    <strong>18:00</strong>
+                    <span class="code">LHR</span>
+                  </div>
+                </div>
+
+                <div class="ticket-extra">
+                  <span>Lounge access</span>
+                  <span>2 checked bags</span>
+                </div>
+              </div>
+
+              <div class="ticket-divider"></div>
+
+              <div class="ticket-right">
+                <span class="fare-label">From</span>
+                <strong class="price">$410</strong>
+                <button class="btn-primary">Book Now</button>
+              </div>
+            </div>
+
+            <div class="flight-footer">
+              <button class="details-btn">
+                <span>View details</span>
+                <span class="chevron">▼</span>
+              </button>
+            </div>
+          </article>
         </div>
       </div>
 
-      <div class="vstack gap-3">
-        <div class="panel filters">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h2 class="h6 m-0">Filters</h2>
-            <button class="btn btn-sm btn-link" id="clearFilters">Clear</button>
-          </div>
-          <div class="filters-grid">
-            <div>
-              <label class="form-label">Stops</label>
-              <select class="form-select form-select-sm" id="fStops">
-                <option value="">Any</option>
-                <option value="0">Nonstop</option>
-                <option value="1">≤ 1 stop</option>
-                <option value=">1">2+ stops</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label">Airline</label>
-              <input class="form-control form-control-sm" id="fAirline" placeholder="RJ, Emirates">
-            </div>
-            <div>
-              <label class="form-label">Max price ($)</label>
-              <input type="number" min="0" class="form-control form-control-sm" id="fPrice">
-            </div>
-            <div>
-              <label class="form-label">Departure window</label>
-              <select class="form-select form-select-sm" id="fDep">
-                <option value="">Any</option>
-                <option value="morning">Morning (05–12)</option>
-                <option value="afternoon">Afternoon (12–17)</option>
-                <option value="evening">Evening (17–22)</option>
-                <option value="night">Night (22–05)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="panel p-2"><div id="map"></div></div>
-      </div>
-    </section>
-  </main>
+            <div class="col-12 col-lg-4">
+        <aside class="filter-card">
+          <h3>Filter</h3>
 
-  <div class="modal fade" id="flightModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="flightTitle">Flight details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" id="flightBody"></div>
-        <div class="modal-footer">
-          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-          <a class="btn btn-primary" id="continueBtn" href="#">Continue to booking</a>
-        </div>
+          <div class="filter-group">
+            <label for="maxPrice">Max price ($)</label>
+            <div class="range-row">
+              <input type="range" id="maxPrice" min="100" max="600" value="600" />
+              <span id="maxPriceValue">Up to 600</span>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Stops</span>
+            <label class="checkbox-row">
+              <input type="checkbox" id="nonStopOnly" />
+              <span>Non stop only</span>
+            </label>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Departure time</span>
+            <div class="chips">
+              <button class="chip active" data-time="all">Any</button>
+              <button class="chip" data-time="morning">Morning</button>
+              <button class="chip" data-time="evening">Evening</button>
+            </div>
+          </div>
+
+          <button class="btn-outline mt-2" id="resetFilters">Reset filters</button>
+        </aside>
       </div>
     </div>
   </div>
 
-    <script src="./assets/js/fligth.js"></script>
+<div
+  class="modal fade"
+  id="flightDetailsModal"
+  tabindex="-1"
+  aria-labelledby="flightDetailsModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="flightDetailsModalLabel">
+            <span class="modal-airline-name">Airline Name</span>
+          </h5>
+          <div class="small text-muted">
+            Flight <span class="modal-flight-code">XX 000</span> ·
+            <span class="modal-trip-type">One way</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
 
-    <button id="refineBtn" class="btn btn-primary d-lg-none refine-fab"><i class="bi bi-sliders"></i> Filters</button>
+      <div class="modal-body">
+        <div class="row gy-3">
+          <div class="col-12 col-md-7">
+            <h6 class="mb-2">Route</h6>
+            <p class="mb-1 fw-semibold modal-route">
+              Amman → Istanbul
+            </p>
+
+            <div class="d-flex justify-content-between small text-muted mb-2">
+              <span>Departure</span>
+              <span>Arrival</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="fw-semibold modal-departure">08:30</div>
+              <div class="text-center small text-muted">
+                Duration:
+                <span class="modal-duration">4h</span><br />
+                Stops:
+                <span class="modal-stops">Non stop</span>
+              </div>
+              <div class="fw-semibold modal-arrival">12:30</div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-5">
+            <h6 class="mb-2">Fare details</h6>
+            <div class="border rounded-3 p-3 mb-2">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="small text-muted">Base price</span>
+                <span class="small modal-price">\$220</span>
+              </div>
+              <div class="d-flex justify-content-between mb-1">
+                <span class="small text-muted">Taxes & fees</span>
+                <span class="small">Included</span>
+              </div>
+              <hr class="my-2" />
+              <div class="d-flex justify-content-between">
+                <strong>Total</strong>
+                <strong class="modal-price">\$220</strong>
+              </div>
+            </div>
+            <p class="small text-muted mb-0">
+              * Final price may change slightly depending on payment method and
+              currency conversion.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          data-bs-dismiss="modal"
+        >
+          Close
+        </button>
+        <button type="button" class="btn btn-primary btn-sm">
+          Book this flight
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+ <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="footer1">
+                    <h3 class="brand-title">
+                        <img class="brand-logo" src="./assets/images/logo.svg" alt="Travelo" />
+                        Travelo
+                    </h3>
+                    <p class="brand-desc">
+                        Travelo makes travel easy and enjoyable. Find flights, hotels, and bookings all in one place.
+                    </p>
+
+                    <div class="linksfoot">
+                        <a href="#">Tulkarm, PS</a>
+                        <a href="#">+970 599 000 111</a>
+                        <a href="#">info@travelo.com</a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <div class="footer-link">
+                        <h3>Products</h3>
+                        <a href="#">Flights</a>
+                        <a href="#">Hotels</a>
+                        <a href="#">Car Rentals</a>
+                        <a href="#">Travel Packages</a>
+                    </div>
+
+                    <div class="footer-link">
+                        <h3>Useful Links</h3>
+                        <a href="./TravelAdvisories.html">Travel-Advisories</a>
+                        <a href="./support.html">Support</a>
+                        <a href="./privacy.html">Privacy Policy</a>
+                        <a href="./terms.html">Terms &amp; Conditions</a>
+                    </div>
+
+                    <div class="footer-link1">
+                        <h3>Other</h3>
+                        <a href="./about.html">About Travelo</a>
+                        <a href="./stores.html">Traveler Stories</a>
+                        <a href="./blogs.html">Blog</a>
+                        <a href="./faqs.html">FAQ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="endfoot">
+        <div class="container">
+            <div class="footer-end">
+                <h3 class="copy">© 2025 Travelo. All Rights Reserved — Developed by Ameer & Zeina.</h3>
+                <div class="footicon">
+                    <a href="#"><img src="./assets/images/Group.svg" alt="twitter"></a>
+                    <a href="#"><img src="./assets/images/Group 7.svg" alt="facebook"></a>
+                    <a href="#"><img src="./assets/images/Frame 86.svg" alt="instagram"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+   <script src="./assets/js/home.js"></script>
+    <script src="./assets/js/fligth.js"></script>
 </body>
 </html>

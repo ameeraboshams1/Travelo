@@ -472,7 +472,7 @@ attachObservers();
         const header = firstItem.querySelector('.faq-header');
         const panel  = firstItem.querySelector('.faq-panel');
         setPanelOpen(panel, header, true);
-        scrollToWithOffset(firstItem, 80); // عشان الهيدر الستكي ما يغطيه
+        scrollToWithOffset(firstItem, 80); 
       }else{
 
         scrollToWithOffset(document.querySelector('.faq-list'), 80);

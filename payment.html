@@ -1,548 +1,1021 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Travelo – Payment</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Travelo · Secure Payment</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" />
+  <link rel="stylesheet" href="./assets/css/home.css" />
+
   <style>
-    :root{
-            --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280; --border:#eef0f4;
-      --radius:16px; --shadow:0 12px 40px rgba(17,24,39,.06);
-            --accent:#6c63ff; --accent-2:#7c6cff; --p1:#6c63ff; --p2:#7c6cff; --p3:#a78bfa; --p4:#c4b5fd;
-      --success:#10b981; --error:#ef4444; --warn:#f59e0b;
+    :root {
+      --clr-primary: #872bff;
+      --clr-primary-soft: #f3e8ff;
+      --clr-dark: #101322;
+      --clr-muted: #7b8194;
+      --clr-bg: #f7f8fc;
+      --clr-card: #ffffff;
+      --clr-border: #e3e5ef;
+      --clr-success: #1ab58f;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 24px 50px rgba(12, 17, 31, 0.08);
+      --transition-fast: 0.25s ease;
+      --transition-slow: 0.45s cubic-bezier(0.19, 1, 0.22, 1);
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-    .wrap{max-width:1200px;margin:auto;padding:28px}
 
-    .topbar{display:flex;align-items:center;gap:16px;margin-bottom:22px}
-    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
-    .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:grid;place-items:center;color:#fff;font-weight:700}
-    .hdr{margin-left:auto;display:flex;gap:10px}
-    .tag{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;color:var(--muted)}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:24px}
-    @media(max-width:980px){.grid{grid-template-columns:1fr}}
+    body {
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #f3e8ff 0, #f7f8fc 40%, #ffffff 100%);
+      color: var(--clr-dark);
+      min-height: 100vh;
+      
+      font-size: 15px;
+    }
 
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .card-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px dashed var(--border)}
-    .card-body{padding:20px}
+    .payment-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-    h1{font-size:22px;margin:0;font-weight:700}
-    h2{font-size:16px;margin:0;color:var(--muted)}
+        .empty-nav-space {
+      height: 12px;
+      margin-bottom: 8px;
+    }
 
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tab{flex:1 1 180px;display:flex;align-items:center;gap:10px;justify-content:center;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;cursor:pointer;user-select:none;transition:.2s ease}
-    .tab input{display:none}
-    .tab.active{outline:2px solid var(--accent);box-shadow:0 0 0 6px rgba(108,99,255,.08)}
-    .tab:hover{border-color:var(--accent);box-shadow:0 0 0 6px rgba(108,99,255,.06)}
-    .tab svg{width:22px;height:22px}
+    .payment-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+      gap: 22px;
+    }
 
-    form{display:grid;gap:16px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    @media(max-width:720px){.row{grid-template-columns:1fr}}
+    @media (max-width: 900px) {
+      .payment-main {
+        grid-template-columns: 1fr;
+      }
+    }
 
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    .field{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;transition:.2s ease}
-    .field:focus-within{outline:2px solid var(--accent);box-shadow:0 0 0 6px rgba(108,99,255,.08)}
-    .field:hover{border-color:#e3e5ef}
-    .field input, .field select{border:none;outline:none;background:transparent;color:var(--text);width:100%;font:inherit}
-    .hint{font-size:12px;color:var(--muted);margin-top:6px}
+    .card {
+      background: var(--clr-card);
+      border-radius: var(--radius-lg);
+      padding: 22px 22px 18px;
+      border: 1px solid rgba(227, 229, 239, 0.9);
+      box-shadow: 0 14px 40px rgba(12, 17, 31, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
 
-    .i{width:18px;height:18px;flex:0 0 18px;color:var(--muted)}
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(135, 43, 255, 0.08), transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(84, 101, 255, 0.07), transparent 55%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-slow);
+    }
 
-    .card-preview{position:relative;height:200px;border-radius:18px;
-      background:radial-gradient(120% 120% at 0% 0%, var(--p1) 0%, var(--p2) 55%, var(--p3) 100%);
-      color:#fff;overflow:hidden}
-    .card-preview .chip{position:absolute;top:22px;left:22px;width:40px;height:28px;border-radius:6px;background:rgba(255,255,255,.85)}
-    .card-preview .logo-mini{position:absolute;top:20px;right:20px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center}
-    .card-preview .num{position:absolute;left:22px;bottom:78px;letter-spacing:2px;font-size:20px;font-weight:700}
-    .card-preview .meta{position:absolute;left:22px;bottom:24px;display:flex;gap:24px;font-size:12px}
-    .brand-badge{position:absolute;right:18px;bottom:18px;padding:6px 10px;background:rgba(255,255,255,.2);border-radius:999px;font-size:12px}
+    .card:hover::before {
+      opacity: 1;
+    }
 
-    .summary{display:grid;gap:14px}
-    .line{display:flex;align-items:center;justify-content:space-between;color:var(--muted)}
-    .total{font-size:20px;font-weight:700;color:var(--text)}
-    .sep{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:8px 0}
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      gap: 10px;
+    }
 
-    .coupon{display:flex;gap:8px}
-    .coupon input{padding:12px;border:1px dashed var(--border);border-radius:12px;width:100%;background:#fff}
-    .coupon button{padding:12px 16px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;font-weight:700;cursor:pointer;transition:.2s ease}
-    .coupon button:hover{filter:brightness(1.04)}
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
 
-    .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:10px;justify-content:center;padding:14px 18px;border:none;border-radius:12px;cursor:pointer;font-weight:700;transition:.2s ease}
-    .btn[disabled]{opacity:.6;cursor:not-allowed}
-    .btn-primary{background:linear-gradient(135deg,var(--p1),var(--p3));color:#fff}
-    .btn-primary:hover{filter:brightness(1.05)}
-    .btn-ghost{background:#fff;border:1px solid var(--border);color:var(--text)}
-    .btn-ghost:hover{background:#f5f7ff;border-color:#e6e8ef}
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--clr-muted);
+    }
 
-    .toast{position:fixed;inset:auto 20px 20px auto;min-width:280px;max-width:420px;padding:14px 16px;border-radius:14px;background:#111827;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.45);display:none}
-    .toast.show{display:flex;gap:10px;align-items:flex-start}
+    .badge-soft {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--clr-primary-soft);
+      color: var(--clr-primary);
+      font-weight: 500;
+      white-space: nowrap;
+    }
 
-    .err{color:var(--error);font-size:12px;margin-top:6px;display:none}
-    .showerr{display:block}
+        .payment-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-    .flex{display:flex;align-items:center;gap:10px}
-    .right{margin-left:auto}
-    .muted{color:var(--muted)}
-    .badge{padding:6px 10px;border-radius:999px;background:#f3f4f6;color:#111827;font-size:12px}
+    .payment-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--clr-border);
+      cursor: pointer;
+      background: #fafbff;
+      transition: var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
 
-        .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px}
-    .modal .box{width:min(520px,95vw);background:#fff;border-radius:16px;box-shadow:0 20px 80px rgba(0,0,0,.25);padding:20px;border:1px solid var(--border)}
-    .modal .box h3{margin:0 0 6px 0}
-    .modal .box p{margin:0 0 12px 0;color:var(--muted)}
-    .code{display:flex;gap:8px;margin:12px 0}
-    .code input{width:48px;height:48px;border:1px solid var(--border);border-radius:10px;text-align:center;font-size:18px}
-    .modal .actions{justify-content:flex-end}
+    .payment-option::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(135, 43, 255, 0.12), rgba(84, 101, 255, 0.12));
+      opacity: 0;
+      transition: opacity var(--transition-slow);
+      pointer-events: none;
+    }
+
+    .payment-option-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .payment-option-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 18px rgba(12, 17, 31, 0.12);
+      color: var(--clr-primary);
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .payment-option-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .payment-option-title {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .payment-option-desc {
+      font-size: 12px;
+      color: var(--clr-muted);
+    }
+
+    .payment-option-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      max-width: 200px;
+      align-items: center;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(227, 229, 239, 0.9);
+      background: #fff;
+      color: var(--clr-muted);
+      white-space: nowrap;
+    }
+
+    .payment-option-radio {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--clr-border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      transition: var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .payment-option-radio::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--clr-primary);
+      transform: scale(0);
+      transition: var(--transition-fast);
+    }
+
+    .payment-option.active {
+      border-color: rgba(135, 43, 255, 0.9);
+      background: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(135, 43, 255, 0.2);
+    }
+
+    .payment-option.active::after {
+      opacity: 1;
+    }
+
+    .payment-option.active .payment-option-radio {
+      border-color: rgba(135, 43, 255, 0.8);
+      background: #f9f5ff;
+    }
+
+    .payment-option.active .payment-option-radio::before {
+      transform: scale(1);
+    }
+
+        .card-details-grid {
+      display: grid;
+      grid-template-columns: 1.2fr;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--clr-muted);
+    }
+
+    .field-input-wrapper {
+      position: relative;
+    }
+
+    .field-input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--clr-border);
+      padding: 11px 40px 11px 13px;
+      font-size: 14px;
+      outline: none;
+      background: #f9f9ff;
+      transition: var(--transition-fast);
+    }
+
+    .field-input:focus {
+      border-color: rgba(135, 43, 255, 0.9);
+      background: #ffffff;
+      box-shadow: 0 0 0 1px rgba(135, 43, 255, 0.15);
+    }
+
+    .field-input::placeholder {
+      color: #b3b7c7;
+    }
+
+    .field-icon-right {
+      position: absolute;
+      right: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--clr-muted);
+      font-size: 18px;
+    }
+
+    .card-details-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .card-extra-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--clr-muted);
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .checkbox-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+    }
+
+    .checkbox-inline input {
+      accent-color: var(--clr-primary);
+    }
+
+    .secured-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .secured-text i {
+      color: var(--clr-success);
+      font-size: 16px;
+    }
+
+    .card-details-card {
+      margin-top: 16px;
+    }
+
+        .summary-items {
+      border-radius: 12px;
+      border: 1px dashed rgba(227, 229, 239, 0.9);
+      padding: 12px 12px 6px;
+      margin-top: 6px;
+      background: #fafbff;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .summary-row span.summary-label {
+      color: var(--clr-muted);
+    }
+
+    .summary-row.total {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(227, 229, 239, 0.9);
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .summary-row.discount {
+      color: var(--clr-success);
+    }
+
+    .summary-row.discount span.summary-value {
+      font-weight: 500;
+    }
+
+    .summary-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--clr-muted);
+    }
+
+    .summary-pill {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(243, 232, 255, 0.7);
+      color: var(--clr-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .summary-pill i {
+      font-size: 16px;
+    }
+
+    .coupon-wrapper {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .coupon-input-wrapper {
+      flex: 1 1 140px;
+      position: relative;
+    }
+
+    .coupon-input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid var(--clr-border);
+      padding: 10px 110px 10px 13px;
+      font-size: 13px;
+      outline: none;
+      background: #f9f9ff;
+      transition: var(--transition-fast);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .coupon-input:focus {
+      border-color: rgba(135, 43, 255, 0.9);
+      background: #ffffff;
+      box-shadow: 0 0 0 1px rgba(135, 43, 255, 0.15);
+    }
+
+    .coupon-apply-btn {
+      position: absolute;
+      right: 4px;
+      top: 3px;
+      bottom: 3px;
+      border-radius: 999px;
+      border: none;
+      padding: 0 16px;
+      font-size: 12px;
+      font-weight: 500;
+      background: linear-gradient(135deg, #872bff, #5465ff);
+      color: #ffffff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 10px 25px rgba(135, 43, 255, 0.55);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+    }
+
+    .coupon-apply-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+      box-shadow: 0 14px 30px rgba(135, 43, 255, 0.7);
+    }
+
+    .coupon-message {
+      font-size: 12px;
+      color: var(--clr-muted);
+      margin-top: 4px;
+    }
+
+    .coupon-message.success {
+      color: var(--clr-success);
+    }
+
+    .coupon-message.error {
+      color: #e54b4b;
+    }
+
+    .secure-checkout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin-top: 14px;
+      color: var(--clr-muted);
+    }
+
+    .secure-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: #f3fbf8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--clr-success);
+      font-size: 16px;
+    }
+
+    .secure-checkout strong {
+      color: var(--clr-dark);
+      font-weight: 500;
+    }
+
+    .terms-text {
+      font-size: 11px;
+      color: var(--clr-muted);
+      margin-top: 6px;
+    }
+
+    .terms-text a {
+      color: var(--clr-primary);
+      text-decoration: none;
+    }
+
+        .trip-info-grid {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .trip-info-item {
+      padding: 9px 11px;
+      border-radius: 10px;
+      background: #fafbff;
+      border: 1px dashed rgba(227, 229, 239, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .trip-info-label {
+      font-size: 11px;
+      color: var(--clr-muted);
+    }
+
+    .trip-info-value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .trip-info-tag {
+      margin-top: 7px;
+      font-size: 12px;
+      color: var(--clr-muted);
+    }
+
+        .payment-footer {
+      margin-top: 22px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), filter var(--transition-fast);
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--clr-muted);
+      border: 1px solid var(--clr-border);
+    }
+
+    .btn-ghost:hover {
+      background: #ffffff;
+      color: var(--clr-dark);
+      box-shadow: 0 10px 22px rgba(12, 17, 31, 0.06);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #872bff, #5465ff);
+      color: #ffffff;
+      box-shadow: 0 14px 32px rgba(135, 43, 255, 0.55);
+      border: 1px solid transparent;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(135, 43, 255, 0.75);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--clr-primary);
+      border: 1px solid rgba(135, 43, 255, 0.35);
+      box-shadow: 0 10px 25px rgba(135, 43, 255, 0.15);
+    }
+
+    .btn-outline:hover {
+      background: linear-gradient(135deg, #f3e8ff, #e4ebff);
+      transform: translateY(-1px);
+    }
+
+    .btn i {
+      font-size: 18px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 18px 10px 28px;
+        font-size: 14px;
+      }
+
+      .card {
+        padding: 18px 16px 15px;
+      }
+
+      .payment-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+
+      .btn {
+        justify-content: center;
+        width: 100%;
+      }
+    }
   </style>
+  
 </head>
+
 <body>
-  <div class="wrap">
-    <header class="topbar">
-      <a class="brand" href="#">
-        <div class="logo">T</div>
-        <div>
-          <div style="font-weight:700;line-height:1">Travelo</div>
-          <div class="muted" style="font-size:12px">Secure Checkout</div>
+   <section class="nav-wrapper">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <img class="img-logo" src="./assets/images/logo.svg" alt="Travelo Logo">
+                    <a href="index.html">Travelo</a>
+                </div>
+
+                <div class="nav-links">
+                    <ul class="nav-links-ul">
+                        <li><a href="index.html" class="active">Home</a></li>
+                        <li><a href="./fligths.html">Flights</a></li>
+                        <li><a href="hotel.html">Hotels</a></li>
+                        <li><a href="/bookings">Packages</a></li>
+
+                        <li><a href="./destination.html">Destinations</a></li>
+
+                    </ul>
+                </div>
+
+                <div class="nav-button">
+                    <button id="btnLogin" type="button" class="sign_in">Login</button>
+                    <button id="btnLogin1" class="sign_up">Sign up</button>
+                </div>
+
+                <button class="menu-toggle" aria-label="Open menu"><span></span></button>
+            </nav>
         </div>
-      </a>
-      <div class="hdr">
-        <span class="tag">PCI-DSS Ready</span>
-        <span class="tag">3D Secure</span>
-        <span class="tag">TLS 1.3</span>
-      </div>
-    </header>
+    </section>
+    <div class="spinner-overlay" id="spinner">
+        <div class="spinner"></div>
+    </div>
+  <div class="payment-container">
+        <div class="empty-nav-space"></div>
 
-    <div class="grid">
-            <section class="card">
-        <div class="card-head">
-          <h1>Payment Method</h1>
-          <span class="badge">Order #TRV-984215</span>
-        </div>
-        <div class="card-body" id="payTabs">
-          <div class="tabs" role="tablist">
-            <label class="tab active" data-method="card" aria-selected="true" tabindex="0">
-              <input type="radio" name="method" value="card" checked>
-              <svg viewBox="0 0 24 24" fill="none" class="i"><path d="M3 7h18M3 11h18M5 15h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <span>Credit / Debit Card</span>
-            </label>
-            <label class="tab" data-method="paypal" tabindex="0">
-              <input type="radio" name="method" value="paypal">
-              <svg viewBox="0 0 24 24" fill="none" class="i"><path d="M6 18l1.2-8.5A3 3 0 0 1 10.1 7H18a3 3 0 0 1 0 6h-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <span>PayPal</span>
-            </label>
-            <label class="tab" data-method="wallet" tabindex="0">
-              <input type="radio" name="method" value="wallet">
-              <svg viewBox="0 0 24 24" fill="none" class="i"><path d="M3 7h15a3 3 0 0 1 3 3v7H3V7Zm12 5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <span>Apple/Google Wallet</span>
-            </label>
-          </div>
-
-                    <div class="row" style="margin-top:16px">
-            <div class="card-preview" aria-hidden="true">
-              <div class="chip"></div>
-              <div class="logo-mini">💳</div>
-              <div class="num" id="prevNum">•••• •••• •••• ••••</div>
-              <div class="meta"><span id="prevName">CARDHOLDER</span><span id="prevExp">MM/YY</span></div>
-              <div class="brand-badge" id="brandBadge">Card</div>
-            </div>
-            <div class="flex" style="flex-direction:column;gap:14px">
-              <div>
-                <label for="cardName">Name on card</label>
-                <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-7 9a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                  <input id="cardName" name="card_name" autocomplete="cc-name" placeholder="Zeina Anabtawi" required>
-                </div>
-                <div class="err" id="errName">Enter a valid name.</div>
-              </div>
-              <div>
-                <label for="cardNum">Card number</label>
-                <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M3 7h18M3 11h18M5 15h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                  <input id="cardNum" name="card_number" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="19" required>
-                </div>
-                <div class="hint">Visa, MasterCard, AmEx, Mada.</div>
-                <div class="err" id="errNum">Invalid card number.</div>
-              </div>
-              <div class="row">
-                <div>
-                  <label for="exp">Expiry (MM/YY)</label>
-                  <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M7 3v4M17 3v4M3 9h18M7 13h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    <input id="exp" name="exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5" required>
-                  </div>
-                  <div class="err" id="errExp">Enter a valid future date.</div>
-                </div>
-                <div>
-                  <label for="cvv">CVV</label>
-                  <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M6 11h7M6 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    <input id="cvv" name="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" required>
-                  </div>
-                  <div class="hint">3–4 digits (back of card).</div>
-                  <div class="err" id="errCvv">CVV must be 3–4 digits.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-                    <div class="sep"></div>
-          <h2 style="margin-bottom:8px">Billing Details</h2>
-          <form id="billing">
-            <div class="row">
-              <div>
-                <label for="email">Email</label>
-                <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M4 6l8 6 8-6M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                  <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
-                </div>
-              </div>
-              <div>
-                <label for="phone">Phone</label>
-                <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M6 4h4l2 4-3 2a12 12 0 0 0 5 5l2-3 4 2v4a2 2 0 0 1-2 2 16 16 0 0 1-14-14 2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                  <input id="phone" name="phone" inputmode="tel" placeholder="+970 59 000 0000" autocomplete="tel">
-                </div>
-              </div>
-            </div>
+    <main class="payment-main">
+            <section>
+                <div class="card card-animate" id="paymentMethodsCard">
+          <div class="card-header">
             <div>
-              <label for="addr">Billing address</label>
-              <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M12 22s8-4.5 8-12a8 8 0 0 0-16 0c0 7.5 8 12 8 12z" stroke="currentColor" stroke-width="1.8"/></svg>
-                <input id="addr" name="address" placeholder="Street, City, State / Province" autocomplete="address-line1">
-              </div>
+              <div class="card-title">Payment Method</div>
+              <div class="card-subtitle">Select how you’d like to pay for your Travelo booking</div>
             </div>
-            <div class="row">
-              <div>
-                <label for="country">Country</label>
-                <div class="field">
-                  <svg class="i" viewBox="0 0 24 24"><path d="M3 5h12l-2 3 2 3H3v-6zM3 17h18" stroke="currentColor" stroke-width="1.8"/></svg>
-                  <select id="country" name="country">
-                    <option value="PS" selected>Palestine</option>
-                    <option value="JO">Jordan</option>
-                    <option value="SA">Saudi Arabia</option>
-                    <option value="AE">United Arab Emirates</option>
-                    <option value="EG">Egypt</option>
-                    <option value="US">United States</option>
-                    <option value="GB">United Kingdom</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label for="zip">ZIP / Postal code</label>
-                <div class="field"><svg class="i" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 8h8v8H8z" stroke="currentColor" stroke-width="1.8"/></svg>
-                  <input id="zip" name="zip" inputmode="numeric" placeholder="00000" autocomplete="postal-code">
-                </div>
-              </div>
-            </div>
-            <div class="flex" style="justify-content:space-between">
-              <label class="flex" style="gap:8px"><input type="checkbox" id="saveCard"> Save card for future bookings</label>
-              <label class="flex" style="gap:8px"><input type="checkbox" id="sameAsPassenger" checked> Same as traveler details</label>
-            </div>
-          </form>
-
-          <div class="sep"></div>
-          <div class="actions">
-            <button class="btn btn-primary" id="payBtn" disabled>
-              <span id="payIcon">💳</span>
-              <span id="payText">Pay Now</span>
-              <span class="right" id="payAmount">$0.00</span>
-            </button>
-            <button class="btn btn-ghost" id="altBtn">Pay with PayPal</button>
+            <span class="badge-soft"><i class="ri-shield-check-line"></i> Secure payment</span>
           </div>
-          <div class="trust" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-            <span class="lock" style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px">
-              <svg class="i" viewBox="0 0 24 24"><path d="M6 10h12v9H6zM8 10V7a4 4 0 1 1 8 0v3" stroke="currentColor" stroke-width="1.8"/></svg>
-              256-bit SSL encryption
-            </span>
-            <span class="lock" style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px">
-              <svg class="i" viewBox="0 0 24 24"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.6-4.9-2.6-4.9 2.6.9-5.6-4-3.9 5.5-.8L12 2z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
-              Money-Back Guarantee
-            </span>
+
+          <div class="payment-options" id="paymentOptions">
+            <div class="payment-option active" data-method="visa">
+              <div class="payment-option-left">
+                <div class="payment-option-icon">
+                  <i class="ri-visa-line"></i>
+                </div>
+                <div class="payment-option-label">
+                  <span class="payment-option-title">Visa Card</span>
+                  <span class="payment-option-desc">Pay securely with your Visa credit or debit card</span>
+                </div>
+              </div>
+
+              <div class="payment-option-tags">
+                <span class="tag">VISA</span>
+                <div class="payment-option-radio"></div>
+              </div>
+            </div>
+
+            <div class="payment-option" data-method="mastercard">
+              <div class="payment-option-left">
+                <div class="payment-option-icon">
+                  <i class="ri-mastercard-line"></i>
+                </div>
+                <div class="payment-option-label">
+                  <span class="payment-option-title">Mastercard</span>
+                  <span class="payment-option-desc">Use any supported Mastercard credit or debit</span>
+                </div>
+              </div>
+
+              <div class="payment-option-tags">
+                <span class="tag">MASTERCARD</span>
+                <div class="payment-option-radio"></div>
+              </div>
+            </div>
+
+            <div class="payment-option" data-method="cashcard">
+              <div class="payment-option-left">
+                <div class="payment-option-icon">
+                  <i class="ri-bank-card-2-line"></i>
+                </div>
+                <div class="payment-option-label">
+                  <span class="payment-option-title">Cash Card</span>
+                  <span class="payment-option-desc">Pay using your prepaid cash card</span>
+                </div>
+              </div>
+
+              <div class="payment-option-tags">
+                <span class="tag">CASH CARD</span>
+                <div class="payment-option-radio"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+                <div class="card card-details-card card-animate" id="cardDetailsCard">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Card Details</div>
+              <div class="card-subtitle">Your card information is encrypted and never shared</div>
+            </div>
+          </div>
+
+          <div class="card-details-grid">
+            <div class="field-group">
+              <label class="field-label">Card Number</label>
+              <div class="field-input-wrapper">
+                <input type="text" class="field-input" placeholder="1234 5678 9012 3456" />
+                <i class="ri-bank-card-line field-icon-right"></i>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Cardholder Name</label>
+              <div class="field-input-wrapper">
+                <input type="text" class="field-input" placeholder="As printed on the card" />
+                <i class="ri-user-line field-icon-right"></i>
+              </div>
+            </div>
+
+            <div class="card-details-row">
+              <div class="field-group">
+                <label class="field-label">Expiry Date</label>
+                <div class="field-input-wrapper">
+                  <input type="text" class="field-input" placeholder="MM/YY" />
+                  <i class="ri-calendar-event-line field-icon-right"></i>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">CVV</label>
+                <div class="field-input-wrapper">
+                  <input type="password" class="field-input" placeholder="***" />
+                  <i class="ri-lock-password-line field-icon-right"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-extra-row">
+            <label class="checkbox-inline">
+              <input type="checkbox" />
+              <span>Save this card for future trips</span>
+            </label>
+
+            <div class="secured-text">
+              <i class="ri-shield-keyhole-line"></i>
+              <span>Protected with 256-bit encryption</span>
+            </div>
           </div>
         </div>
       </section>
 
-            <aside class="card">
-        <div class="card-head">
-          <h1>Order Summary</h1>
-          <span class="badge">Flexible Fare</span>
-        </div>
-        <div class="card-body summary">
-          <div class="line"><span>Flight</span><span class="right" id="sumFlight">Nablus → Amman</span></div>
-          <div class="line"><span>Date</span><span class="right" id="sumDate">28 Oct 2025</span></div>
-          <div class="line"><span>Passengers</span><span class="right" id="sumPax">1 Adult</span></div>
-          <div class="line"><span>Base Fare</span><span class="right" id="sumFare">$180.00</span></div>
-          <div class="line"><span>Taxes & Fees</span><span class="right" id="sumTax">$32.40</span></div>
-          <div class="line"><span>Seat & Services</span><span class="right" id="sumSvc">$15.00</span></div>
-          <div class="sep"></div>
-          <div class="coupon">
-            <input id="coupon" placeholder="Have a promo code?">
-            <button id="applyCoupon">Apply</button>
+            <aside>
+                <div class="card card-animate" id="summaryCard">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Booking Summary</div>
+              <div class="card-subtitle">Flight + Hotel + Package for your Travelo trip</div>
+            </div>
+            <span class="badge-soft"><i class="ri-flight-takeoff-line"></i> Paris package</span>
           </div>
-          <div class="hint" id="couponHint">Try <b>SAVE10</b> or <b>TRAVELO5</b>. Press Enter to apply.</div>
-          <div class="sep"></div>
-          <div class="line"><span>Discount</span><span class="right" id="sumDisc">-$0.00</span></div>
-          <div class="line total"><span>Total</span><span class="right" id="sumTotal">$227.40</span></div>
+
+          <div class="summary-items" id="summaryItems">
+            <div class="summary-row">
+              <span class="summary-label"><i class="ri-flight-takeoff-line"></i> Flight (Round trip)</span>
+              <span class="summary-value" id="flightAmount">$7,000</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label"><i class="ri-hotel-bed-line"></i> Hotel (4 nights)</span>
+              <span class="summary-value" id="hotelAmount">$2,500</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label"><i class="ri-suitcase-3-line"></i> City tour package</span>
+              <span class="summary-value" id="packageAmount">$1,500</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Fees & taxes</span>
+              <span class="summary-value" id="taxAmount">$800</span>
+            </div>
+
+            <div class="summary-row discount" id="discountRow" style="display:none;">
+              <span class="summary-label">Discount</span>
+              <span class="summary-value" id="discountAmount">-$0</span>
+            </div>
+
+            <div class="summary-row total">
+              <span class="summary-label">Total to pay</span>
+              <span class="summary-value" id="totalAmount">$11,800</span>
+            </div>
+          </div>
+
+          <div class="summary-pills">
+            <div class="summary-pill">
+              <i class="ri-refund-2-line"></i>
+              Free cancellation within 24 hours
+            </div>
+            <div class="summary-pill">
+              <i class="ri-award-line"></i>
+              Earn 1,200 Travelo points
+            </div>
+          </div>
+
+                    <div class="coupon-wrapper">
+            <div class="coupon-input-wrapper">
+              <input type="text" id="couponInput" class="coupon-input" placeholder="Have a promo code? (TRAVELO10)" />
+              <button type="button" class="coupon-apply-btn" id="applyCouponBtn">
+                Apply
+                <i class="ri-arrow-right-line"></i>
+              </button>
+            </div>
+          </div>
+          <div class="coupon-message" id="couponMessage">
+            Tip: Use <strong>TRAVELO10</strong> to get 10% off on your subtotal.
+          </div>
+
+          <div class="secure-checkout">
+            <div class="secure-icon">
+              <i class="ri-lock-2-line"></i>
+            </div>
+            <div>
+              <strong>Secure Checkout</strong><br />
+              Your payment is protected with PCI-DSS compliant gateways.
+            </div>
+          </div>
+
+          <p class="terms-text">
+            By completing your booking, you agree to Travelo’s
+            <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+          </p>
+        </div>
+
+                <div class="card card-animate">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Trip Information</div>
+              <div class="card-subtitle">Your Travelo package at a glance</div>
+            </div>
+          </div>
+
+          <div class="trip-info-grid">
+            <div class="trip-info-item">
+              <span class="trip-info-label">Departure</span>
+              <span class="trip-info-value">Sun, 22 Dec · 09:45</span>
+            </div>
+            <div class="trip-info-item">
+              <span class="trip-info-label">Return</span>
+              <span class="trip-info-value">Thu, 26 Dec · 18:10</span>
+            </div>
+            <div class="trip-info-item">
+              <span class="trip-info-label">Travellers</span>
+              <span class="trip-info-value">2 Adults · 1 Child</span>
+            </div>
+            <div class="trip-info-item">
+              <span class="trip-info-label">Package</span>
+              <span class="trip-info-value">Flight + Hotel + Tours</span>
+            </div>
+          </div>
+
+          <p class="trip-info-tag">
+            Need to change something?
+            <a href="#" style="color:var(--clr-primary); text-decoration:none;">Go back to packages</a>
+          </p>
         </div>
       </aside>
-    </div>
+    </main>
+
+        <footer class="payment-footer">
+
+        <button class="btn btn-primary">
+          <i class="ri-check-line"></i>
+          Complete Payment
+        </button>
+      </div>
+    </footer>
   </div>
 
-    <div class="toast" id="toast"><div id="toastIcon">✅</div><div id="toastMsg">Payment successful</div></div>
-
-    <div class="modal" id="modal3ds" aria-hidden="true">
-    <div class="box">
-      <h3>3D Secure Verification</h3>
-      <p>We sent a one-time passcode (OTP) to your phone ending with <b>• • 92</b>.</p>
-      <div class="code" id="otpInputs">
-        <input maxlength="1" inputmode="numeric">
-        <input maxlength="1" inputmode="numeric">
-        <input maxlength="1" inputmode="numeric">
-        <input maxlength="1" inputmode="numeric">
-        <input maxlength="1" inputmode="numeric">
-        <input maxlength="1" inputmode="numeric">
-      </div>
-      <div class="actions">
-        <button class="btn btn-ghost" id="cancel3ds">Cancel</button>
-        <button class="btn btn-primary" id="confirm3ds"><span id="c3icon">🔐</span><span> Confirm</span></button>
-      </div>
-    </div>
-  </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
   <script>
-  (function(){
+    const paymentOptions = document.querySelectorAll(".payment-option");
 
-    const $ = (s, p=document)=>p.querySelector(s);
-    const $$ = (s, p=document)=>Array.from(p.querySelectorAll(s));
-
-    const price = { base:180, tax:32.4, svc:15, disc:0 };
-    const coupons = { SAVE10: 0.10, TRAVELO5: 0.05 };
-
-    const state = { method: 'card' };
-
-    const el = {
-      payBtn: $('#payBtn'),
-      payIcon: $('#payIcon'),
-      payText: $('#payText'),
-      payAmount: $('#payAmount'),
-      toast: $('#toast'),
-      brandBadge: $('#brandBadge'),
-      coupon: $('#coupon'),
-      sum: {
-        fare: $('#sumFare'), tax: $('#sumTax'), svc: $('#sumSvc'),
-        disc: $('#sumDisc'), total: $('#sumTotal')
-      },
-      inputs: {
-        name: $('#cardName'), num: $('#cardNum'), exp: $('#exp'), cvv: $('#cvv')
-      },
-      modal3ds: $('#modal3ds'),
-      confirm3ds: $('#confirm3ds'),
-      cancel3ds: $('#cancel3ds'),
-      otpInputs: $$('#otpInputs input')
-    };
-
-    function formatMoney(n){ return `$${n.toFixed(2)}` }
-
-    function setToast(msg, ok=true){
-      $('#toastMsg').textContent = msg;
-      $('#toastIcon').textContent = ok ? '✅' : '⚠️';
-      el.toast.classList.add('show');
-      setTimeout(()=> el.toast.classList.remove('show'), 3200);
-    }
-
-    function computeTotal(){
-      const subtotal = price.base + price.tax + price.svc;
-      const total = Math.max(0, subtotal - price.disc);
-      el.sum.fare.textContent = formatMoney(price.base);
-      el.sum.tax.textContent = formatMoney(price.tax);
-      el.sum.svc.textContent = formatMoney(price.svc);
-      el.sum.disc.textContent = `-$${price.disc.toFixed(2)}`;
-      el.sum.total.textContent = formatMoney(total);
-      el.payAmount.textContent = formatMoney(total);
-    }
-    computeTotal();
-
-    function detectBrand(num){
-      const n = num.replace(/\\D/g,'');
-      if(/^4\\d{0,}$/.test(n)) return 'Visa';
-      if(/^(5[1-5]|2(2[2-9]|[3-6]\\d|7[01]|720))\\d*$/.test(n)) return 'Mastercard';
-      if(/^3[47]\\d{0,}$/.test(n)) return 'AmEx';
-      if(/^(4(0(0866|1757|6903)|1(0400|0860|3476|3633|3886)|2(0280|2543|3614|4161|6032|9076)|5(0488|0867|1024|1475|2157|5385)|9(8597|8980))|50(0866|1006|1911|2756|3576|5043|6727|7430|7797)|6(0(0110|0242|0310|0628|0944|4578)|1(0360|0810|1106|1199|1376|2710|3326|3507|6123)|2(1295|1925|3093|3879|4167|4591|5140|5355|5420|5760|6522|6773|7203)|3(0401|1100|1225|1769|1937|2212|4796|6443|7934)|4(0106|0565|1025|1230|1422|2305|2600|3401|4091|4270|5003|5423|6033|6435|7031|7332|7673|8113|8319|9055)|5(0001|0036|0207|0341|1146|2164|2960|3061|3470|3932|4386|5279|5440|5689|5956|6014|6170|6527|7008|8086|8222|8847|9056)|6(0026|0086|0190|0895|1006|1901|2020|2201|2606|2747|3048|3141|3511|3894|4020|4051|4100|4246|4513|4742|5179|5300|5426|5506|5666|5812|6015|6312|6626|6760|6902|7205|7254|7287|7333|7910|8618|8700|8882|9200)|7(0407|0506|0799|0896|1005|1291|1774|1866|1991|2290|2491|2771|3056|3064|3361|3972|4082|4321|4555|4611|4622|4855|5011|5551|5622|5891|6044|6214|6421|6602|6901|7020|7352|7746|7812|8426|8671|8701|8880|8993)|8(0200|0343|0500|0906|1144|1204|1368|1700|1710|1780|1993|2136|2239|2341|2501|2759|3691|3762|4261|4322|4600|4801|5330|5466|5589|6126|6301|6420|6502|7155|7230|7420|7576|7813|8201|8320|8452|9000|9301|9700|9832|9931)|9(0120|0230|0331|0402|0429|0491|0610|1420|1760|1922|2020|2276|2380|2612|2854|2892|3360|3574|4059|4125|4210|4332|4462|4561|4711|5102|5211|5301|5501|5673|5723|5902|6001|6122|6331|6501|6970|7210|7222|7490|7542|7620|7720|7992|8011|8200|8351|8425|8500|8820|8910|9012|9102|9201|9310|9401|9500|9600|9710|9900))\\d*$/.test(n)) return 'Mada';
-      return 'Card';
-    }
-
-    function luhnCheck(num){
-      const arr = (num + '') .replace(/\\D/g,'').split('').reverse().map(x=>+x);
-      const sum = arr.reduce((acc,d,i)=> acc + (i%2? ((d*=2)>9? d-9:d) : d), 0);
-      return sum % 10 === 0;
-    }
-
-    function validExpiry(v){
-      if(!/^\\d{2}\\/\\d{2}$/.test(v)) return false;
-      const [mm,yy] = v.split('/').map(n=>+n);
-      if(mm<1||mm>12) return false;
-      const now = new Date();
-      const curYY = +String(now.getFullYear()).slice(2);
-      const curMM = now.getMonth()+1;
-      return (yy>curYY) || (yy===curYY && mm>=curMM);
-    }
-
-    function validateAll(){
-      const nameOk = el.inputs.name.value.trim().length>2;
-      const digits = el.inputs.num.value.replace(/\\s/g,'');
-      const numOk = digits.length>=13 && luhnCheck(digits);
-      const expOk = validExpiry(el.inputs.exp.value);
-      const cvvOk = /^\\d{3,4}$/.test(el.inputs.cvv.value);
-      const ok = (state.method!=='card') || (nameOk && numOk && expOk && cvvOk);
-      el.payBtn.disabled = !ok;
-      return { ok, nameOk, numOk, expOk, cvvOk, digits };
-    }
-
-    function hookCoupons(){
-      $('#applyCoupon').addEventListener('click', applyCoupon);
-      el.coupon.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); applyCoupon(); }});
-      function applyCoupon(){
-        const code = el.coupon.value.trim().toUpperCase();
-        const subtotal = price.base + price.tax + price.svc;
-        if(code && coupons[code]){
-          price.disc = subtotal * coupons[code];
-          setToast(`Coupon applied: -${(coupons[code]*100)|0}%`, true);
-        }else if(code){
-          price.disc = 0;
-          setToast('Invalid coupon code', false);
-        }
-        computeTotal();
-      }
-    }
-
-    $$('#payTabs .tab').forEach(tab=>{
-      tab.addEventListener('click', ()=>{
-        $$('#payTabs .tab').forEach(t=>t.classList.remove('active'));
-        tab.classList.add('active');
-        state.method = tab.dataset.method;
-        $('#altBtn').style.display = (state.method==='card') ? 'inline-flex' : 'none';
-        validateAll();
+    paymentOptions.forEach((opt) => {
+      opt.addEventListener("click", () => {
+        paymentOptions.forEach((o) => o.classList.remove("active"));
+        opt.classList.add("active");
       });
     });
 
-    el.inputs.num.addEventListener('input', e=>{
-      let v = e.target.value.replace(/\\D/g,'').slice(0,19);
-      v = v.match(/.{1,4}/g)?.join(' ') || '';
-      e.target.value = v;
-      $('#prevNum').textContent = v || '•••• •••• •••• ••••';
-      $('#brandBadge').textContent = detectBrand(v);
-      $('#errNum').classList.remove('showerr');
-      validateAll();
-    });
-    el.inputs.name.addEventListener('input', e=>{
-      $('#prevName').textContent = e.target.value.toUpperCase() || 'CARDHOLDER';
-      $('#errName').classList.remove('showerr');
-      validateAll();
-    });
-    el.inputs.exp.addEventListener('input', e=>{
-      let v = e.target.value.replace(/\\D/g,'').slice(0,4);
-      if(v.length >= 3){ v = v.slice(0,2) + '/' + v.slice(2); }
-      else if(v.length>=1){ if(+v[0]>1) v='0'+v; }
-      e.target.value = v;
-      $('#prevExp').textContent = v || 'MM/YY';
-      $('#errExp').classList.remove('showerr');
-      validateAll();
-    });
-    el.inputs.cvv.addEventListener('input', e=>{
-      e.target.value = e.target.value.replace(/\\D/g,'').slice(0,4);
-      $('#errCvv').classList.remove('showerr');
-      validateAll();
-    });
+  
+    const currencySymbol = "$";
+    let subtotal = 7000 + 2500 + 1500; 
+    const tax = 800;
+    let discountValue = 0;
+    let couponApplied = false;
 
-    el.payBtn.addEventListener('click', async ()=>{
-      const {ok, nameOk, numOk, expOk, cvvOk, digits} = validateAll();
-      if(!ok){
-        if(!nameOk) $('#errName').classList.add('showerr');
-        if(!numOk)  $('#errNum').classList.add('showerr');
-        if(!expOk)  $('#errExp').classList.add('showerr');
-        if(!cvvOk)  $('#errCvv').classList.add('showerr');
-        setToast('Please fix errors and try again', false);
+    const totalAmountEl = document.getElementById("totalAmount");
+    const discountRow = document.getElementById("discountRow");
+    const discountAmountEl = document.getElementById("discountAmount");
+    const couponInput = document.getElementById("couponInput");
+    const couponMessage = document.getElementById("couponMessage");
+    const applyCouponBtn = document.getElementById("applyCouponBtn");
+    const summaryItems = document.getElementById("summaryItems");
+
+    function formatCurrency(amount) {
+      return currencySymbol + amount.toLocaleString("en-US");
+    }
+
+    function updateTotals() {
+      const total = subtotal + tax - discountValue;
+      totalAmountEl.textContent = formatCurrency(total);
+      discountAmountEl.textContent = "- " + formatCurrency(discountValue);
+
+      if (discountValue > 0) {
+        discountRow.style.display = "flex";
+        gsap.from(discountRow, { y: -4, opacity: 0, duration: 0.4 });
+      } else {
+        discountRow.style.display = "none";
+      }
+
+      gsap.from(summaryItems, {
+        scale: 0.98,
+        duration: 0.25,
+        ease: "power1.inOut"
+      });
+    }
+
+    updateTotals();
+
+    applyCouponBtn.addEventListener("click", () => {
+      const code = couponInput.value.trim().toUpperCase();
+
+      if (!code) {
+        couponMessage.textContent = "Please enter a promo code.";
+        couponMessage.className = "coupon-message error";
+        gsap.from(couponMessage, { x: -6, duration: 0.15, repeat: 1, yoyo: true });
         return;
       }
 
-      try{
-        el.payIcon.innerHTML = '<span class="spinner"></span>';
-        el.payText.textContent = 'Processing…';
-        el.payBtn.disabled = true;
-
-        await new Promise(r=>setTimeout(r, 600));
-
-        open3DS();
-
-        el.confirm3ds.onclick = async ()=>{
-          const code = el.otpInputs.map(i=>i.value).join('');
-          if(code.length<6){ setToast('Enter the 6-digit code', false); return; }
-
-          $('#c3icon').innerHTML = '<span class="spinner"></span>';
-          await new Promise(r=>setTimeout(r, 800));
-          close3DS();
-
-          await new Promise(r=>setTimeout(r, 600));
-
-          const payload = {
-            orderId: 'TRV-984215',
-            amount: +el.sum.total.textContent.replace('$',''),
-            currency: 'USD',
-            method: state.method,
-            card: { brand: $('#brandBadge').textContent, last4: digits.slice(-4), exp: el.inputs.exp.value, holder: el.inputs.name.value.trim() },
-            billing: Object.fromEntries(new FormData($('#billing')).entries()),
-            saveCard: $('#saveCard').checked
-          };
-          console.log('POST /api/payments/charge', payload);
-
-          el.payIcon.textContent = '💳';
-          el.payText.textContent = 'Pay Now';
-          el.payBtn.disabled = false;
-          setToast('Payment successful! E-ticket sent to your email.');
-        };
-
-        el.cancel3ds.onclick = ()=>{
-          close3DS();
-          el.payIcon.textContent = '💳';
-          el.payText.textContent = 'Pay Now';
-          el.payBtn.disabled = false;
-          setToast('3D Secure cancelled', false);
-        };
-
-      }catch(err){
-        console.error(err);
-        el.payIcon.textContent = '💳';
-        el.payText.textContent = 'Pay Now';
-        el.payBtn.disabled = false;
-        setToast('Something went wrong. Please try again.', false);
+      if (code === "TRAVELO10") {
+        if (couponApplied) {
+          couponMessage.textContent = "TRAVELO10 is already applied to your booking.";
+          couponMessage.className = "coupon-message";
+          return;
+        }
+        couponApplied = true;
+        discountValue = Math.round(subtotal * 0.1);
+        couponMessage.textContent = "Great! 10% discount applied on your subtotal.";
+        couponMessage.className = "coupon-message success";
+        updateTotals();
+      } else {
+        discountValue = 0;
+        couponApplied = false;
+        updateTotals();
+        couponMessage.textContent = "This code is not valid for this booking.";
+        couponMessage.className = "coupon-message error";
+        gsap.from(couponMessage, { x: -6, duration: 0.15, repeat: 1, yoyo: true });
       }
     });
 
-    document.addEventListener('keydown', (e)=>{
-      if(e.key==='Enter' && !el.payBtn.disabled && !$('#modal3ds').style.display){
-        e.preventDefault();
-        el.payBtn.click();
-      }
-    });
-
-    function open3DS(){
-      el.modal3ds.style.display = 'flex';
-      el.otpInputs.forEach((inp,idx)=>{
-        inp.value = '';
-        inp.oninput = ()=>{
-          inp.value = inp.value.replace(/\\D/g,'').slice(0,1);
-          if(inp.value && idx < el.otpInputs.length-1) el.otpInputs[idx+1].focus();
-        };
-        inp.onkeydown = (ev)=>{
-          if(ev.key==='Backspace' && !inp.value && idx>0) el.otpInputs[idx-1].focus();
-        };
+    window.addEventListener("load", () => {
+      gsap.from(".card-animate", {
+        y: 26,
+        opacity: 0,
+        duration: 0.7,
+        ease: "power3.out",
+        stagger: 0.12
       });
-      el.otpInputs[0].focus();
-    }
-    function close3DS(){
-      el.modal3ds.style.display = 'none';
-      $('#c3icon').textContent = '🔐';
-    }
 
-    computeTotal(); hookCoupons(); validateAll();
-  })();
+      gsap.from(".payment-footer", {
+        y: 20,
+        opacity: 0,
+        duration: 0.7,
+        delay: 0.2,
+        ease: "power3.out"
+      });
+    });
   </script>
+  <script src="./assets/js/home.js"></script>
 </body>
 </html>

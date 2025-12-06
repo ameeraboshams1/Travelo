@@ -81,6 +81,11 @@ ul {
 .nav-links-ul li a:hover {
   color: #872BFF;   }
 
+
+  .active{
+    color: #872BFF;
+  }
+
 .nav-button {
   width: 25%;
   display: flex;

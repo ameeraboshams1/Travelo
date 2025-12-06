@@ -29,28 +29,28 @@
 
                 <div class="nav-links">
                     <ul class="nav-links-ul">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="/flights">Flights</a></li>
-                        <li><a href="/hotels">Hotels</a></li>
+                        <li><a href="index.html" class="active">Home</a></li>
+                        <li><a href="./fligths.html">Flights</a></li>
+                        <li><a href="hotel.html">Hotels</a></li>
                         <li><a href="/bookings">Packages</a></li>
-                   
-                        <li><a href="/support.html">Destinations</a></li>
-                        
+
+                        <li><a href="./destination.html">Destinations</a></li>
+
                     </ul>
                 </div>
 
                 <div class="nav-button">
                     <button id="btnLogin" type="button" class="sign_in">Login</button>
-                    <button class="sign_up">Sign up</button>
+                    <button id="btnLogin1" class="sign_up">Sign up</button>
                 </div>
 
                 <button class="menu-toggle" aria-label="Open menu"><span></span></button>
             </nav>
         </div>
     </section>
-<div class="spinner-overlay" id="spinner">
-  <div class="spinner"></div>
-</div>
+    <div class="spinner-overlay" id="spinner">
+        <div class="spinner"></div>
+    </div>
 
 
     <section class="hero">
@@ -157,131 +157,299 @@
             </div>
         </div>
     </section>
-    
-    <section class="top-destination">
-        <div class="container">
-            <div class="row align-items-center mb-5 h-100px">
-                <div class="col">
-                    <p class="td-eyebrow">TOP DESTINATION</p>
-                    <h2 class="td-title">Explore top destination</h2>
-                </div>
-                <div class="col-auto  d-md-flex gap-2">
-                                        <button class="td-nav-btn prev">
-                        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </button>
 
-                                        <button class="td-nav-btn next">
-                        <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </button>
+     <div class="top-wrapper">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+      <div>
+        <div class="section-label">TOP DESTINATION</div>
+        <h1 class="section-title mb-0">Explore top destination</h1>
+      </div>
 
-                </div>
+      <div class="category-tabs">
+        <button class="category-btn active" data-category="all">City</button>
+        <button class="category-btn" data-category="mountain">Mountain</button>
+        <button class="category-btn" data-category="forest">Forest</button>
+        <button class="category-btn" data-category="island">Island</button>
+        <a href="#" class="see-all-link">see all</a>
+      </div>
+    </div>
+
+        <div class="row g-4">
+            <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
+        <div class="destination-card">
+          <div class="image-container">
+            <div class="image-blur-effect"></div>
+            <img src="Rectangle 1434.svg" 
+                 alt="Tokyo" 
+                 class="destination-image" />
+            <div class="rating-badge">
+              <span class="star">★</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="destination-city">Tokyo</div>
+            <div class="destination-desc">
+              Lorem Ipsum is simply dummy text of the printing and…see more
             </div>
 
-            <div class="row g-4">
-                                <div class="col-12 col-md-6 col-lg-4">
-                    <article class="td-card">
-                        <div class="td-media">
-                            <span class="td-country">Bangkok</span>
-                            <img src="./assets/images/Rectangle 6.png" alt="Bangkok Resort">
-                        </div>
-                        <div class="td-body">
-                            <div class="td-body1">
-                                <h3 class="td-place">Pandawa Beach, Bali Island</h3>
-                                <div class="td-price">$30.99</div>
-                            </div>
-                            <div class="td-rate">4.9 <img src="./assets/images/Vector (5).svg"></div>
-                        </div>
-                    </article>
+            <div class="destination-bottom">
+              <div class="destination-footer-top">
+                <span class="location-city">Tokyo, Japan</span>
+              </div>
+              <div class="destination-footer-bottom">
+                <div class="destination-price">
+                  $360 <span>+12 interest free</span>
                 </div>
-
-                                <div class="col-12 col-md-6 col-lg-4">
-                    <article class="td-card">
-                        <div class="td-media">
-                            <span class="td-country">Bangkok</span>
-                            <img src="./assets/images/Rectangle 6.png" alt="Bangkok Resort">
-                        </div>
-                        <div class="td-body">
-                            <div class="td-body1">
-                                <h3 class="td-place">Pandawa Beach, Bali Island</h3>
-                                <div class="td-price">$30.99</div>
-                            </div>
-                            <div class="td-rate">4.9 <img src="./assets/images/Vector (5).svg"></div>
-                        </div>
-                    </article>
-                </div>
-
-
-                                <div class="col-12 col-md-6 col-lg-4">
-                    <article class="td-card">
-                        <div class="td-media">
-                            <span class="td-country">Bangkok</span>
-                            <img src="./assets/images/Rectangle 6.png" alt="Bangkok Resort">
-                        </div>
-                        <div class="td-body">
-                            <div class="td-body1">
-                                <h3 class="td-place">Pandawa Beach, Bali Island</h3>
-
-                                <div class="td-price">$30.99</div>
-                            </div>
-                            <div class="td-rate">4.9 <img src="./assets/images/Vector (5).svg"></div>
-                        </div>
-                    </article>
-                </div>
-                                <div class="col-12 col-md-6 col-lg-4">
-                    <article class="td-card">
-                        <div class="td-media">
-                            <span class="td-country">Bangkok</span>
-                            <img src="./assets/images/Rectangle 6.png" alt="Bangkok Resort">
-                        </div>
-                        <div class="td-body">
-                            <div class="td-body1">
-                                <h3 class="td-place">Pandawa Beach, Bali Island</h3>
-
-                                <div class="td-price">$30.99</div>
-                            </div>
-                            <div class="td-rate">4.9 <img src="./assets/images/Vector (5).svg"></div>
-                        </div>
-                    </article>
-                </div>
-                                <div class="col-12 col-md-6 col-lg-4">
-                    <article class="td-card">
-                        <div class="td-media">
-                            <span class="td-country">Bangkok</span>
-                            <img src="./assets/images/Rectangle 6.png" alt="Bangkok Resort">
-                        </div>
-                        <div class="td-body">
-                            <div class="td-body1">
-                                <h3 class="td-place">Pandawa Beach, Bali Island</h3>
-
-                                <div class="td-price">$30.99</div>
-                            </div>
-                            <div class="td-rate">4.9 <img src="./assets/images/Vector (5).svg"></div>
-                        </div>
-                    </article>
-                </div>
-
-
-                <div class="row">
-                    <div class="col text-center h-100px">
-                        <a href="#" class="td-seeall">
-                            See All
-                            <svg class="icon1" width="9" height="15" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
+                <button class="btn-gradient view-btn" data-city="Tokyo">See More</button>
+              </div>
             </div>
-    </section>
+          </div>
+        </div>
+      </div>
+
+            <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
+        <div class="destination-card">
+          <div class="image-container">
+            <div class="image-blur-effect"></div>
+            <img src="https://images.pexels.com/photos/532263/pexels-photo-532263.jpeg" 
+                 alt="Rome" 
+                 class="destination-image" />
+            <div class="rating-badge">
+              <span class="star">★</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="destination-city">Rome</div>
+            <div class="destination-desc">
+              Lorem Ipsum is simply dummy text of the printing and…see more
+            </div>
+
+            <div class="destination-bottom">
+              <div class="destination-footer-top">
+                <span class="location-city">Rome, Italy</span>
+              </div>
+              <div class="destination-footer-bottom">
+                <div class="destination-price">
+                  $370 <span>+12 interest free</span>
+                </div>
+                <button class="btn-gradient view-btn" data-city="Rome">See More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+            <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
+        <div class="destination-card">
+          <div class="image-container">
+            <div class="image-blur-effect"></div>
+            <img src="https://images.pexels.com/photos/586052/pexels-photo-586052.jpeg" 
+                 alt="Barcelona" 
+                 class="destination-image" />
+            <div class="rating-badge">
+              <span class="star">★</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="destination-city">Barcelona</div>
+            <div class="destination-desc">
+              Lorem Ipsum is simply dummy text of the printing and…see more
+            </div>
+
+            <div class="destination-bottom">
+              <div class="destination-footer-top">
+                <span class="location-city">Barcelona, Spain</span>
+              </div>
+              <div class="destination-footer-bottom">
+                <div class="destination-price">
+                  $400 <span>+12 interest free</span>
+                </div>
+                <button class="btn-gradient view-btn" data-city="Barcelona">See More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+            <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
+        <div class="destination-card">
+          <div class="image-container">
+            <div class="image-blur-effect"></div>
+            <img src="https://images.pexels.com/photos/373290/pexels-photo-373290.jpeg" 
+                 alt="Bangkok" 
+                 class="destination-image" />
+            <div class="rating-badge">
+              <span class="star">★</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="destination-city">Bangkok</div>
+            <div class="destination-desc">
+              Lorem Ipsum is simply dummy text of the printing and…see more
+            </div>
+
+            <div class="destination-bottom">
+              <div class="destination-footer-top">
+                <span class="location-city">Bangkok, Thailand</span>
+              </div>
+              <div class="destination-footer-bottom">
+                <div class="destination-price">
+                  $300 <span>+12 interest free</span>
+                </div>
+                <button class="btn-gradient view-btn" data-city="Bangkok">See More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+            <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="island">
+        <div class="destination-card">
+          <div class="image-container">
+            <div class="image-blur-effect"></div>
+            <img src="https://images.pexels.com/photos/2193300/pexels-photo-2193300.jpeg" 
+                 alt="Sydney" 
+                 class="destination-image" />
+            <div class="rating-badge">
+              <span class="star">★</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="destination-city">Sydney</div>
+            <div class="destination-desc">
+              Lorem Ipsum is simply dummy text of the printing and…see more
+            </div>
+
+            <div class="destination-bottom">
+              <div class="destination-footer-top">
+                <span class="location-city">Sydney, Australia</span>
+              </div>
+              <div class="destination-footer-bottom">
+                <div class="destination-price">
+                  $300 <span>+12 interest free</span>
+                </div>
+                <button class="btn-gradient view-btn" data-city="Sydney">See More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+            <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="forest">
+        <div class="destination-card">
+          <div class="image-container">
+            <div class="image-blur-effect"></div>
+            <img src="https://images.pexels.com/photos/2946729/pexels-photo-2946729.jpeg" 
+                 alt="Toronto" 
+                 class="destination-image" />
+            <div class="rating-badge">
+              <span class="star">★</span>
+              <span>5.0</span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="destination-city">Toronto</div>
+            <div class="destination-desc">
+              Lorem Ipsum is simply dummy text of the printing and…see more
+            </div>
+
+            <div class="destination-bottom">
+              <div class="destination-footer-top">
+                <span class="location-city">Toronto, Canada</span>
+              </div>
+              <div class="destination-footer-bottom">
+                <div class="destination-price">
+                  $370 <span>+12 interest free</span>
+                </div>
+                <button class="btn-gradient view-btn" data-city="Toronto">See More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="destination-modal-overlay" id="destinationModal">
+  <div class="destination-modal">
+    <button class="destination-modal-close" id="destinationModalClose">&times;</button>
+
+    <div class="destination-modal-image-wrapper">
+      <img src="" alt="" id="modalDestinationImage" class="destination-modal-image" />
+      <div class="destination-modal-chip">Top destination</div>
+      <div class="destination-modal-gradient"></div>
+    </div>
+
+    <div class="destination-modal-body">
+      <div class="destination-modal-header">
+        <div>
+          <h2 id="modalDestinationTitle">Tokyo</h2>
+          <p id="modalDestinationLocation" class="modal-location">Tokyo, Japan</p>
+        </div>
+        <div class="modal-rating">
+          <span>★ 5.0</span>
+        </div>
+      </div>
+
+      <p id="modalDestinationDesc" class="modal-description">
+        Explore the vibrant streets, neon lights, and traditional temples in one of the most
+        exciting cities in the world.
+      </p>
+
+      <div class="destination-modal-stats">
+        <div class="stat-card">
+          <span class="stat-label">Avg. visitors</span>
+          <span class="stat-value" id="modalVisitors">12M / year</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Best season</span>
+          <span class="stat-value" id="modalSeason">Mar – May</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Starting from</span>
+          <span class="stat-value" id="modalPrice">$360</span>
+        </div>
+      </div>
+
+      <div class="destination-modal-actions">
+                <button class="modal-btn primary">
+          <span class="icon">✈️</span>
+          <div class="text">
+            <span class="title">Book Trip</span>
+            <span class="subtitle">Flights & activities</span>
+          </div>
+        </button>
+
+                <button class="modal-btn outline">
+          <span class="icon">🎁</span>
+          <div class="text">
+            <span class="title">Book Package</span>
+            <span class="subtitle">Flight + hotel + tour</span>
+          </div>
+        </button>
+
+                <button class="modal-btn ghost">
+          <span class="icon">🏨</span>
+          <div class="text">
+            <span class="title">Book Hotel</span>
+            <span class="subtitle">Hand-picked stays</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
     <section class="hero-section">
         <div class="container1">
             <div class="hero-image">
@@ -360,62 +528,71 @@
 
         </div>
     </section>
- 
 
-<section class="testimonials-section">
-    <div class="container-testimonials">
-                <div class="section-header">
-            <p class="subtitle">TESTIMONIALS</p>
-            <h2>Trust our clients</h2>
-        </div>
 
-                <div class="testimonial-slider">
-            <div class="slider-wrapper">
-                                <div class="testimonial-slide active-slide">
-                    <img src="./assets/images/TESTIMONIALS/avatar.png" alt="Irfan Rahmat" class="client-avatar">
-                    <h3>Irfan Rahmat</h3>
-                    <p class="client-title">Travel Enthusiast</p>
-                    <div class="rating"></div>
-                    <p class="testimonial-text">
-                        I love Travelo, this is the best place to buy ticket and help you find your dream holiday.
-                    </p>
+    <section class="testimonials-section">
+        <div class="container-testimonials">
+            <div class="section-header">
+                <p class="subtitle">TESTIMONIALS</p>
+                <h2>Trust our clients</h2>
+            </div>
+
+            <div class="testimonial-slider">
+                <div class="slider-wrapper">
+                    <div class="testimonial-slide active-slide">
+                        <img src="./assets/images/TESTIMONIALS/avatar.png" alt="Irfan Rahmat" class="client-avatar">
+                        <h3>Irfan Rahmat</h3>
+                        <p class="client-title">Travel Enthusiast</p>
+                        <div class="rating"></div>
+                        <p class="testimonial-text">
+                            I love Travelo, this is the best place to buy ticket and help you find your dream holiday.
+                        </p>
+                    </div>
+
+                    <div class="testimonial-slide">
+                        <img src="./assets/images/TESTIMONIALS/avatar2.png" alt="Jane Doe" class="client-avatar">
+                        <h3>Jane Doe</h3>
+                        <p class="client-title">Adventure Seeker</p>
+                        <div class="rating"></div>
+                        <p class="testimonial-text">
+                            An amazing experience from start to finish. The support team was incredibly helpful. Highly
+                            recommended!
+                        </p>
+                    </div>
+
+                    <div class="testimonial-slide">
+                        <img src="./assets/images/TESTIMONIALS/avatar1.png" alt="John Smith" class="client-avatar">
+                        <h3>John Smith</h3>
+                        <p class="client-title">Family Vacationer</p>
+                        <div class="rating"></div>
+                        <p class="testimonial-text">
+                            Our family trip was perfectly organized. Everything was seamless. We will definitely be back
+                            for more.
+                        </p>
+                    </div>
                 </div>
 
-                                <div class="testimonial-slide">
-                    <img src="./assets/images/TESTIMONIALS/avatar2.png" alt="Jane Doe" class="client-avatar">
-                    <h3>Jane Doe</h3>
-                    <p class="client-title">Adventure Seeker</p>
-                    <div class="rating"></div>
-                    <p class="testimonial-text">
-                        An amazing experience from start to finish. The support team was incredibly helpful. Highly recommended!
-                    </p>
-                </div>
+                <button class="slider-btn prev-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <button class="slider-btn next-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
 
-                                <div class="testimonial-slide">
-                    <img src="./assets/images/TESTIMONIALS/avatar1.png" alt="John Smith" class="client-avatar">
-                    <h3>John Smith</h3>
-                    <p class="client-title">Family Vacationer</p>
-                    <div class="rating"></div>
-                    <p class="testimonial-text">
-                        Our family trip was perfectly organized. Everything was seamless. We will definitely be back for more.
-                    </p>
+                <div class="slider-pagination">
                 </div>
             </div>
 
-                        <button class="slider-btn prev-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <button class="slider-btn next-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-
-                        <div class="slider-pagination">
-                            </div>
+            <img src="./assets/images/TESTIMONIALS/Graphic_Elements.png" alt="Decorative Dots"
+                class="deco-dots-testimonials">
         </div>
-        
-        <img src="./assets/images/TESTIMONIALS/Graphic_Elements.png" alt="Decorative Dots" class="deco-dots-testimonials">
-    </div>
-</section>
+    </section>
 
     <section class="newsletter">
         <div class="container">
@@ -448,7 +625,8 @@
     </section>
     <footer class="footer">
         <div class="container">
-            <div class="row">                                 <div class="footer1">
+            <div class="row">
+                <div class="footer1">
                     <h3 class="brand-title">
                         <img class="brand-logo" src="./assets/images/logo.svg" alt="Travelo" />
                         Travelo
@@ -464,7 +642,7 @@
                     </div>
                 </div>
 
-                                <div class="footer-links">
+                <div class="footer-links">
                     <div class="footer-link">
                         <h3>Products</h3>
                         <a href="#">Flights</a>
@@ -495,7 +673,8 @@
 
     <div class="endfoot">
         <div class="container">
-            <div class="footer-end">                 <h3 class="copy">© 2025 Travelo. All Rights Reserved — Developed by Ameer & Zeina.</h3>
+            <div class="footer-end">
+                <h3 class="copy">© 2025 Travelo. All Rights Reserved — Developed by Ameer & Zeina.</h3>
                 <div class="footicon">
                     <a href="#"><img src="./assets/images/Group.svg" alt="twitter"></a>
                     <a href="#"><img src="./assets/images/Group 7.svg" alt="facebook"></a>

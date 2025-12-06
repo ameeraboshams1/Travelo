@@ -1,241 +1,754 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const tabItems = document.querySelectorAll(".tab-item");
+  const tripChips = document.querySelectorAll(".trip-chip");
+  const flightList = document.getElementById("flightList");
+  const allCards = Array.from(flightList.children);
 
-const API = { search: 'flights_search.php' }; // GET: from,to,depart,return,pax,cabin,page,pageSize
-const PAGE_SIZE = 10;
+  const maxPriceInput = document.getElementById("maxPrice");
+  const maxPriceValue = document.getElementById("maxPriceValue");
+  const nonStopOnly = document.getElementById("nonStopOnly");
+  const timeChips = document.querySelectorAll(".chip");
+  const resetBtn = document.getElementById("resetFilters");
 
-const DEMO_MODE = true;
-const DEMO_DATA = [
-  { id:1, airline:'Royal Jordanian', code:'RJ', flight_no:'RJ261', from:'AMM', to:'DXB', depart:'2025-11-10T09:25:00', arrive:'2025-11-10T12:30:00', price:189, stops:0, duration:185, from_lat:31.722, from_lng:35.994, to_lat:25.253, to_lng:55.364, r_depart:'2025-11-17T18:10:00', r_arrive:'2025-11-17T21:05:00', r_price:205 },
-  { id:2, airline:'Emirates', code:'EK', flight_no:'EK904', from:'AMM', to:'DXB', depart:'2025-11-10T17:10:00', arrive:'2025-11-10T20:15:00', price:228, stops:0, duration:185, from_lat:31.722, from_lng:35.994, to_lat:25.253, to_lng:55.364, r_depart:'2025-11-17T13:30:00', r_arrive:'2025-11-17T16:25:00', r_price:240 },
-  { id:3, airline:'Turkish Airlines', code:'TK', flight_no:'TK815', from:'AMM', to:'IST', depart:'2025-11-10T05:30:00', arrive:'2025-11-10T08:05:00', price:159, stops:0, duration:155, from_lat:31.722, from_lng:35.994, to_lat:41.275, to_lng:28.751, r_depart:'2025-11-18T11:10:00', r_arrive:'2025-11-18T13:45:00', r_price:165 },
-  { id:4, airline:'Qatar Airways', code:'QR', flight_no:'QR401', from:'AMM', to:'DOH', depart:'2025-11-10T21:40:00', arrive:'2025-11-11T00:15:00', price:172, stops:0, duration:155, from_lat:31.722, from_lng:35.994, to_lat:25.274, to_lng:51.608, r_depart:'2025-11-18T09:25:00', r_arrive:'2025-11-18T11:55:00', r_price:178 },
-  { id:5, airline:'Egyptair', code:'MS', flight_no:'MS740', from:'AMM', to:'CAI', depart:'2025-11-10T14:30:00', arrive:'2025-11-10T16:00:00', price:130, stops:0, duration:90,  from_lat:31.722, from_lng:35.994, to_lat:30.112, to_lng:31.400, r_depart:'2025-11-16T19:15:00', r_arrive:'2025-11-16T20:45:00', r_price:135 },
-  { id:6, airline:'Flydubai', code:'FZ', flight_no:'FZ144', from:'AMM', to:'DXB', depart:'2025-11-10T22:15:00', arrive:'2025-11-11T01:05:00', price:119, stops:0, duration:170, from_lat:31.722, from_lng:35.994, to_lat:25.253, to_lng:55.364, r_depart:'2025-11-17T10:40:00', r_arrive:'2025-11-17T13:20:00', r_price:129 }
-];
+  let currentSort = "cheapest";
+  let currentTimeFilter = "all";
+  let currentTripFilter = "all";
 
-const DEST_IMAGES = {
-  'DXB': 'https://images.unsplash.com/photo-1504270997636-07ddfbd48945?q=80&w=1200&auto=format&fit=crop',
-  'IST': 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1200&auto=format&fit=crop',
-  'DOH': 'https://images.unsplash.com/photo-1566550074878-0ac0fecc69e7?q=80&w=1200&auto=format&fit=crop',
-  'CAI': 'https://images.unsplash.com/photo-1544989164-31dc3c645987?q=80&w=1200&auto=format&fit=crop',
-  'AMM': 'https://images.unsplash.com/photo-1604328698692-cf6afe3f17dc?q=80&w=1200&auto=format&fit=crop',
-  default: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop'
-};
-const CITY_NAMES = { DXB:'Dubai, UAE', IST:'Istanbul, Türkiye', DOH:'Doha, Qatar', CAI:'Cairo, Egypt', AMM:'Amman, Jordan' };
-
-const $ = (q,root=document)=>root.querySelector(q);
-const $$ = (q,root=document)=>Array.from(root.querySelectorAll(q));
-const fmtMoney = v => `$${Number(v).toFixed(2)}`;
-const minutesToHm = m => `${Math.floor(m/60)}h ${m%60}m`;
-const avatar = (name) => (name||'?').trim()[0]?.toUpperCase()||'T';
-const showError = (msg)=>{ const b=$('#banner'); b.textContent=msg||'Something went wrong'; b.classList.remove('d-none'); setTimeout(()=>b.classList.add('d-none'), 4000); };
-
-function totalPrice(f){ const isRound = document.documentElement.getAttribute('data-trip')==='round'; return isRound ? Number(f.price||0) + Number(f.r_price||0) : Number(f.price||0); }
-
-let map, routeLayer;
-function initMap(){
-  map = L.map('map');
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
-  map.setView([30,20],3);
-}
-function drawRoute(f){
-  if(!map) return; if(routeLayer){ routeLayer.remove(); }
-  if([f.from_lat,f.from_lng,f.to_lat,f.to_lng].some(x=>x===undefined||x===null)) return;
-  const A=[+f.from_lat,+f.from_lng], B=[+f.to_lat,+f.to_lng]; routeLayer=L.layerGroup();
-  const m1=L.marker(A,{title:f.from}).addTo(routeLayer).bindPopup(`<b>${f.from}</b>`);
-  const m2=L.marker(B,{title:f.to}).addTo(routeLayer).bindPopup(`<b>${f.to}</b>`);
-  const line=L.polyline([A,B],{weight:4,opacity:.85}).addTo(routeLayer); routeLayer.addTo(map); map.fitBounds(line.getBounds(),{padding:[30,30]}); setTimeout(()=>m1.openPopup(),300);
-}
-
-function cardItem(f, idx, meta){
-  const dep=new Date(f.depart), arr=new Date(f.arrive), stops=f.stops===0?'Nonstop':(f.stops===1?'1 stop':`${f.stops} stops`);
-  const isRound = document.documentElement.getAttribute('data-trip')==='round';
-  const total = totalPrice(f);
-  const photo = (DEST_IMAGES[f.to]||DEST_IMAGES.default);
-  const el=document.createElement('div'); el.className='flight-card';
-  el.innerHTML = `
-    <div class="flight-photo">
-      <img src="${photo}" alt="${f.to}">
-      ${isRound?'<span class="flight-badge">Round trip</span>':''}
-      <span class="price-tag"><i class="bi bi-cash-coin"></i> ${fmtMoney(total)}</span>
-    </div>
-    <div class="flight-body">
-      <div class="airline">
-        <div class="logo">${avatar(f.airline)}</div>
-        <div>
-          <div class="fw-semibold">${f.airline} <span class="text-muted">${f.code||''}</span></div>
-          <div class="text-muted small">${f.flight_no||''} · ${dep.toLocaleDateString()}</div>
-        </div>
-      </div>
-      <div>
-        <div class="fw-semibold">${f.from} <i class="bi bi-arrow-right"></i> ${f.to}</div>
-        <div class="timeline mt-1"><span class="dot"></span><span class="line"></span><span class="dot"></span></div>
-        <div class="text-muted small mt-1">${dep.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} → ${arr.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} · ${stops}${isRound?` · Return ${new Date(f.r_depart).toLocaleDateString()} ${new Date(f.r_depart).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`:''}</div>
-      </div>
-      <div class="d-flex align-items-center justify-content-between gap-2">
-        <div class="d-flex gap-1">
-          ${idx===meta.bestIdx?'<span class="chip best">Best</span>':''}
-          ${idx===meta.fastestIdx?'<span class="chip fast">Fastest</span>':''}
-          ${idx===meta.cheapestIdx?'<span class="chip cheap">Cheapest</span>':''}
-        </div>
-        <div class="d-grid">
-          <button class="btn btn-sm btn-outline-primary btn-details">Details</button>
-          <button class="btn btn-primary btn-book mt-1">Book</button>
-        </div>
-      </div>
-    </div>`;
-  $('.btn-details', el).onclick = ()=> openDetails(f);
-  $('.btn-book', el).onclick = ()=> proceedBooking(f);
-  el.addEventListener('mouseenter', ()=> drawRoute(f));
-  return el;
-}
-
-function badgeMeta(items){
-  if(!items.length) return {cheapestIdx:-1, fastestIdx:-1, bestIdx:-1};
-  let cheapestIdx=0, fastestIdx=0, bestIdx=0; // best = normalized price + duration
-  const norm = (v, min, max)=> (max-min? (v-min)/(max-min) : 0);
-  const minP=Math.min(...items.map(x=>x.price)), maxP=Math.max(...items.map(x=>x.price));
-  const minD=Math.min(...items.map(x=>x.duration)), maxD=Math.max(...items.map(x=>x.duration));
-  let bestScore=Infinity;
-  items.forEach((x,i)=>{ if(x.price<items[cheapestIdx].price) cheapestIdx=i; if(x.duration<items[fastestIdx].duration) fastestIdx=i; const s = norm(x.price,minP,maxP)+norm(x.duration,minD,maxD); if(s<bestScore){ bestScore=s; bestIdx=i; } });
-  return {cheapestIdx, fastestIdx, bestIdx};
-}
-
-function render(items){
-  const cardsC=$('#cards');
-  cardsC.innerHTML='';
-  if(!items.length){ cardsC.innerHTML = `<div class='p-4 text-center text-muted'>No flights match your filters.</div>`; $('#resultCount').textContent='Showing 0 flights'; return; }
-  const meta = badgeMeta(items);
-  items.forEach((f,i)=>{ cardsC.appendChild(cardItem(f,i,meta)); });
-  $('#resultCount').textContent = `Showing ${items.length} ${items.length===1?'flight':'flights'}`;
-  if(items[0]) drawRoute(items[0]);
-}
-
-function openDetails(f){
-  const isRound = document.documentElement.getAttribute('data-trip')==='round';
-  const dep=new Date(f.depart), arr=new Date(f.arrive);
-  let body = `
-    <div class="d-flex justify-content-between">
-      <div>
-        <div class="fw-semibold">${f.from} → ${f.to}</div>
-        <div class="text-muted">${dep.toLocaleDateString()} · ${dep.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} → ${arr.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
-        <div class="text-muted">Duration: ${minutesToHm(f.duration)} · Stops: ${f.stops||0}</div>
-      </div>
-      <div class="text-end">
-        <div class="fw-bold fs-4">${fmtMoney(totalPrice(f))}</div>
-        <div class="text-muted">${isRound?'Round trip':'One way'} · ${$('#cabin').value}</div>
-      </div>
-    </div>`;
-  if(isRound){
-    const rdep=new Date(f.r_depart), rarr=new Date(f.r_arrive);
-    body += `
-      <hr>
-      <div class="d-flex justify-content-between">
-        <div>
-          <div class="fw-semibold">${f.to} → ${f.from}</div>
-          <div class="text-muted">${rdep.toLocaleDateString()} · ${rdep.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} → ${rarr.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
-          <div class="text-muted">Return fare: ${fmtMoney(f.r_price||0)}</div>
-        </div>
-        <div class="text-end">
-          <div class="fw-bold">Total: ${fmtMoney(totalPrice(f))}</div>
-        </div>
-      </div>`;
+  function renderCards(cards) {
+    flightList.innerHTML = "";
+    cards.forEach((card) => flightList.appendChild(card));
   }
-  body += `
-    <hr>
-    <div class="row g-2">
-      <div class="col-md-6"><div class="p-2 border rounded-3">Baggage: 7kg cabin · 23kg check-in</div></div>
-      <div class="col-md-6"><div class="p-2 border rounded-3">Fare: Non-refundable · Date change fee</div></div>
-    </div>`;
-  $('#flightBody').innerHTML = body;
-  new bootstrap.Modal('#flightModal').show();
-  drawRoute(f);
-  $('#continueBtn').onclick = ()=> proceedBooking(f);
+
+  function getFilteredCards() {
+    const maxPrice = Number(maxPriceInput.value);
+
+    return allCards.filter((card) => {
+      const price = Number(card.dataset.price);
+      const stops = Number(card.dataset.stops);
+      const tripType = card.dataset.trip; 
+
+      if (price > maxPrice) return false;
+      if (nonStopOnly.checked && stops !== 0) return false;
+
+      
+      if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
+        return false;
+      }
+
+      
+      if (currentTimeFilter !== "all") {
+        const depTimeText = card.querySelector(".time strong").textContent;
+        const hour = Number(depTimeText.split(":")[0]);
+        if (currentTimeFilter === "morning" && hour >= 12) return false;
+        if (currentTimeFilter === "evening" && hour < 12) return false;
+      }
+
+      return true;
+    });
+  }
+
+  function applySortAndFilter() {
+    const filtered = getFilteredCards();
+
+    filtered.sort((a, b) => {
+      if (currentSort === "cheapest") {
+        return Number(a.dataset.price) - Number(b.dataset.price);
+      } else {
+        return Number(a.dataset.duration) - Number(b.dataset.duration);
+      }
+    });
+
+    renderCards(filtered);
+  }
+
+    tabItems.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabItems.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      currentSort = tab.dataset.sort;
+      applySortAndFilter();
+    });
+  });
+
+    tripChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      tripChips.forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentTripFilter = chip.dataset.trip;
+      applySortAndFilter();
+    });
+  });
+
+    maxPriceInput.addEventListener("input", () => {
+    maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
+    applySortAndFilter();
+  });
+
+    nonStopOnly.addEventListener("change", applySortAndFilter);
+
+    timeChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      timeChips.forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentTimeFilter = chip.dataset.time;
+      applySortAndFilter();
+    });
+  });
+
+    resetBtn.addEventListener("click", () => {
+    maxPriceInput.value = 600;
+    maxPriceValue.textContent = "Up to 600";
+    nonStopOnly.checked = false;
+    currentTimeFilter = "all";
+    currentTripFilter = "all";
+    currentSort = "cheapest";
+
+    timeChips.forEach((c) => c.classList.remove("active"));
+    document.querySelector('.chip[data-time="all"]').classList.add("active");
+
+    tripChips.forEach((c) => c.classList.remove("active"));
+    document.querySelector('.trip-chip[data-trip="all"]').classList.add("active");
+
+    tabItems.forEach((t) => t.classList.remove("active"));
+    document.querySelector('.tab-item[data-sort="cheapest"]').classList.add("active");
+
+    applySortAndFilter();
+  });
+
+    applySortAndFilter();
+});
+document.addEventListener("DOMContentLoaded", () => {
+  
+  const tabItems = document.querySelectorAll(".tab-item");
+  const tripChips = document.querySelectorAll(".trip-chip");
+  const flightList = document.getElementById("flightList");
+  const allCards = Array.from(flightList.children);
+
+  const maxPriceInput = document.getElementById("maxPrice");
+  const maxPriceValue = document.getElementById("maxPriceValue");
+  const nonStopOnly = document.getElementById("nonStopOnly");
+  const timeChips = document.querySelectorAll(".chip");
+  const resetBtn = document.getElementById("resetFilters");
+
+  let currentSort = "cheapest";
+  let currentTimeFilter = "all";
+  let currentTripFilter = "all";
+
+  
+  function renderCards(cards) {
+    flightList.innerHTML = "";
+    cards.forEach((card) => flightList.appendChild(card));
+  }
+
+  
+  function getFilteredCards() {
+    const maxPrice = Number(maxPriceInput.value);
+
+    return allCards.filter((card) => {
+      const price = Number(card.dataset.price);
+      const stops = Number(card.dataset.stops);
+      const tripType = card.dataset.trip; 
+
+      if (price > maxPrice) return false;
+      if (nonStopOnly.checked && stops !== 0) return false;
+
+      if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
+        return false;
+      }
+
+      
+      if (currentTimeFilter !== "all") {
+        const depTimeText =
+          card.querySelector(".ticket-times .time strong").textContent;
+        const hour = Number(depTimeText.split(":")[0]);
+        if (currentTimeFilter === "morning" && hour >= 12) return false;
+        if (currentTimeFilter === "evening" && hour < 12) return false;
+      }
+
+      return true;
+    });
+  }
+
+  
+  function applySortAndFilter() {
+    const filtered = getFilteredCards();
+
+    filtered.sort((a, b) => {
+      if (currentSort === "cheapest") {
+        return Number(a.dataset.price) - Number(b.dataset.price);
+      } else {
+        return Number(a.dataset.duration) - Number(b.dataset.duration);
+      }
+    });
+
+    renderCards(filtered);
+  }
+
+    tabItems.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabItems.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      currentSort = tab.dataset.sort;
+      applySortAndFilter();
+    });
+  });
+
+    tripChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      tripChips.forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentTripFilter = chip.dataset.trip;
+      applySortAndFilter();
+    });
+  });
+
+    if (maxPriceInput && maxPriceValue) {
+    maxPriceInput.addEventListener("input", () => {
+      maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
+      applySortAndFilter();
+    });
+  }
+
+    if (nonStopOnly) {
+    nonStopOnly.addEventListener("change", applySortAndFilter);
+  }
+
+    timeChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      timeChips.forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentTimeFilter = chip.dataset.time;
+      applySortAndFilter();
+    });
+  });
+
+    if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      maxPriceInput.value = maxPriceInput.max || 600;
+      maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
+      nonStopOnly.checked = false;
+      currentTimeFilter = "all";
+      currentTripFilter = "all";
+      currentSort = "cheapest";
+
+      timeChips.forEach((c) => c.classList.remove("active"));
+      const anyChip = document.querySelector('.chip[data-time="all"]');
+      if (anyChip) anyChip.classList.add("active");
+
+      tripChips.forEach((c) => c.classList.remove("active"));
+      const tripAll = document.querySelector('.trip-chip[data-trip="all"]');
+      if (tripAll) tripAll.classList.add("active");
+
+      tabItems.forEach((t) => t.classList.remove("active"));
+      const cheapestTab = document.querySelector(
+        '.tab-item[data-sort="cheapest"]'
+      );
+      if (cheapestTab) cheapestTab.classList.add("active");
+
+      applySortAndFilter();
+    });
+  }
+
+    const modalEl = document.getElementById("flightDetailsModal");
+  let detailsModal = null;
+
+  if (modalEl && window.bootstrap) {
+    detailsModal = new bootstrap.Modal(modalEl);
+  }
+
+  const detailsButtons = document.querySelectorAll(".details-btn");
+
+  detailsButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!modalEl || !detailsModal) return;
+
+      const card = btn.closest(".flight-card.ticket");
+      if (!card) return;
+
+      const airlineName =
+        card.querySelector(".airline-name")?.textContent.trim() || "";
+      const flightCode =
+        card.querySelector(".ticket-code")?.textContent.trim() || "";
+
+      const fromCityEl =
+        card.querySelector(".ticket-route .city:first-child") || null;
+      const toCityEl =
+        card.querySelector(".ticket-route .city:last-child") || null;
+
+      const fromCity = fromCityEl ? fromCityEl.textContent.trim() : "";
+      const toCity = toCityEl ? toCityEl.textContent.trim() : "";
+
+      const depTime =
+        card
+          .querySelector(".ticket-times .time:first-child strong")
+          ?.textContent.trim() || "";
+      const arrTime =
+        card
+          .querySelector(".ticket-times .time:last-child strong")
+          ?.textContent.trim() || "";
+
+      const duration = card.dataset.duration || "";
+      const price =
+        card.querySelector(".price")?.textContent.trim() || "";
+
+      const tripTypeRaw = card.dataset.trip || "all";
+      let tripTypeText = "Flight";
+      if (tripTypeRaw === "oneway") tripTypeText = "One way";
+      else if (tripTypeRaw === "roundtrip") tripTypeText = "Round trip";
+
+      const stopsCount = Number(card.dataset.stops || "0");
+      const stopsText =
+        stopsCount === 0 ? "Non stop" : `${stopsCount} stop(s)`;
+
+      
+      modalEl.querySelector(".modal-airline-name").textContent = airlineName;
+      modalEl.querySelector(".modal-flight-code").textContent = flightCode;
+      modalEl.querySelector(".modal-trip-type").textContent = tripTypeText;
+
+      modalEl.querySelector(".modal-route").textContent =
+        fromCity && toCity ? `${fromCity} → ${toCity}` : "";
+
+      modalEl.querySelector(".modal-departure").textContent = depTime;
+      modalEl.querySelector(".modal-arrival").textContent = arrTime;
+
+      modalEl.querySelector(".modal-duration").textContent =
+        duration ? `${duration} h` : "";
+      modalEl.querySelector(".modal-stops").textContent = stopsText;
+
+      
+      modalEl.querySelectorAll(".modal-price").forEach((el) => {
+        el.textContent = price;
+      });
+
+      detailsModal.show();
+    });
+  });
+
+    applySortAndFilter();
+});
+
+
+
+function animateTextReveal() {
+  const title = document.querySelector('.main-title');
+  if (!title) return;
+  
+  const text = title.textContent;
+  title.innerHTML = '';
+  
+  for (let i = 0; i < text.length; i++) {
+    const span = document.createElement('span');
+    span.textContent = text[i];
+    span.style.animationDelay = `${i * 0.1}s`;
+    title.appendChild(span);
+  }
+  
+  title.classList.add('text-reveal');
 }
 
-function proceedBooking(f){
-  const q = new URLSearchParams({ id:f.id, cabin:$('#cabin').value, pax:$('#pax').value });
-  window.location.href = `checkout.html?${q.toString()}`;
+
+function createLightSweep() {
+  const flashSection = document.querySelector('.flash-section');
+  const lightSweep = document.createElement('div');
+  lightSweep.className = 'light-sweep';
+  
+  flashSection.appendChild(lightSweep);
 }
 
-let allItems=[];
-function applyFilters(list){
-  const stops=$('#fStops').value, airline=$('#fAirline').value.trim().toLowerCase(), price=Number($('#fPrice').value||0), dep=$('#fDep').value;
-  return list.filter(f=>{ let ok=true;
-    if(stops==='0') ok=ok&&f.stops===0; else if(stops==='1') ok=ok&&f.stops<=1; else if(stops==='>1') ok=ok&&f.stops>1;
-    if(airline) ok=ok&&(f.airline.toLowerCase().includes(airline)||(f.code||'').toLowerCase().includes(airline));
-    if(price>0) ok=ok&&f.price<=price;
-    if(dep){ const h=new Date(f.depart).getHours(); if(dep==='morning') ok=ok&&(h>=5&&h<12); if(dep==='afternoon') ok=ok&&(h>=12&&h<17); if(dep==='evening') ok=ok&&(h>=17&&h<22); if(dep==='night') ok=ok&&(h>=22||h<5); }
-    return ok; });
-}
-function sortBy(list){ const k=$('#sortBy').value; const a=[...list]; if(k==='price') a.sort((x,y)=>x.price-y.price); if(k==='duration') a.sort((x,y)=>x.duration-y.duration); if(k==='depart') a.sort((x,y)=>new Date(x.depart)-new Date(y.depart)); return a; }
-function refresh(){ render(sortBy(applyFilters(allItems))); }
-function handleChip(action){
-  if(action==='cheapest'){ $('#sortBy').value='price'; }
-  if(action==='fastest'){ $('#sortBy').value='duration'; }
-  if(action==='morning'){ $('#fDep').value='morning'; }
-  if(action==='evening'){ $('#fDep').value='evening'; }
-  if(action==='nonstop'){ $('#fStops').value='0'; }
-  refresh();
+
+function createStars() {
+  const flashSection = document.querySelector('.flash-section');
+  
+  
+  const starCount = 30;
+  
+  for (let i = 0; i < starCount; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    
+    
+    const size = Math.random() * 3 + 1;
+    const left = Math.random() * 100;
+    const top = Math.random() * 100;
+    const delay = Math.random() * 5;
+    const duration = Math.random() * 3 + 2;
+    
+    star.style.cssText = `
+      position: absolute;
+      width: ${size}px;
+      height: ${size}px;
+      background: white;
+      border-radius: 50%;
+      left: ${left}%;
+      top: ${top}%;
+      opacity: ${Math.random() * 0.5 + 0.1};
+      animation: twinkle ${duration}s infinite ${delay}s;
+      z-index: 1;
+    `;
+    
+    flashSection.appendChild(star);
+  }
 }
 
-let page=1;
-function params(){ return { from:$('#from').value.trim(), to:$('#to').value.trim(), depart:$('#depart').value, return:$('#return').value, pax:$('#pax').value, cabin:$('#cabin').value, page, pageSize:PAGE_SIZE }; }
 
-async function search({append=false}={}){
-  $('#banner').classList.add('d-none');
-  if(!append){ $('#cards').innerHTML = `<div class='skeleton'></div><div class='skeleton'></div>`; page=1; }
-  const p = params();
-  try{
-    let data;
-    if(DEMO_MODE){
-      await new Promise(r=>setTimeout(r, 350));
-      const items = DEMO_DATA.filter(x=> (!p.from || x.from.includes(p.from.toUpperCase())) && (!p.to || x.to.includes(p.to.toUpperCase())));
-      data = { items, hasMore:false };
-    } else {
-      const url = `${API.search}?${new URLSearchParams(p)}`;
-      const res = await fetch(url, { headers:{'Accept':'application/json'} });
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      data = await res.json();
+function initFlashButtons() {
+  const flashButtons = document.querySelectorAll('.flash-btn');
+  
+  flashButtons.forEach(button => {
+    
+    button.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-8px) scale(1.05)';
+    });
+    
+    button.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0) scale(1)';
+    });
+    
+    
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      
+      this.style.transform = 'translateY(-4px) scale(1.02)';
+      
+      setTimeout(() => {
+        this.style.transform = 'translateY(-8px) scale(1.05)';
+      }, 150);
+      
+      
+      if (this.classList.contains('btn-primary')) {
+        simulateBooking();
+      } else {
+        simulateExplore();
+      }
+    });
+  });
+}
+
+
+function enhanceAirplanes() {
+  const airplanes = document.querySelectorAll('.airplane');
+  
+  airplanes.forEach((plane, index) => {
+    
+    plane.addEventListener('animationiteration', () => {
+      
+      const colors = ['#3498db', '#9b59b6', '#2ecc71', '#e74c3c', '#f1c40f'];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      plane.style.color = randomColor;
+      
+      
+      const randomSize = Math.random() * 15 + 25;
+      plane.style.fontSize = `${randomSize}px`;
+      
+      
+      const randomDuration = Math.random() * 10 + 20;
+      plane.style.animationDuration = `${randomDuration}s`;
+    });
+  });
+}
+
+
+function simulateBooking() {
+  
+  const bookingModal = document.createElement('div');
+  bookingModal.className = 'booking-modal';
+  
+  bookingModal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+  `;
+  
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: translateY(-50px);
+    animation: slideUp 0.5s forwards 0.3s;
+  `;
+  
+  modalContent.innerHTML = `
+    <div style="font-size: 60px; color: #27ae60; margin-bottom: 20px;">✈️</div>
+    <h3 style="color: #2c3e50; margin-bottom: 10px;">Ready to Book!</h3>
+    <p style="color: #7f8c8d; margin-bottom: 20px;">
+      You're about to start your journey. Let's find the perfect flight for you!
+    </p>
+    <p style="color: #95a5a6; font-size: 14px; margin-bottom: 30px;">
+      Explore our amazing deals and destinations.
+    </p>
+    <button id="closeModal" style="
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    ">Continue</button>
+  `;
+  
+  bookingModal.appendChild(modalContent);
+  document.body.appendChild(bookingModal);
+  
+  
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
-    const items = Array.isArray(data)? data : (data.items||[]);
-    allItems = append? allItems.concat(items) : items;
-    refresh();
-    $('#loadMore').classList.toggle('d-none', !(data.hasMore));
-  }catch(err){ showError('Failed to load flights'); $('#cards').innerHTML = `<div class='p-4 text-center text-muted'>Could not load flights.</div>`; }
-}
-
-async function loadMore(){ page += 1; await search({append:true}); }
-
-function initTripTabs(){
-  $$('.trip-tabs .btn').forEach(btn=> btn.onclick=()=>{
-    $$('.trip-tabs .btn').forEach(x=>x.classList.remove('active'));
-    btn.classList.add('active');
-    const isRound = btn.dataset.trip==='round';
-    $('#returnWrap').classList.toggle('d-none', !isRound);
-    document.documentElement.setAttribute('data-trip', isRound? 'round':'oneway');
-    refresh();
+    @keyframes slideUp {
+      to { transform: translateY(0); }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  
+  bookingModal.addEventListener('click', function(e) {
+    if (e.target === bookingModal || e.target.id === 'closeModal') {
+      bookingModal.style.animation = 'fadeOut 0.3s forwards';
+      setTimeout(() => {
+        document.body.removeChild(bookingModal);
+      }, 300);
+    }
   });
 }
-function swap(){ const a=$('#from'), b=$('#to'); const t=a.value; a.value=b.value; b.value=t; }
 
-document.addEventListener('DOMContentLoaded', ()=>{
-  initMap(); initTripTabs();
-  $('#from').value='AMM'; $('#to').value='DXB'; $('#depart').valueAsDate = new Date(Date.now()+86400000*7);
 
-  $('#searchForm').addEventListener('submit', (e)=>{ e.preventDefault(); search(); });
-  $('#swap').addEventListener('click', swap);
-
-  ['fStops','fAirline','fPrice','fDep','sortBy'].forEach(id=> $('#'+id).addEventListener('input', refresh));
-  $('#clearFilters').addEventListener('click', ()=>{ ['fStops','fAirline','fPrice','fDep'].forEach(id=> $('#'+id).value=''); refresh(); });
-
-  $$('#quickChips [data-chip]').forEach(btn=> btn.addEventListener('click', ()=> handleChip(btn.dataset.chip)));
-
-  $('#refreshBtn').addEventListener('click', ()=> search());
-  $('#loadMore').addEventListener('click', loadMore);
-
-  document.getElementById('refineBtn').addEventListener('click', ()=>{
-    document.querySelector('.filters').scrollIntoView({behavior:'smooth', block:'start'});
+function simulateExplore() {
+  
+  const exploreModal = document.createElement('div');
+  exploreModal.className = 'explore-modal';
+  
+  exploreModal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+  `;
+  
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: translateY(-50px);
+    animation: slideUp 0.5s forwards 0.3s;
+  `;
+  
+  modalContent.innerHTML = `
+    <div style="font-size: 60px; color: #3498db; margin-bottom: 20px;">🗺️</div>
+    <h3 style="color: #2c3e50; margin-bottom: 10px;">Explore Destinations!</h3>
+    <p style="color: #7f8c8d; margin-bottom: 20px;">
+      Discover amazing places around the world. From beaches to mountains, we have it all!
+    </p>
+    <p style="color: #95a5a6; font-size: 14px; margin-bottom: 30px;">
+      Top destinations: Paris, Tokyo, Dubai, New York, Bali
+    </p>
+    <button id="closeExploreModal" style="
+      background: #9b59b6;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    ">Let's Explore</button>
+  `;
+  
+  exploreModal.appendChild(modalContent);
+  document.body.appendChild(exploreModal);
+  
+  
+  exploreModal.addEventListener('click', function(e) {
+    if (e.target === exploreModal || e.target.id === 'closeExploreModal') {
+      exploreModal.style.animation = 'fadeOut 0.3s forwards';
+      setTimeout(() => {
+        document.body.removeChild(exploreModal);
+      }, 300);
+    }
   });
+}
 
-  search();
+
+function initFloatEffects() {
+  const tagline = document.querySelector('.tagline span');
+  if (tagline) {
+    
+    setInterval(() => {
+      tagline.style.animation = 'none';
+      setTimeout(() => {
+        tagline.style.animation = 'float 6s ease-in-out infinite';
+      }, 10);
+    }, 6000);
+  }
+}
+
+
+function initBackgroundEffects() {
+  const flashSection = document.querySelector('.flash-section');
+  const backgrounds = [
+    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80',
+    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80',
+    'https://images.unsplash.com/photo-1540453764285-7c5d5d5b5b1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+  ];
+  
+  let currentBg = 0;
+  
+  
+  setInterval(() => {
+    currentBg = (currentBg + 1) % backgrounds.length;
+    
+    
+    flashSection.style.opacity = '0.7';
+    flashSection.style.transition = 'opacity 1s ease';
+    
+    setTimeout(() => {
+      flashSection.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('${backgrounds[currentBg]}')`;
+      flashSection.style.opacity = '1';
+    }, 500);
+    
+    setTimeout(() => {
+      flashSection.style.transition = '';
+    }, 1500);
+  }, 10000);
+}
+
+
+function addDynamicAirplanes() {
+  const flashSection = document.querySelector('.flash-section');
+  
+  
+  setInterval(() => {
+    if (Math.random() > 0.7) { 
+      const airplane = document.createElement('div');
+      airplane.className = 'airplane';
+      airplane.textContent = '✈';
+      
+      
+      const size = Math.random() * 20 + 20;
+      const top = Math.random() * 80 + 10;
+      const duration = Math.random() * 15 + 20;
+      const delay = Math.random() * 5;
+      const color = ['#3498db', '#9b59b6', '#2ecc71', '#e74c3c', '#f1c40f'][Math.floor(Math.random() * 5)];
+      
+      airplane.style.cssText = `
+        position: absolute;
+        top: ${top}%;
+        left: -50px;
+        font-size: ${size}px;
+        color: ${color};
+        opacity: 0.3;
+        animation: flyAcross ${duration}s linear infinite ${delay}s;
+        z-index: 2;
+      `;
+      
+      flashSection.appendChild(airplane);
+      
+      
+      setTimeout(() => {
+        if (airplane.parentNode) {
+          airplane.remove();
+        }
+      }, (duration + delay) * 1000);
+    }
+  }, 3000);
+}
+
+
+function initFlashEffects() {
+  
+  animateTextReveal();
+  
+  
+  createLightSweep();
+  
+  
+  createStars();
+  
+  
+  initFlashButtons();
+  
+  
+  enhanceAirplanes();
+  
+  
+  initFloatEffects();
+  
+  
+  
+  
+  
+  addDynamicAirplanes();
+  
+  
+  setInterval(() => {
+    const airplanes = document.querySelectorAll('.airplane');
+    airplanes.forEach(plane => {
+      plane.style.animation = 'none';
+      setTimeout(() => {
+        plane.style.animation = '';
+      }, 10);
+    });
+  }, 30000);
+}
+
+
+document.addEventListener('DOMContentLoaded', initFlashEffects);
+
+
+window.addEventListener('scroll', function() {
+  const flashSection = document.querySelector('.flash-section');
+  const scrollPosition = window.scrollY;
+  
+  
+  if (flashSection) {
+    flashSection.style.backgroundPositionY = `${scrollPosition * 0.5}px`;
+  }
+});
+
+
+window.addEventListener('load', function() {
+  
+  setTimeout(() => {
+    const buttons = document.querySelectorAll('.flash-btn');
+    buttons.forEach((button, index) => {
+      setTimeout(() => {
+        button.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+          button.style.transform = 'translateY(0)';
+        }, 300);
+      }, index * 200);
+    });
+  }, 1500);
 });
