@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const trackWidth = sliderTrack.offsetWidth;
     const thumbWidth = 12;
     
-    let leftPosition = 10; 
+    let leftPosition = 0; 
     let rightPosition = 90; 
     
     updateSlider();
