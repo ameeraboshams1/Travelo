@@ -96,3 +96,12 @@ document.addEventListener('keydown', e => {
 });
 
 imgs.forEach(i => { const im = new Image(); im.src = i.src });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const backHomeBtn = document.getElementById('backHome');
+    if (!backHomeBtn) return;
+
+    backHomeBtn.addEventListener('click', function () {
+        window.location.href = './index.html';
+    });
+});
