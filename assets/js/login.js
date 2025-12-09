@@ -276,6 +276,9 @@ card.addEventListener('mousemove', e => {
 document.getElementById("backHome").addEventListener("click", function() {
     window.location.href = "index.html";
   });
+  document.getElementById("helpCenter").addEventListener("click", function() {
+    window.location.href = "faqs.html";
+  });
 imgs.forEach(i => { const im = new Image(); im.src = i.src });
 
 

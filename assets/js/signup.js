@@ -265,9 +265,10 @@ function toastShow(msg, ok = true) {
 }
 
 // ============= SUBMIT =============
-form.addEventListener('submit', e => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
+  // Run your validations
   validatefirstName();
   validatelastName();
   validateEmail();
@@ -275,6 +276,7 @@ form.addEventListener('submit', e => {
   validatePassword();
   validateConfirmPassword();
 
+  // If there are validation errors
   if (submitBtn.disabled) {
     form.classList.add('shake');
     setTimeout(() => form.classList.remove('shake'), 380);
@@ -286,20 +288,47 @@ form.addEventListener('submit', e => {
   submitBtn.disabled = true;
   toastShow('Creating your account...');
 
-  setTimeout(() => {
-    toastShow('Account created successfully! ✅');
-    card.style.transition =
-      'transform .5s cubic-bezier(.2,.9,.3,1), box-shadow .5s';
-    card.style.transform = 'translateY(-14px)';
-    card.style.boxShadow = '0 36px 80px rgba(135,43,255,.16)';
+  // Collect form data
+  const formData = new FormData(form);
 
-    setTimeout(() => {
-      form.reset();
-      submitBtn.disabled = true;
-      card.style.transform = '';
-      card.style.boxShadow = '';
-    }, 2000);
-  }, 1500);
+  try {
+    // Send data to PHP
+    const response = await fetch("registeration.php", {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.status === "success") {
+      // Success animation
+      setTimeout(() => {
+        toastShow('Account created successfully! ✅');
+        card.style.transition =
+          'transform .5s cubic-bezier(.2,.9,.3,1), box-shadow .5s';
+        card.style.transform = 'translateY(-14px)';
+        card.style.boxShadow = '0 36px 80px rgba(135,43,255,.16)';
+
+        setTimeout(() => {
+          form.reset();
+          submitBtn.disabled = false; // re-enable button if needed
+          card.style.transform = '';
+          card.style.boxShadow = '';
+          window.location.href = 'packages.html'; // redirect after success
+        }, 2000);
+      }, 1500);
+
+    } else {
+      // Registration failed
+      toastShow('Error: ' + result.message);
+      submitBtn.disabled = false;
+    }
+
+  } catch (err) {
+    // Network or PHP error
+    toastShow('Network error. Please try again.');
+    submitBtn.disabled = false;
+  }
 });
 
 // ============= HELP / BACK BUTTONS (لو موجودة) =============
@@ -330,6 +359,9 @@ card.addEventListener('mousemove', e => {
 card.addEventListener('mouseleave', () => {
   card.style.transform = 'translateZ(0)';
 });
+  document.getElementById("helpCenter").addEventListener("click", function() {
+    window.location.href = "faqs.html";
+  });
 
 // preload slider images
 imgs.forEach(i => {
