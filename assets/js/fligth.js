@@ -1,18 +1,22 @@
+// ================== FILTER + SORT + MODAL ==================
 document.addEventListener("DOMContentLoaded", () => {
   const tabItems = document.querySelectorAll(".tab-item");
   const tripChips = document.querySelectorAll(".trip-chip");
   const flightList = document.getElementById("flightList");
-  const allCards = Array.from(flightList.children);
+  const allCards = flightList ? Array.from(flightList.children) : [];
 
   const maxPriceInput = document.getElementById("maxPrice");
   const maxPriceValue = document.getElementById("maxPriceValue");
   const nonStopOnly = document.getElementById("nonStopOnly");
   const timeChips = document.querySelectorAll(".chip");
   const resetBtn = document.getElementById("resetFilters");
+  const resultsCountEl = document.querySelector(".results-count");
 
   let currentSort = "cheapest";
   let currentTimeFilter = "all";
   let currentTripFilter = "all";
+
+  if (!flightList || allCards.length === 0) return;
 
   function renderCards(cards) {
     flightList.innerHTML = "";
@@ -20,24 +24,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getFilteredCards() {
-    const maxPrice = Number(maxPriceInput.value);
+    const maxPrice = maxPriceInput ? Number(maxPriceInput.value) : Infinity;
 
     return allCards.filter((card) => {
-      const price = Number(card.dataset.price);
-      const stops = Number(card.dataset.stops);
-      const tripType = card.dataset.trip; 
+      const price = Number(card.dataset.price || 0);
+      const stops = Number(card.dataset.stops || 0);
+      const tripType = card.dataset.trip || "all";
 
-      if (price > maxPrice) return false;
-      if (nonStopOnly.checked && stops !== 0) return false;
+      if (maxPriceInput && price > maxPrice) return false;
+      if (nonStopOnly && nonStopOnly.checked && stops !== 0) return false;
 
-      
       if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
         return false;
       }
 
-      
       if (currentTimeFilter !== "all") {
-        const depTimeText = card.querySelector(".time strong").textContent;
+        const depTimeEl = card.querySelector(
+          ".ticket-times .time:first-child strong"
+        );
+        if (!depTimeEl) return false;
+        const depTimeText = depTimeEl.textContent.trim();
         const hour = Number(depTimeText.split(":")[0]);
         if (currentTimeFilter === "morning" && hour >= 12) return false;
         if (currentTimeFilter === "evening" && hour < 12) return false;
@@ -59,174 +65,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     renderCards(filtered);
+
+    if (resultsCountEl) {
+      resultsCountEl.textContent = `${filtered.length} results found`;
+    }
   }
 
-    tabItems.forEach((tab) => {
+  // تبويبات الفرز
+  tabItems.forEach((tab) => {
     tab.addEventListener("click", () => {
       tabItems.forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");
-      currentSort = tab.dataset.sort;
+      currentSort = tab.dataset.sort || "cheapest";
       applySortAndFilter();
     });
   });
 
-    tripChips.forEach((chip) => {
+  // نوع الرحلة (كل، ون واي، راونددرب)
+  tripChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       tripChips.forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
-      currentTripFilter = chip.dataset.trip;
+      currentTripFilter = chip.dataset.trip || "all";
       applySortAndFilter();
     });
   });
 
-    maxPriceInput.addEventListener("input", () => {
-    maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
-    applySortAndFilter();
-  });
-
-    nonStopOnly.addEventListener("change", applySortAndFilter);
-
-    timeChips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      timeChips.forEach((c) => c.classList.remove("active"));
-      chip.classList.add("active");
-      currentTimeFilter = chip.dataset.time;
-      applySortAndFilter();
-    });
-  });
-
-    resetBtn.addEventListener("click", () => {
-    maxPriceInput.value = 600;
-    maxPriceValue.textContent = "Up to 600";
-    nonStopOnly.checked = false;
-    currentTimeFilter = "all";
-    currentTripFilter = "all";
-    currentSort = "cheapest";
-
-    timeChips.forEach((c) => c.classList.remove("active"));
-    document.querySelector('.chip[data-time="all"]').classList.add("active");
-
-    tripChips.forEach((c) => c.classList.remove("active"));
-    document.querySelector('.trip-chip[data-trip="all"]').classList.add("active");
-
-    tabItems.forEach((t) => t.classList.remove("active"));
-    document.querySelector('.tab-item[data-sort="cheapest"]').classList.add("active");
-
-    applySortAndFilter();
-  });
-
-    applySortAndFilter();
-});
-document.addEventListener("DOMContentLoaded", () => {
-  
-  const tabItems = document.querySelectorAll(".tab-item");
-  const tripChips = document.querySelectorAll(".trip-chip");
-  const flightList = document.getElementById("flightList");
-  const allCards = Array.from(flightList.children);
-
-  const maxPriceInput = document.getElementById("maxPrice");
-  const maxPriceValue = document.getElementById("maxPriceValue");
-  const nonStopOnly = document.getElementById("nonStopOnly");
-  const timeChips = document.querySelectorAll(".chip");
-  const resetBtn = document.getElementById("resetFilters");
-
-  let currentSort = "cheapest";
-  let currentTimeFilter = "all";
-  let currentTripFilter = "all";
-
-  
-  function renderCards(cards) {
-    flightList.innerHTML = "";
-    cards.forEach((card) => flightList.appendChild(card));
-  }
-
-  
-  function getFilteredCards() {
-    const maxPrice = Number(maxPriceInput.value);
-
-    return allCards.filter((card) => {
-      const price = Number(card.dataset.price);
-      const stops = Number(card.dataset.stops);
-      const tripType = card.dataset.trip; 
-
-      if (price > maxPrice) return false;
-      if (nonStopOnly.checked && stops !== 0) return false;
-
-      if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
-        return false;
-      }
-
-      
-      if (currentTimeFilter !== "all") {
-        const depTimeText =
-          card.querySelector(".ticket-times .time strong").textContent;
-        const hour = Number(depTimeText.split(":")[0]);
-        if (currentTimeFilter === "morning" && hour >= 12) return false;
-        if (currentTimeFilter === "evening" && hour < 12) return false;
-      }
-
-      return true;
-    });
-  }
-
-  
-  function applySortAndFilter() {
-    const filtered = getFilteredCards();
-
-    filtered.sort((a, b) => {
-      if (currentSort === "cheapest") {
-        return Number(a.dataset.price) - Number(b.dataset.price);
-      } else {
-        return Number(a.dataset.duration) - Number(b.dataset.duration);
-      }
-    });
-
-    renderCards(filtered);
-  }
-
-    tabItems.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      tabItems.forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-      currentSort = tab.dataset.sort;
-      applySortAndFilter();
-    });
-  });
-
-    tripChips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      tripChips.forEach((c) => c.classList.remove("active"));
-      chip.classList.add("active");
-      currentTripFilter = chip.dataset.trip;
-      applySortAndFilter();
-    });
-  });
-
-    if (maxPriceInput && maxPriceValue) {
+  // فلتر السعر
+  if (maxPriceInput && maxPriceValue) {
     maxPriceInput.addEventListener("input", () => {
       maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
       applySortAndFilter();
     });
   }
 
-    if (nonStopOnly) {
+  // فلتر الـ Non stop
+  if (nonStopOnly) {
     nonStopOnly.addEventListener("change", applySortAndFilter);
   }
 
-    timeChips.forEach((chip) => {
+  // فلتر وقت الإقلاع
+  timeChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       timeChips.forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
-      currentTimeFilter = chip.dataset.time;
+      currentTimeFilter = chip.dataset.time || "all";
       applySortAndFilter();
     });
   });
 
-    if (resetBtn) {
+  // Reset filters
+  if (resetBtn && maxPriceInput && maxPriceValue) {
     resetBtn.addEventListener("click", () => {
       maxPriceInput.value = maxPriceInput.max || 600;
       maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
-      nonStopOnly.checked = false;
+      if (nonStopOnly) nonStopOnly.checked = false;
       currentTimeFilter = "all";
       currentTripFilter = "all";
       currentSort = "cheapest";
@@ -249,7 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-    const modalEl = document.getElementById("flightDetailsModal");
+  // Modal التفاصيل
+  const modalEl = document.getElementById("flightDetailsModal");
   let detailsModal = null;
 
   if (modalEl && window.bootstrap) {
@@ -288,8 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ?.textContent.trim() || "";
 
       const duration = card.dataset.duration || "";
-      const price =
-        card.querySelector(".price")?.textContent.trim() || "";
+      const price = card.querySelector(".price")?.textContent.trim() || "";
 
       const tripTypeRaw = card.dataset.trip || "all";
       let tripTypeText = "Flight";
@@ -300,7 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const stopsText =
         stopsCount === 0 ? "Non stop" : `${stopsCount} stop(s)`;
 
-      
       modalEl.querySelector(".modal-airline-name").textContent = airlineName;
       modalEl.querySelector(".modal-flight-code").textContent = flightCode;
       modalEl.querySelector(".modal-trip-type").textContent = tripTypeText;
@@ -315,7 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
         duration ? `${duration} h` : "";
       modalEl.querySelector(".modal-stops").textContent = stopsText;
 
-      
       modalEl.querySelectorAll(".modal-price").forEach((el) => {
         el.textContent = price;
       });
@@ -324,55 +215,52 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-    applySortAndFilter();
+  applySortAndFilter();
 });
 
-
-
+// ================== FLASH / ANIMATION SECTION ==================
 function animateTextReveal() {
-  const title = document.querySelector('.main-title');
+  const title = document.querySelector(".main-title");
   if (!title) return;
-  
+
   const text = title.textContent;
-  title.innerHTML = '';
-  
+  title.innerHTML = "";
+
   for (let i = 0; i < text.length; i++) {
-    const span = document.createElement('span');
+    const span = document.createElement("span");
     span.textContent = text[i];
     span.style.animationDelay = `${i * 0.1}s`;
     title.appendChild(span);
   }
-  
-  title.classList.add('text-reveal');
+
+  title.classList.add("text-reveal");
 }
 
-
 function createLightSweep() {
-  const flashSection = document.querySelector('.flash-section');
-  const lightSweep = document.createElement('div');
-  lightSweep.className = 'light-sweep';
-  
+  const flashSection = document.querySelector(".flash-section");
+  if (!flashSection) return;
+  const lightSweep = document.createElement("div");
+  lightSweep.className = "light-sweep";
+
   flashSection.appendChild(lightSweep);
 }
 
-
 function createStars() {
-  const flashSection = document.querySelector('.flash-section');
-  
-  
+  const flashSection = document.querySelector(".flash-section");
+  if (!flashSection) return;
+
   const starCount = 30;
-  
+
   for (let i = 0; i < starCount; i++) {
-    const star = document.createElement('div');
-    star.className = 'star';
-    
-    
+    const star = document.createElement("div");
+    star.className = "star";
+
     const size = Math.random() * 3 + 1;
     const left = Math.random() * 100;
     const top = Math.random() * 100;
     const delay = Math.random() * 5;
     const duration = Math.random() * 3 + 2;
-    
+
     star.style.cssText = `
       position: absolute;
       width: ${size}px;
@@ -385,38 +273,33 @@ function createStars() {
       animation: twinkle ${duration}s infinite ${delay}s;
       z-index: 1;
     `;
-    
+
     flashSection.appendChild(star);
   }
 }
 
-
 function initFlashButtons() {
-  const flashButtons = document.querySelectorAll('.flash-btn');
-  
-  flashButtons.forEach(button => {
-    
-    button.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-8px) scale(1.05)';
+  const flashButtons = document.querySelectorAll(".flash-btn");
+
+  flashButtons.forEach((button) => {
+    button.addEventListener("mouseenter", function () {
+      this.style.transform = "translateY(-8px) scale(1.05)";
     });
-    
-    button.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0) scale(1)';
+
+    button.addEventListener("mouseleave", function () {
+      this.style.transform = "translateY(0) scale(1)";
     });
-    
-    
-    button.addEventListener('click', function(e) {
+
+    button.addEventListener("click", function (e) {
       e.preventDefault();
-      
-      
-      this.style.transform = 'translateY(-4px) scale(1.02)';
-      
+
+      this.style.transform = "translateY(-4px) scale(1.02)";
+
       setTimeout(() => {
-        this.style.transform = 'translateY(-8px) scale(1.05)';
+        this.style.transform = "translateY(-8px) scale(1.05)";
       }, 150);
-      
-      
-      if (this.classList.contains('btn-primary')) {
+
+      if (this.classList.contains("btn-primary")) {
         simulateBooking();
       } else {
         simulateExplore();
@@ -425,35 +308,34 @@ function initFlashButtons() {
   });
 }
 
-
 function enhanceAirplanes() {
-  const airplanes = document.querySelectorAll('.airplane');
-  
-  airplanes.forEach((plane, index) => {
-    
-    plane.addEventListener('animationiteration', () => {
-      
-      const colors = ['#3498db', '#9b59b6', '#2ecc71', '#e74c3c', '#f1c40f'];
+  const airplanes = document.querySelectorAll(".airplane");
+
+  airplanes.forEach((plane) => {
+    plane.addEventListener("animationiteration", () => {
+      const colors = [
+        "#3498db",
+        "#9b59b6",
+        "#2ecc71",
+        "#e74c3c",
+        "#f1c40f",
+      ];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
       plane.style.color = randomColor;
-      
-      
+
       const randomSize = Math.random() * 15 + 25;
       plane.style.fontSize = `${randomSize}px`;
-      
-      
+
       const randomDuration = Math.random() * 10 + 20;
       plane.style.animationDuration = `${randomDuration}s`;
     });
   });
 }
 
-
 function simulateBooking() {
-  
-  const bookingModal = document.createElement('div');
-  bookingModal.className = 'booking-modal';
-  
+  const bookingModal = document.createElement("div");
+  bookingModal.className = "booking-modal";
+
   bookingModal.style.cssText = `
     position: fixed;
     top: 0;
@@ -468,8 +350,8 @@ function simulateBooking() {
     opacity: 0;
     animation: fadeIn 0.3s forwards;
   `;
-  
-  const modalContent = document.createElement('div');
+
+  const modalContent = document.createElement("div");
   modalContent.style.cssText = `
     background: white;
     padding: 40px;
@@ -480,7 +362,7 @@ function simulateBooking() {
     transform: translateY(-50px);
     animation: slideUp 0.5s forwards 0.3s;
   `;
-  
+
   modalContent.innerHTML = `
     <div style="font-size: 60px; color: #27ae60; margin-bottom: 20px;">✈️</div>
     <h3 style="color: #2c3e50; margin-bottom: 10px;">Ready to Book!</h3>
@@ -501,12 +383,11 @@ function simulateBooking() {
       transition: all 0.3s;
     ">Continue</button>
   `;
-  
+
   bookingModal.appendChild(modalContent);
   document.body.appendChild(bookingModal);
-  
-  
-  const style = document.createElement('style');
+
+  const style = document.createElement("style");
   style.textContent = `
     @keyframes fadeIn {
       to { opacity: 1; }
@@ -519,11 +400,10 @@ function simulateBooking() {
     }
   `;
   document.head.appendChild(style);
-  
-  
-  bookingModal.addEventListener('click', function(e) {
-    if (e.target === bookingModal || e.target.id === 'closeModal') {
-      bookingModal.style.animation = 'fadeOut 0.3s forwards';
+
+  bookingModal.addEventListener("click", function (e) {
+    if (e.target === bookingModal || e.target.id === "closeModal") {
+      bookingModal.style.animation = "fadeOut 0.3s forwards";
       setTimeout(() => {
         document.body.removeChild(bookingModal);
       }, 300);
@@ -531,12 +411,10 @@ function simulateBooking() {
   });
 }
 
-
 function simulateExplore() {
-  
-  const exploreModal = document.createElement('div');
-  exploreModal.className = 'explore-modal';
-  
+  const exploreModal = document.createElement("div");
+  exploreModal.className = "explore-modal";
+
   exploreModal.style.cssText = `
     position: fixed;
     top: 0;
@@ -551,8 +429,8 @@ function simulateExplore() {
     opacity: 0;
     animation: fadeIn 0.3s forwards;
   `;
-  
-  const modalContent = document.createElement('div');
+
+  const modalContent = document.createElement("div");
   modalContent.style.cssText = `
     background: white;
     padding: 40px;
@@ -563,7 +441,7 @@ function simulateExplore() {
     transform: translateY(-50px);
     animation: slideUp 0.5s forwards 0.3s;
   `;
-  
+
   modalContent.innerHTML = `
     <div style="font-size: 60px; color: #3498db; margin-bottom: 20px;">🗺️</div>
     <h3 style="color: #2c3e50; margin-bottom: 10px;">Explore Destinations!</h3>
@@ -584,14 +462,13 @@ function simulateExplore() {
       transition: all 0.3s;
     ">Let's Explore</button>
   `;
-  
+
   exploreModal.appendChild(modalContent);
   document.body.appendChild(exploreModal);
-  
-  
-  exploreModal.addEventListener('click', function(e) {
-    if (e.target === exploreModal || e.target.id === 'closeExploreModal') {
-      exploreModal.style.animation = 'fadeOut 0.3s forwards';
+
+  exploreModal.addEventListener("click", function (e) {
+    if (e.target === exploreModal || e.target.id === "closeExploreModal") {
+      exploreModal.style.animation = "fadeOut 0.3s forwards";
       setTimeout(() => {
         document.body.removeChild(exploreModal);
       }, 300);
@@ -599,69 +476,73 @@ function simulateExplore() {
   });
 }
 
-
 function initFloatEffects() {
-  const tagline = document.querySelector('.tagline span');
+  const tagline = document.querySelector(".tagline span");
   if (tagline) {
-    
     setInterval(() => {
-      tagline.style.animation = 'none';
+      tagline.style.animation = "none";
       setTimeout(() => {
-        tagline.style.animation = 'float 6s ease-in-out infinite';
+        tagline.style.animation = "float 6s ease-in-out infinite";
       }, 10);
     }, 6000);
   }
 }
 
-
 function initBackgroundEffects() {
-  const flashSection = document.querySelector('.flash-section');
+  const flashSection = document.querySelector(".flash-section");
+  if (!flashSection) return;
+
   const backgrounds = [
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80',
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80',
-    'https://images.unsplash.com/photo-1540453764285-7c5d5d5b5b1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-    'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+    "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=2074&q=80",
+    "https://images.unsplash.com/photo-1540453764285-7c5d5d5b5b1a?auto=format&fit=crop&w=2070&q=80",
+    "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?auto=format&fit=crop&w=2070&q=80",
   ];
-  
+
   let currentBg = 0;
-  
-  
+
   setInterval(() => {
     currentBg = (currentBg + 1) % backgrounds.length;
-    
-    
-    flashSection.style.opacity = '0.7';
-    flashSection.style.transition = 'opacity 1s ease';
-    
+
+    flashSection.style.opacity = "0.7";
+    flashSection.style.transition = "opacity 1s ease";
+
     setTimeout(() => {
-      flashSection.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('${backgrounds[currentBg]}')`;
-      flashSection.style.opacity = '1';
+      flashSection.style.backgroundImage = `
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url('${backgrounds[currentBg]}')
+      `;
+      flashSection.style.opacity = "1";
     }, 500);
-    
+
     setTimeout(() => {
-      flashSection.style.transition = '';
+      flashSection.style.transition = "";
     }, 1500);
   }, 10000);
 }
 
-
 function addDynamicAirplanes() {
-  const flashSection = document.querySelector('.flash-section');
-  
-  
+  const flashSection = document.querySelector(".flash-section");
+  if (!flashSection) return;
+
   setInterval(() => {
-    if (Math.random() > 0.7) { 
-      const airplane = document.createElement('div');
-      airplane.className = 'airplane';
-      airplane.textContent = '✈';
-      
-      
+    if (Math.random() > 0.7) {
+      const airplane = document.createElement("div");
+      airplane.className = "airplane";
+      airplane.textContent = "✈";
+
       const size = Math.random() * 20 + 20;
       const top = Math.random() * 80 + 10;
       const duration = Math.random() * 15 + 20;
       const delay = Math.random() * 5;
-      const color = ['#3498db', '#9b59b6', '#2ecc71', '#e74c3c', '#f1c40f'][Math.floor(Math.random() * 5)];
-      
+      const colors = [
+        "#3498db",
+        "#9b59b6",
+        "#2ecc71",
+        "#e74c3c",
+        "#f1c40f",
+      ];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
       airplane.style.cssText = `
         position: absolute;
         top: ${top}%;
@@ -672,10 +553,9 @@ function addDynamicAirplanes() {
         animation: flyAcross ${duration}s linear infinite ${delay}s;
         z-index: 2;
       `;
-      
+
       flashSection.appendChild(airplane);
-      
-      
+
       setTimeout(() => {
         if (airplane.parentNode) {
           airplane.remove();
@@ -685,68 +565,46 @@ function addDynamicAirplanes() {
   }, 3000);
 }
 
-
 function initFlashEffects() {
-  
   animateTextReveal();
-  
-  
   createLightSweep();
-  
-  
   createStars();
-  
-  
   initFlashButtons();
-  
-  
   enhanceAirplanes();
-  
-  
   initFloatEffects();
-  
-  
-  
-  
-  
+  initBackgroundEffects();
   addDynamicAirplanes();
-  
-  
+
   setInterval(() => {
-    const airplanes = document.querySelectorAll('.airplane');
-    airplanes.forEach(plane => {
-      plane.style.animation = 'none';
+    const airplanes = document.querySelectorAll(".airplane");
+    airplanes.forEach((plane) => {
+      plane.style.animation = "none";
       setTimeout(() => {
-        plane.style.animation = '';
+        plane.style.animation = "";
       }, 10);
     });
   }, 30000);
 }
 
+document.addEventListener("DOMContentLoaded", initFlashEffects);
 
-document.addEventListener('DOMContentLoaded', initFlashEffects);
-
-
-window.addEventListener('scroll', function() {
-  const flashSection = document.querySelector('.flash-section');
+window.addEventListener("scroll", function () {
+  const flashSection = document.querySelector(".flash-section");
   const scrollPosition = window.scrollY;
-  
-  
+
   if (flashSection) {
     flashSection.style.backgroundPositionY = `${scrollPosition * 0.5}px`;
   }
 });
 
-
-window.addEventListener('load', function() {
-  
+window.addEventListener("load", function () {
   setTimeout(() => {
-    const buttons = document.querySelectorAll('.flash-btn');
+    const buttons = document.querySelectorAll(".flash-btn");
     buttons.forEach((button, index) => {
       setTimeout(() => {
-        button.style.transform = 'translateY(-10px)';
+        button.style.transform = "translateY(-10px)";
         setTimeout(() => {
-          button.style.transform = 'translateY(0)';
+          button.style.transform = "translateY(0)";
         }, 300);
       }, index * 200);
     });
