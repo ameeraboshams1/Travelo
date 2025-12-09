@@ -268,7 +268,7 @@ function toastShow(msg, ok = true) {
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Run your validations
+  // Run validations
   validatefirstName();
   validatelastName();
   validateEmail();
@@ -276,7 +276,7 @@ form.addEventListener('submit', async (e) => {
   validatePassword();
   validateConfirmPassword();
 
-  // If there are validation errors
+  // Stop if there are validation errors
   if (submitBtn.disabled) {
     form.classList.add('shake');
     setTimeout(() => form.classList.remove('shake'), 380);
@@ -288,46 +288,48 @@ form.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   toastShow('Creating your account...');
 
-  // Collect form data
-  const formData = new FormData(form);
-
   try {
-    // Send data to PHP
+    const formData = new FormData(form);
+
     const response = await fetch("registeration.php", {
       method: "POST",
       body: formData
     });
 
     const result = await response.json();
+    console.log(result); // debug
 
     if (result.status === "success") {
-      // Success animation
-      setTimeout(() => {
-        toastShow('Account created successfully! ✅');
-        card.style.transition =
-          'transform .5s cubic-bezier(.2,.9,.3,1), box-shadow .5s';
-        card.style.transform = 'translateY(-14px)';
-        card.style.boxShadow = '0 36px 80px rgba(135,43,255,.16)';
+      toastShow(result.message);
+        // Show modal
+  const modal = document.getElementById('successModal');
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
 
-        setTimeout(() => {
-          form.reset();
-          submitBtn.disabled = false; // re-enable button if needed
-          card.style.transform = '';
-          card.style.boxShadow = '';
-          window.location.href = 'packages.html'; // redirect after success
-        }, 2000);
-      }, 1500);
+  modal.style.display = 'flex'; // show modal
 
+  // Reset form and card styles
+  form.reset();
+  card.style.transform = '';
+  card.style.boxShadow = '';
+
+  yesBtn.onclick = () => {
+    window.location.href = 'login.html'; // go to login page
+  };
+
+  noBtn.onclick = () => {
+    modal.style.display = 'none'; // just close modal
+  };
+    
     } else {
-      // Registration failed
-      toastShow('Error: ' + result.message);
+      // Show error from PHP
+      toastShow('Error: ' + (result.message || 'Unknown error'), false);
       submitBtn.disabled = false;
     }
-
   } catch (err) {
-    // Network or PHP error
-    toastShow('Network error. Please try again.');
+    toastShow('Network error. Please try again.', false);
     submitBtn.disabled = false;
+    console.error(err);
   }
 });
 

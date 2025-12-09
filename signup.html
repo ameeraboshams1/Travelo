@@ -35,7 +35,7 @@
                     <h1>Create Account</h1>
                     <p class="subtitle">Join Travelo today</p>
 
-                    <form id="signupForm" novalidate autocomplete="off" action="registeration.php" method="post">
+                    <form id="signupForm" novalidate autocomplete="off" action="registeration.php" method="POST">
                                                 <div class="name-row">
                             <div class="field half">
                                 <input class="input" id="firstName" name="first_name" type="text" placeholder=" " required autocomplete="given-name">
@@ -126,7 +126,16 @@
             </clipPath>
         </defs>
     </svg>
-
+<div id="successModal" class="modal">
+  <div class="modal-content">
+    <p>Account created successfully! 🎉</p>
+    <p>Do you want to log in now?</p>
+    <div class="modal-buttons">
+      <button id="yesBtn">Yes</button>
+      <button id="noBtn">No</button>
+    </div>
+  </div>
+</div>
     <script src="./assets/js/signup.js"></script>
 </body>
 </html>
