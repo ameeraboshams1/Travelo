@@ -35,7 +35,7 @@
                     <h1>Create Account</h1>
                     <p class="subtitle">Join Travelo today</p>
 
-                    <form id="signupForm" novalidate autocomplete="off">
+                    <form id="signupForm" novalidate autocomplete="off" action="registeration.php" method="post">
                                                 <div class="name-row">
                             <div class="field half">
                                 <input class="input" id="firstName" type="text" placeholder=" " required autocomplete="given-name">
@@ -72,7 +72,7 @@
 
                                                 <div class="password-row">
                             <div class="field half">
-                                <input class="input" id="password" type="password" placeholder=" " minlength="8" required autocomplete="new-password">
+                                <input class="input" id="password" type="password" placeholder=" " minlength="6" required autocomplete="new-password">
                                 <label for="password">Password</label>
                                 <div class="caps" id="capsNote"></div>
                                 <div class="err" id="passErr"></div>
@@ -88,7 +88,7 @@
                         <div class="row small">
                             <label class="remember">
                                 <input id="terms" type="checkbox" required> 
-                                I agree to the <a href="#" class="help">Terms & Conditions</a>
+                                I agree to the <a href="#" class="help">Terms &amp; Conditions</a>
                             </label>
                         </div>
 

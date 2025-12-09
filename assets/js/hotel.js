@@ -8,9 +8,123 @@ document.addEventListener('DOMContentLoaded', function () {
   const sliderFill = document.querySelector('.slider-fill');
   const leftThumb = document.querySelector('.slider-thumb.left');
   const rightThumb = document.querySelector('.slider-thumb.right');
+<<<<<<< HEAD
   const minValueLabel = document.querySelector('.slider-values span:first-child');
   const maxValueLabel = document.querySelector('.slider-values span:last-child');
   const priceSummary = document.getElementById('priceSummary');
+=======
+  const minValue = document.querySelector('.slider-values span:first-child');
+  const maxValue = document.querySelector('.slider-values span:last-child');
+  
+  if (sliderTrack && leftThumb && rightThumb) {
+    let isDraggingLeft = false;
+    let isDraggingRight = false;
+    
+    const minPrice = 3.54;
+    const maxPrice = 19544;
+    const trackWidth = sliderTrack.offsetWidth;
+    const thumbWidth = 12;
+    
+    let leftPosition = 0; 
+    let rightPosition = 90; 
+    
+    updateSlider();
+    
+    
+    function updateSlider() {
+      leftThumb.style.left = `${leftPosition}%`;
+      rightThumb.style.left = `${rightPosition}%`;
+      sliderFill.style.left = `${leftPosition}%`;
+      sliderFill.style.width = `${rightPosition - leftPosition}%`;
+      
+      const leftPrice = (minPrice + (maxPrice - minPrice) * (leftPosition / 100)).toFixed(2);
+      const rightPrice = (minPrice + (maxPrice - minPrice) * (rightPosition / 100)).toFixed(2);
+      
+      minValue.textContent = `$${leftPrice}`;
+      maxValue.textContent = `$${rightPrice}`;
+      
+      
+      filterByPrice(parseFloat(leftPrice), parseFloat(rightPrice));
+    }
+    
+    
+    function filterByPrice(min, max) {
+      hotelCards.forEach(card => {
+        const price = parseFloat(card.dataset.price);
+        if (price >= min && price <= max) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+    
+    
+    leftThumb.addEventListener('mousedown', function(e) {
+      isDraggingLeft = true;
+      e.preventDefault();
+    });
+    
+    rightThumb.addEventListener('mousedown', function(e) {
+      isDraggingRight = true;
+      e.preventDefault();
+    });
+    
+    
+    document.addEventListener('mousemove', function(e) {
+      if (!isDraggingLeft && !isDraggingRight) return;
+      
+      const rect = sliderTrack.getBoundingClientRect();
+      const x = Math.max(0, Math.min(e.clientX - rect.left, trackWidth));
+      const percentage = (x / trackWidth) * 100;
+      
+      if (isDraggingLeft) {
+        leftPosition = Math.max(0, Math.min(percentage, rightPosition - 10));
+        updateSlider();
+      } else if (isDraggingRight) {
+        rightPosition = Math.min(100, Math.max(percentage, leftPosition + 10));
+        updateSlider();
+      }
+    });
+    
+    document.addEventListener('mouseup', function() {
+      isDraggingLeft = false;
+      isDraggingRight = false;
+    });
+    
+    
+    leftThumb.addEventListener('touchstart', function(e) {
+      isDraggingLeft = true;
+      e.preventDefault();
+    });
+    
+    rightThumb.addEventListener('touchstart', function(e) {
+      isDraggingRight = true;
+      e.preventDefault();
+    });
+    
+    document.addEventListener('touchmove', function(e) {
+      if (!isDraggingLeft && !isDraggingRight) return;
+      
+      const rect = sliderTrack.getBoundingClientRect();
+      const x = Math.max(0, Math.min(e.touches[0].clientX - rect.left, trackWidth));
+      const percentage = (x / trackWidth) * 100;
+      
+      if (isDraggingLeft) {
+        leftPosition = Math.max(0, Math.min(percentage, rightPosition - 10));
+        updateSlider();
+      } else if (isDraggingRight) {
+        rightPosition = Math.min(100, Math.max(percentage, leftPosition + 10));
+        updateSlider();
+      }
+    });
+    
+    document.addEventListener('touchend', function() {
+      isDraggingLeft = false;
+      isDraggingRight = false;
+    });
+  }
+>>>>>>> 9101ed4f90685224fc3a22a643d12455dac81b8f
 
   const moreFiltersBtn = document.getElementById('moreFiltersBtn');
   const filtersExtra = document.getElementById('filtersExtra');
