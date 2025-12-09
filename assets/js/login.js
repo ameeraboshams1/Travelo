@@ -94,5 +94,7 @@ document.addEventListener('keydown', e => {
         if (i > -1 && i < a.length - 1) { a[i + 1].focus(); e.preventDefault(); }
     }
 });
-
+document.getElementById("backHome").addEventListener("click", function() {
+    window.location.href = "index.html";
+  });
 imgs.forEach(i => { const im = new Image(); im.src = i.src });
