@@ -34,7 +34,10 @@ if (strlen($pass) < 6) send_error("Password must be at least 6 characters.");
 $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
 $stmt->execute([$username]);
 if ($stmt->fetch()) send_error("Username already taken.");
-
+//check if email exists
+$stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+$stmt->execute([$email]);
+if ($stmt->fetch()) send_error("Email already registered.");
 // Hash password
 $hash = password_hash($pass, PASSWORD_DEFAULT);
 
