@@ -1,5 +1,5 @@
 <?php
-include 'db.php'; // make sure $pdo is created in db.php
+include 'db.php'; 
 
 header("Content-Type: application/json");
 

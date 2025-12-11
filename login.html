@@ -36,15 +36,15 @@
           <h1>Welcome back</h1>
           <p class="subtitle">Sign in to Travelo</p>
 
-          <form id="loginForm" novalidate>
+          <form id="loginForm" action="login.php" method="POST" novalidate>
             <div class="field">
-              <input class="input" id="email" type="text" placeholder=" " required autocomplete="username" inputmode="email">
+              <input class="input" name="login" id="email" type="text" placeholder=" " required autocomplete="username" inputmode="email">
               <label for="email">Email or Username</label>
               <div class="err" id="emailErr"></div>
             </div>
 
             <div class="field">
-              <input class="input" id="password" type="password" placeholder=" " minlength="6" required autocomplete="current-password">
+              <input class="input" name="password" id="password" type="password" placeholder=" " minlength="6" required autocomplete="current-password">
               <label for="password">Password</label>
               <div class="caps" id="capsNote"></div>
               <div class="err" id="passErr"></div>

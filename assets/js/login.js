@@ -231,7 +231,7 @@ function toastShow(msg, ok = true) {
   setTimeout(() => toast.classList.remove('show'), 1800);
 }
 
-form.addEventListener('submit', e => {
+form.addEventListener('submit', async e => {
   e.preventDefault();
   validateEmail();
   validatePass();
@@ -247,13 +247,39 @@ form.addEventListener('submit', e => {
   submitBtn.disabled = true;
   toastShow('Logging in...');
 
-  setTimeout(() => {
-    toastShow('Logged in successfully ✅');
-    card.style.transition =
-      'transform .5s cubic-bezier(.2,.9,.3,1), box-shadow .5s';
-    card.style.transform = 'translateY(-14px)';
-    card.style.boxShadow = '0 36px 80px rgba(135,43,255,.16)';
-  }, 900);
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch('login.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      toastShow('Logged in successfully ✅');
+
+      card.style.transition =
+        'transform .5s cubic-bezier(.2,.9,.3,1), box-shadow .5s';
+      card.style.transform = 'translateY(-14px)';
+      card.style.boxShadow = '0 36px 80px rgba(135,43,255,.16)';
+        setTimeout(() => {
+        if (result.role === 'admin') {
+          window.location.href = 'dashboard.html';
+        } else {
+          window.location.href = 'index.php';
+        }
+      }, 2000); // wait for 2 secs
+    } else {
+      toastShow(result.message || 'Login failed', false);
+      submitBtn.disabled = false;
+    }
+  } catch (err) {
+    console.error(err);
+    toastShow('Something went wrong', false);
+    submitBtn.disabled = false;
+  }
 });
 
 
@@ -311,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (backHomeBtn) {
     backHomeBtn.addEventListener('click', function () {
-      window.location.href = 'index.html'; // من login.html إلى الصفحة الرئيسية
+      window.location.href = 'about.html'; // من login.html إلى الصفحة الرئيسية
     });
   }
 });
