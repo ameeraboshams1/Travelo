@@ -1,480 +1,1013 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Travelo · Contact</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Travelo · المساعد الذكي</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    :root{
-      --bg:#f7f8fb;
-      --surface:#ffffff;
-      --ink:#111;
-      --muted:#8A8FB9;
-      --accent:#872BFF;
-      --accent-2:#6c63ff;
-      --border:#eef0f4;
-      --halo:rgba(151,71,255,0.08);
-      --ok:#10b981;
-      --warn:#f59e0b;
-      --err:#ef4444;
-      --shadow:0 10px 30px rgba(17, 17, 17, 0.06);
-      --radius:18px;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0}
-    body{
-      font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:linear-gradient(180deg,#EEEFFB 0%, #F7F8FB 40%, #FFF 100%);
-      color:var(--ink);
-    }
-
-.banner{
-  position: relative;
-  height: 400px;
-  display: flex;                 flex-direction: column;        justify-content: center;       align-items: center;           color: #fff; 
-  text-align: center;
-  overflow: hidden;
-  margin-bottom: 50px;
-}
-.banner::before{
-  content:""; position:absolute; inset:0;
-  background:url('./assets/images/all tours (1).png') center/cover no-repeat;
-  filter: saturate(1.05);
-  transform: scale(1.02);
-}
-.banner::after{
-  content:""; position:absolute; inset:0;
-  background: linear-gradient(0deg, rgba(17,17,17,.55), rgba(17,17,17,.25));
-}
-.banner h1{
-  position: relative; 
-  z-index: 2; 
-  margin: 0 0 12px 0;        font-size: 48px;           letter-spacing: .5px;
-}
-.crumbs{
-  position: relative; 
-  z-index: 2; 
-  font-size: 18px;            opacity: .9;
-}
-.crumbs a{ 
-  color:#fff; 
-  opacity:.9; 
-  text-decoration:none 
-}
-.crumbs a:hover{ 
-  opacity:1; 
-  text-decoration:underline 
-}
-
-.page{
-  max-width:1100px; 
-  margin:22px auto 50px; 
-  padding:0 18px;
-  display:grid; 
-  grid-template-columns: 1.2fr .9fr; 
-  gap:24px;
-}
-@media (max-width: 992px){
-  .page{ grid-template-columns: 1fr; }
-}
-
-        .card{
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--radius); box-shadow:var(--shadow);
-
-            opacity:0; transform: translateY(24px);
-      transition: opacity .5s ease, transform .5s ease;
-    }
-    .card.revealed{ opacity:1; transform: translateY(0); }
-
-    .card .hd{
-      padding:18px 18px 0; display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
-    .card .hd h2{ margin:0; font-size:20px; }
-    .card .bd{ padding:18px; }
-    .card .ft{ padding:0 18px 18px; }
-
-        .info-list{ display:grid; grid-template-columns:1fr; gap:14px; }
-    .info-item{ display:flex; gap:12px; align-items:flex-start; padding:12px; border:1px dashed var(--border); border-radius:14px; background:#fafbff; }
-    .info-item b{ display:block; }
-    .info-item span{ color:var(--muted); font-size:14px; }
-    .icon{
-      width:38px; height:38px; border-radius:12px; display:grid; place-items:center; background:rgba(108,99,255,0.1);
+    :root {
+      --primary: #6A11CB;
+      --primary-dark: #2575FC;
+      --secondary: #FF6B6B;
+      --accent: #00D2FF;
+      --success: #4ECDC4;
+      --warning: #FFD166;
+      --danger: #EF476F;
+      
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --chat-bg: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      --user-msg: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
+      --bot-msg: linear-gradient(145deg, #f1f5f9 0%, #ffffff 100%);
+      
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-light: #94a3b8;
+      
+      --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --inner-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+      
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-        .map{
-      width:100%; height:260px; border-radius:14px; border:1px solid var(--border); background:
-        radial-gradient(120px 80px at 20% 30%, rgba(135,43,255,0.08), transparent 60%),
-        radial-gradient(120px 80px at 80% 70%, rgba(108,99,255,0.1), transparent 60%),
-        #fff;
-      display:grid; place-items:center; color:var(--muted);
-      margin-top:14px;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-        form{ display:grid; gap:14px; }
-    .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    @media (max-width:640px){ .grid-2{ grid-template-columns:1fr; } }
-    label{ font-weight:600; font-size:14px; display:block; margin-bottom:6px; }
-    .inp, .select, textarea{
-      width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--border); background:#fff;
-      font:inherit; color:var(--ink); outline:none; transition:.2s border, .2s box-shadow, .2s transform;
+    html, body {
+      height: 100%;
+      font-family: 'Tajawal', 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--text-primary);
+      direction: rtl;
+      overflow-x: hidden;
     }
-    .inp:focus, .select:focus, textarea:focus{
-      border-color:var(--accent-2); box-shadow:0 0 0 4px rgba(108,99,255,0.14);
-    }
-    .row{ display:grid; gap:6px; }
-    .help{ font-size:12px; color:var(--muted); }
-    .error{ font-size:12px; color:var(--err); display:none; }
-    .invalid .inp, .invalid .select, .invalid textarea{ border-color:var(--err); box-shadow:0 0 0 3px rgba(239,68,68,.14); }
-    .invalid .error{ display:block; }
-    .caps{ text-transform:uppercase; letter-spacing:.3px; font-size:12px; color:var(--muted); }
 
-    .note{ display:flex; align-items:center; gap:10px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); color:#065f46; padding:10px 12px; border-radius:12px; }
-    .warn{ background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.3); color:#7c4a03; }
-
-        .actions{ display:flex; gap:10px; align-items:center; justify-content:flex-end; }
-    .btn{
-      appearance:none; border:none; outline:none; cursor:pointer;
-      background:linear-gradient(180deg, var(--accent), var(--accent-2));
-      color:#fff; padding:12px 18px; border-radius:12px; font-weight:700; box-shadow:0 8px 20px rgba(135,43,255,.25);
-      transition: transform .12s ease, opacity .2s;
+    /* Hero Banner - أطول مع صورة خلفية */
+    .hero-banner {
       position: relative;
+      min-height: 450px; /* أطول بكثير */
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 0 0 50px 50px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 50px;
     }
-    .btn:hover{ transform: translateY(-1px); }
-    .btn:active{ transform: translateY(0); }
-    .btn.secondary{
-      background:#fff; color:var(--ink); border:1px solid var(--border); box-shadow:none;
-    }
-    .btn[disabled]{ opacity:.7; cursor:not-allowed; }
-        .btn.loading{ color:transparent; }
-    .btn.loading::after{
-      content:""; position:absolute; inset:0; margin:auto; width:18px; height:18px; border-radius:50%;
-      border:2px solid rgba(255,255,255,.45); border-top-color:#fff; animation:spin .8s linear infinite;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-    .btn.shake{ animation:shake .28s; }
 
-    .counter{ font-size:12px; color:var(--muted); text-align:right; }
-
-        .toast{
-      position: fixed; inset:auto 18px 18px auto; z-index:9999;
-      min-width:260px; max-width:92vw; background:#0f172a; color:#fff; padding:12px 14px; border-radius:12px;
-      display:flex; align-items:center; gap:10px; box-shadow:var(--shadow);
-      opacity:0; transform: translateY(10px); pointer-events:none; transition: all .3s ease;
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: brightness(0.9);
+      z-index: 1;
     }
-    .toast.show{ opacity:1; transform: translateY(0); pointer-events:auto; }
-    .toast .t-icon{ width:28px; height:28px; display:grid; place-items:center; border-radius:8px; background:rgba(16,185,129,.15); }
-    .toast .t-msg{ font-size:14px; line-height:1.5; }
 
-        .foot-mini{
-      max-width:1100px; margin:40px auto 20px; padding:0 18px; color:var(--muted); font-size:13px; text-align:center;
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(106, 17, 203, 0.85) 0%,
+        rgba(37, 117, 252, 0.75) 100%
+      );
+      z-index: 2;
     }
-    .foot-mini a{ color:var(--accent); text-decoration:none; }
+
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      max-width: 1200px;
+      width: 100%;
+      padding: 40px;
+      text-align: center;
+      color: white;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      animation: fadeInDown 1s ease;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .logo-text {
+      color: white;
+      font-size: 42px;
+      font-weight: 800;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      letter-spacing: 1px;
+    }
+
+    .logo-text span {
+      color: #FFD166;
+      font-weight: 900;
+    }
+
+    .tagline {
+      font-size: 22px;
+      max-width: 800px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      animation: fadeInUp 1s ease 0.3s both;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .stats-container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-top: 50px;
+      animation: fadeIn 1s ease 0.6s both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      padding: 25px 35px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: center;
+      transition: var(--transition);
+      min-width: 180px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-number {
+      display: block;
+      color: white;
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 14px;
+      animation: bounce 2s infinite;
+      z-index: 3;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      40% {
+        transform: translateX(-50%) translateY(-10px);
+      }
+      60% {
+        transform: translateX(-50%) translateY(-5px);
+      }
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 50px;
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 30px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Chat Card */
+    .chat-card {
+      background: var(--chat-bg);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      overflow: hidden;
+      height: 620px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      animation: slideUp 0.8s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      padding: 20px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .bot-avatar {
+      width: 50px;
+      height: 50px;
+      background: var(--user-msg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      box-shadow: var(--shadow-md);
+    }
+
+    .header-info h2 {
+      font-size: 18px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .header-info p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .chat-window {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      max-width: 80%;
+      animation: messageAppear 0.3s ease-out;
+    }
+
+    @keyframes messageAppear {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.bot {
+      align-self: flex-start;
+    }
+
+    .message.user {
+      align-self: flex-end;
+    }
+
+    .message-content {
+      padding: 15px;
+      border-radius: var(--radius-lg);
+      position: relative;
+      box-shadow: var(--shadow-sm);
+      line-height: 1.6;
+    }
+
+    .message.bot .message-content {
+      background: var(--bot-msg);
+      border: 1px solid #e2e8f0;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.user .message-content {
+      background: var(--user-msg);
+      color: white;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      margin-top: 5px;
+      opacity: 0.7;
+      text-align: left;
+    }
+
+    .message.user .message-time {
+      text-align: right;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px;
+      background: var(--bot-msg);
+      border-radius: var(--radius-lg);
+      width: fit-content;
+      border: 1px solid #e2e8f0;
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: var(--text-light);
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .chat-input-area {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 15px 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 15px;
+      resize: none;
+      min-height: 60px;
+      max-height: 120px;
+      transition: var(--transition);
+      background: #f8fafc;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+      background: white;
+    }
+
+    .send-button {
+      background: var(--user-msg);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 18px;
+    }
+
+    .send-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .send-button:active {
+      transform: translateY(0);
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      padding: 15px;
+      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .actions-title {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .action-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .info-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid #e2e8f0;
+      animation: slideUp 0.8s ease 0.2s both;
+    }
+
+    .info-card h3 {
+      font-size: 18px;
+      color: var(--text-primary);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-card h3 i {
+      color: var(--primary);
+    }
+
+    .features-list {
+      list-style: none;
+    }
+
+    .features-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-secondary);
+    }
+
+    .features-list li:last-child {
+      border-bottom: none;
+    }
+
+    .features-list li i {
+      color: var(--success);
+      font-size: 14px;
+    }
+
+    .language-switcher {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .lang-btn {
+      flex: 1;
+      padding: 10px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .lang-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .lang-btn:hover:not(.active) {
+      background: #e2e8f0;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: 40px;
+      border-top: 1px solid #e2e8f0;
+      background: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      
+      .hero-banner {
+        min-height: 400px;
+      }
+      
+      .chat-card {
+        height: 550px;
+      }
+      
+      .stats-container {
+        gap: 20px;
+      }
+      
+      .stat-card {
+        min-width: 150px;
+        padding: 20px 25px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-banner {
+        min-height: 350px;
+        border-radius: 0 0 30px 30px;
+      }
+      
+      .logo-text {
+        font-size: 32px;
+      }
+      
+      .tagline {
+        font-size: 18px;
+        padding: 0 15px;
+      }
+      
+      .stat-card {
+        min-width: 120px;
+        padding: 15px 20px;
+      }
+      
+      .stat-number {
+        font-size: 28px;
+      }
+      
+      .scroll-indicator {
+        font-size: 12px;
+        padding: 8px 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-banner {
+        min-height: 300px;
+      }
+      
+      .logo-container {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .logo-text {
+        font-size: 28px;
+      }
+      
+      .tagline {
+        font-size: 16px;
+      }
+      
+      .stat-card {
+        min-width: calc(50% - 20px);
+      }
+      
+      .stats-container {
+        gap: 15px;
+      }
+      
+      .chat-header {
+        padding: 15px;
+      }
+      
+      .message {
+        max-width: 90%;
+      }
+    }
   </style>
 </head>
 <body>
-
-    <header class="banner" role="banner" aria-label="Contact banner">
-    <h1>Support</h1>
-    <div class="crumbs" aria-label="breadcrumbs">
-      <a href="/">Home</a> · <span>Support</span>
+  <!-- Hero Banner -->
+  <header class="hero-banner">
+    <div class="hero-content">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <i class="fas fa-plane-departure"></i>
+        </div>
+        <div class="logo-text">Travelo <span>AI</span></div>
+      </div>
+      
+      <p class="tagline">
+        مساعدك الذكي للرحلات والسفر حول العالم. أجيب على جميع استفساراتك بخصوص الحجوزات، الطيران، الفنادق، والدفع بلغتك وبشكل فوري
+      </p>
+      
+      <div class="stats-container">
+        <div class="stat-card">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">دعم متواصل</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">98%</span>
+          <span class="stat-label">رضا العملاء</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">2 ثانية</span>
+          <span class="stat-label">متوسط وقت الرد</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">50+</span>
+          <span class="stat-label">لغة مدعومة</span>
+        </div>
+      </div>
+      
+      <div class="scroll-indicator">
+        <i class="fas fa-chevron-down"></i> ابدأ المحادثة الآن
+      </div>
     </div>
   </header>
 
-    <main class="page">
-        <section class="card" aria-labelledby="contact-title">
-      <div class="hd">
-        <h2 id="contact-title">Send us a message</h2>
-        <span class="caps">Travelo Support</span>
-      </div>
-      <div class="bd">
-        <div class="note warn" id="flight-note" style="display:none">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
-          If you have an urgent flight within 24 hours, please call us after submitting the form.
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Chat Section -->
+    <div class="chat-card">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="bot-avatar">
+          <i class="fas fa-robot"></i>
         </div>
-
-        <form id="contactForm" novalidate>
-          <div class="grid-2">
-            <div class="row" id="row-name">
-              <label for="name">Full Name</label>
-              <input class="inp" type="text" id="name" name="name" placeholder="Your name" autocomplete="name" required>
-              <div class="error">Please enter your name.</div>
-            </div>
-
-            <div class="row" id="row-email">
-              <label for="email">Email</label>
-              <input class="inp" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
-              <div class="error">Enter a valid email address.</div>
-            </div>
-          </div>
-
-          <div class="grid-2">
-            <div class="row">
-              <label for="topic">Topic</label>
-              <select class="select" id="topic" name="topic" required>
-                <option value="">Choose a topic…</option>
-                <option value="flights">Flights</option>
-                <option value="hotels">Hotels</option>
-                <option value="billing">Billing & Payments</option>
-                <option value="technical">Technical Issue</option>
-                <option value="other">Other</option>
-              </select>
-              <div class="error">Please pick a topic.</div>
-            </div>
-
-            <div class="row">
-              <label for="booking">Booking Reference <span class="caps">(optional)</span></label>
-              <input class="inp" type="text" id="booking" name="booking" placeholder="e.g., TVL-6F92A">
-              <div class="help">You can find it in your confirmation email.</div>
-            </div>
-          </div>
-
-          <div class="grid-2">
-            <div class="row">
-              <label for="priority">Priority</label>
-              <select class="select" id="priority" name="priority">
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-
-            <div class="row">
-              <label for="phone">Phone <span class="caps">(optional, for urgent cases)</span></label>
-              <input class="inp" type="tel" id="phone" name="phone" placeholder="+970 5X XXX XXXX" autocomplete="tel">
-            </div>
-          </div>
-
-          <div class="row" id="row-message">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="6" placeholder="Tell us how we can help…" required></textarea>
-            <div class="counter" id="counter">0 / 1000</div>
-            <div class="error">Please write your message (min 10 characters).</div>
-          </div>
-
-          <div class="actions">
-            <button type="button" class="btn secondary" id="resetBtn">Reset</button>
-            <button type="submit" class="btn" id="sendBtn">Send Message</button>
-          </div>
-        </form>
-      </div>
-      <div class="ft">
-        <div class="note">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.48c.5.09.68-.22.68-.48v-1.7c-2.78.61-3.37-1.2-3.37-1.2-.45-1.17-1.1-1.49-1.1-1.49-.9-.62.07-.61.07-.61 1 .07 1.53 1.05 1.53 1.05.9 1.53 2.37 1.09 2.95.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.5 9.5 0 0112 6.8c.85 0 1.7.11 2.5.33 1.9-1.29 2.74-1.02 2.74-1.02.56 1.37.21 2.39.11 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.93.36.31.68.92.68 1.86v2.75c0 .26.18.58.69.48A10 10 0 0012 2z"/></svg>
-          We’ll also email a copy of your request to your inbox.
+        <div class="header-info">
+          <h2>مساعد Travelo الذكي</h2>
+          <p>
+            <span class="status-indicator"></span>
+            متصل الآن · يدعم العربية والإنجليزية
+          </p>
         </div>
       </div>
-    </section>
 
-        <aside class="card" aria-labelledby="info-title">
-      <div class="hd">
-        <h2 id="info-title">Contact Information</h2>
-        <span class="caps">24/7</span>
+      <!-- Chat Messages -->
+      <div class="chat-window" id="chatWindow">
+        <!-- Messages will be inserted here by JavaScript -->
       </div>
-      <div class="bd">
-        <div class="info-list">
-          <div class="info-item">
-            <div class="icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#6c63ff"><path d="M6.6 10.8a15.5 15.5 0 006.6 6.6l2.2-2.2a1 1 0 011.1-.2c1.2.5 2.6.8 4 .8a1 1 0 011 1V20a1 1 0 01-1 1C11.3 21 3 12.7 3 2a1 1 0 011-1h3.2a1 1 0 011 1c0 1.4.3 2.8.8 4a1 1 0 01-.2 1.1l-2.2 2.2z"/></svg>
-            </div>
-            <div>
-              <b>Phone</b>
-              <span>+970 599 000 111</span>
-            </div>
-          </div>
 
-          <div class="info-item">
-            <div class="icon" style="background:rgba(135,43,255,.12);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#872BFF"><path d="M20 4H4c-1.1 0-2 .9-2 2v0l10 6 10-6v0c0-1.1-.9-2-2-2zm0 4.2l-8 4.8-8-4.8V18c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8.2z"/></svg>
-            </div>
-            <div>
-              <b>Email</b>
-              <span>support@travelo.com</span>
-            </div>
-          </div>
-
-          <div class="info-item">
-            <div class="icon" style="background:rgba(16,185,129,.12);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z"/></svg>
-            </div>
-            <div>
-              <b>Office</b>
-              <span>Tulkarm, PS — Al-Madina St. 12</span>
-            </div>
-          </div>
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <div class="actions-title">
+          <i class="fas fa-bolt"></i>
+          إجراءات سريعة:
         </div>
-
-        <div class="map" role="img" aria-label="Map preview">
-          <span>Map preview (embed later)</span>
+        <div class="action-buttons">
+          <button class="action-btn" data-action="booking">حجز رحلة</button>
+          <button class="action-btn" data-action="payment">مشكلة دفع</button>
+          <button class="action-btn" data-action="cancel">إلغاء حجز</button>
+          <button class="action-btn" data-action="hotel">حجز فندق</button>
+          <button class="action-btn" data-action="package">بكج سياحي</button>
+          <button class="action-btn" data-action="support">التواصل مع الدعم</button>
         </div>
+      </div>
+
+      <!-- Chat Input -->
+      <div class="chat-input-area">
+        <div class="input-wrapper">
+          <textarea 
+            class="chat-input" 
+            id="chatInput" 
+            placeholder="اكتب رسالتك هنا... (يدعم العربية والإنجليزية)"
+            rows="2"
+          ></textarea>
+          <button class="send-button" id="sendButton">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Features Card -->
+      <div class="info-card">
+        <h3><i class="fas fa-star"></i> مميزات المساعد</h3>
+        <ul class="features-list">
+          <li><i class="fas fa-check-circle"></i> يدعم اللغتين العربية والإنجليزية</li>
+          <li><i class="fas fa-check-circle"></i> يفهم السياق ويتذكر المحادثة</li>
+          <li><i class="fas fa-check-circle"></i> يقدم اقتراحات ذكية</li>
+          <li><i class="fas fa-check-circle"></i> ردود فورية على مدار الساعة</li>
+          <li><i class="fas fa-check-circle"></i> يحل مشاكل الدفع الفنية</li>
+          <li><i class="fas fa-check-circle"></i> يساعد في تعديل الحجوزات</li>
+        </ul>
+        
+        <div class="language-switcher">
+          <button class="lang-btn active" data-lang="ar">العربية</button>
+          <button class="lang-btn" data-lang="en">English</button>
+        </div>
+      </div>
+
+      <!-- Help Topics Card -->
+      <div class="info-card">
+        <h3><i class="fas fa-question-circle"></i> مواضيع مساعدة</h3>
+        <ul class="features-list">
+          <li><i class="fas fa-plane"></i> حجوزات الطيران</li>
+          <li><i class="fas fa-hotel"></i> الفنادق والإقامة</li>
+          <li><i class="fas fa-credit-card"></i> طرق الدفع والأمان</li>
+          <li><i class="fas fa-suitcase-rolling"></i> البكجات السياحية</li>
+          <li><i class="fas fa-user-circle"></i> إدارة الحساب</li>
+          <li><i class="fas fa-headset"></i> خدمة العملاء</li>
+        </ul>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="info-card">
+        <h3><i class="fas fa-headset"></i> معلومات التواصل</h3>
+        <ul class="features-list">
+          <li><i class="fas fa-envelope"></i> support@travelo.com</li>
+          <li><i class="fas fa-phone"></i> 800-123-4567</li>
+          <li><i class="fas fa-clock"></i> متوفر 24/7</li>
+          <li><i class="fas fa-shield-alt"></i> آمن ومحمي</li>
+        </ul>
       </div>
     </aside>
   </main>
 
-  <p class="foot-mini">© 2025 Travelo. All Rights Reserved — Built for seamless flight and hotel bookings.</p>
-
-    <div id="toast" class="toast ok" role="status" aria-live="polite" aria-atomic="true">
-    <div class="t-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981"><path d="M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.5z"/></svg>
-    </div>
-    <div class="t-msg">Your request has been sent. We’ll email you shortly.</div>
-  </div>
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2024 Travelo AI Assistant. جميع الحقوق محفوظة.</p>
+    <p style="margin-top: 5px; font-size: 12px; opacity: 0.7;">
+      هذا المساعد يعمل بالذكاء الاصطناعي ويطور نفسه باستمرار لخدمتك بشكل أفضل
+    </p>
+  </footer>
 
   <script>
+    // DOM Elements
+    const chatWindow = document.getElementById('chatWindow');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    const actionButtons = document.querySelectorAll('.action-btn');
+    const langButtons = document.querySelectorAll('.lang-btn');
 
-    const form = document.getElementById('contactForm');
-    const nameEl = document.getElementById('name');
-    const emailEl = document.getElementById('email');
-    const topicEl = document.getElementById('topic');
-    const messageEl = document.getElementById('message');
-    const priorityEl = document.getElementById('priority');
-    const flightNote = document.getElementById('flight-note');
-    const resetBtn = document.getElementById('resetBtn');
-    const sendBtn = document.getElementById('sendBtn');
-    const toast = document.getElementById('toast');
-    const counter = document.getElementById('counter');
+    // State
+    let currentLanguage = 'ar';
+    let conversationHistory = [];
+    let typingTimeout = null;
 
+    // Initial welcome message
+    const welcomeMessages = {
+      ar: `مرحباً بك في Travelo! 🎉
 
-    const revealer = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){ e.target.classList.add('revealed'); revealer.unobserve(e.target); }
+أنا مساعدك الذكي لجمعة أمور السفر. كيف يمكنني مساعدتك اليوم؟
+
+يمكنك الاستفسار عن:
+• 🛫 حجوزات الطيران والرحلات
+• 🏨 الفنادق والإقامة
+• 💳 طرق الدفع والمشاكل
+• 🎒 البكجات السياحية
+• 👤 حسابك الشخصي
+• 🛠️ أي مشكلة تقنية
+
+اكتب سؤالك وسأجيبك فوراً!`,
+      en: `Welcome to Travelo! 🎉
+
+I'm your smart assistant for all travel matters. How can I help you today?
+
+You can ask about:
+• 🛫 Flight bookings and trips
+• 🏨 Hotels and accommodation
+• 💳 Payment methods and issues
+• 🎒 Travel packages
+• 👤 Your personal account
+• 🛠️ Any technical issues
+
+Type your question and I'll answer immediately!`
+    };
+
+    // Initialize chat
+    setTimeout(() => {
+      addMessage(welcomeMessages.ar, 'bot');
+    }, 1000);
+
+    // Add message to chat
+    function addMessage(text, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}`;
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      contentDiv.textContent = text;
+      
+      const timeDiv = document.createElement('div');
+      timeDiv.className = 'message-time';
+      timeDiv.textContent = new Date().toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
       });
-    }, {threshold:.18});
-    document.querySelectorAll('.card').forEach(c=>revealer.observe(c));
-
-    const MAX = 1000;
-    const MIN = 10;
-    function updateCounter(){
-      const len = messageEl.value.length;
-      counter.textContent = len + ' / ' + MAX;
-      if(len >= MAX){ counter.style.color = 'var(--err)'; messageEl.value = messageEl.value.slice(0, MAX); }
-      else if(len >= 900){ counter.style.color = 'var(--warn)'; }
-      else if(len >= MIN){ counter.style.color = 'var(--ok)'; }
-      else { counter.style.color = 'var(--muted)'; }
-    }
-    messageEl.addEventListener('input', updateCounter);
-    updateCounter();
-
-    function refreshUrgencyNote(){
-      const show = (priorityEl.value === 'urgent' && topicEl.value === 'flights');
-      flightNote.style.display = show ? 'flex' : 'none';
-    }
-    priorityEl.addEventListener('change', refreshUrgencyNote);
-    topicEl.addEventListener('change', refreshUrgencyNote);
-    refreshUrgencyNote();
-
-    emailEl.addEventListener('blur', ()=>{ emailEl.value = emailEl.value.trim().toLowerCase(); });
-
-    const bookingEl = document.getElementById('booking');
-    bookingEl?.addEventListener('input', ()=>{
-      let v = bookingEl.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');
-      v = v.replace(/^TVL[- ]?/,'TVL-');
-      bookingEl.value = v;
-    });
-
-    const phoneEl = document.getElementById('phone');
-    phoneEl?.addEventListener('input', ()=>{
-      phoneEl.value = phoneEl.value.replace(/[^\d+ ]/g,'').replace(/\s{2,}/g,' ').trim();
-    });
-
-    function invalidate(elOrRow, msg){
-      const row = typeof elOrRow === 'string' ? document.getElementById(elOrRow) : elOrRow.closest('.row');
-      row.classList.add('invalid');
-      const e = row.querySelector('.error');
-      if(e && msg) e.textContent = msg;
-    }
-    function clearInvalid(){ document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid')); }
-    function validate(){
-      let ok = true;
-
-      if(!nameEl.value.trim()){ invalidate('row-name','Please enter your name.'); ok=false; }
-
-      const email = emailEl.value.trim();
-      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-      if(!emailOk){ invalidate('row-email','Enter a valid email address.'); ok=false; }
-
-      if(!topicEl.value){ invalidate(topicEl.parentElement,'Please pick a topic.'); ok=false; }
-
-      const msgLen = messageEl.value.trim().length;
-      if(msgLen < MIN){ invalidate('row-message','Please write your message (min 10 characters).'); ok=false; }
-      return ok;
+      
+      contentDiv.appendChild(timeDiv);
+      messageDiv.appendChild(contentDiv);
+      chatWindow.appendChild(messageDiv);
+      
+      // Add to history
+      conversationHistory.push({
+        text,
+        sender,
+        time: new Date().toISOString(),
+        language: currentLanguage
+      });
+      
+      // Scroll to bottom
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      
+      // Save to localStorage
+      saveConversation();
     }
 
-    function showToast(text='Your request has been sent. We’ll email you shortly.'){
-      toast.querySelector('.t-msg').textContent = text;
-      toast.classList.add('show');
-      setTimeout(()=> toast.classList.remove('show'), 3500);
+    // Show typing indicator
+    function showTyping() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'typing-indicator';
+      typingDiv.id = 'typingIndicator';
+      typingDiv.innerHTML = `
+        <span></span>
+        <span></span>
+        <span></span>
+      `;
+      chatWindow.appendChild(typingDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    function setLoading(btn, isLoading){
-      if(isLoading){ btn.classList.add('loading'); btn.setAttribute('disabled',''); }
-      else{ btn.classList.remove('loading'); btn.removeAttribute('disabled'); }
-    }
-
-    resetBtn.addEventListener('click', () => {
-      form.reset(); clearInvalid(); updateCounter(); refreshUrgencyNote();
-      localStorage.removeItem('travelo_contact_draft');
-    });
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault(); clearInvalid();
-
-      if(!validate()){
-        sendBtn.classList.add('shake');
-        setTimeout(()=>sendBtn.classList.remove('shake'), 300);
-        return;
+    // Hide typing indicator
+    function hideTyping() {
+      const typingIndicator = document.getElementById('typingIndicator');
+      if (typingIndicator) {
+        typingIndicator.remove();
       }
+    }
 
-      setLoading(sendBtn, true);
-
-      const hp = document.createElement('input');
-      hp.type='text'; hp.name='website'; hp.style.display='none';
-      form.appendChild(hp);
-
-      await new Promise(r => setTimeout(r, 900));
-
-
-
-
-
-
-
-      setLoading(sendBtn, false);
-      showToast();
-      form.reset(); updateCounter(); refreshUrgencyNote();
-      localStorage.removeItem('travelo_contact_draft');
-    });
-
-    const KEY = 'travelo_contact_draft';
-    function saveDraft(){
-      const data = {
-        name: nameEl.value, email: emailEl.value, topic: topicEl.value,
-        booking: bookingEl?.value || '',
-        priority: priorityEl.value, phone: phoneEl?.value || '',
-        message: messageEl.value
+    // AI Response Logic
+    function getAIResponse(userMessage) {
+      const message = userMessage.toLowerCase();
+      
+      // Detect language
+      const isArabic = /[\u0600-\u06FF]/.test(userMessage);
+      const lang = isArabic ? 'ar' : 'en';
+      
+      // Responses in both languages
+      const responses = {
+        ar: {
+          greeting: ['أهلاً وسهلاً! كيف يمكنني مساعدتك اليوم؟', 'مرحباً! سعيد برؤيتك. كيف أساعدك؟'],
+          booking: 'لحجز رحلة، يمكنك:\n1. زيارة صفحة "حجوزات الطيران"\n2. اختيار وجهتك وتواريخ السفر\n3. اختيار الرحلة المناسبة\n4. إدخال بيانات المسافرين\n5. إتمام الدفع\nهل تحتاج مساعدة في خطوة محددة؟',
+          payment: 'لمشاكل الدفع:\n1. تأكد من صحة بيانات البطاقة\n2. جرب طريقة دفع مختلفة\n3. تحقق من اتصال الإنترنت\n4. اتصل بالبنك لتأكيد المعاملة\nهل تواجه مشكلة معينة؟',
+          cancel: 'لإلغاء حجز:\n1. سجل الدخول لحسابك\n2. اذهب لـ "حجوزاتي"\n3. اختر الحجز المراد إلغاؤه\n4. اضغط على "إلغاء الحجز"\n5. تأكد من سياسة الاسترجاع\nهل لديك رقم الحجز؟',
+          hotel: 'لحجز فندق:\n1. ابحث عن الفندق في وجهتك\n2. اختر تواريخ الإقامة\n3. اختر نوع الغرفة والخدمات\n4. أكمل بيانات الحجز\n5. تأكيد الحجز والدفع\nأي مدينة تخطط لزيارتها؟',
+          package: 'البكجات السياحية تشمل:\n• الرحلة ذهاب وعودة\n• الإقامة في الفندق\n• الانتقالات\n• بعض الأنشطة\n• تأمين السفر\nما هي الميزانية التي تخطط لها؟',
+          support: 'للتواصل مع الدعم:\n📧 البريد: support@travelo.com\n📞 الهاتف: 800-123-4567\n🕒 متاح 24/7\nهل تريد مساعدة في أمر محدد؟',
+          thanks: ['العفو! سعيد بمساعدتك.', 'لا شكر على واجب!', 'أنت تستحق الأفضل.'],
+          unknown: 'أفهم أنك تقول: "' + userMessage + '"\nكيف يمكنني مساعدتك في Travelo؟ يمكنك السؤال عن الحجوزات، الدفع، الفنادق، أو أي استفسار آخر.'
+        },
+        en: {
+          greeting: ['Hello! How can I help you today?', 'Welcome! Nice to see you. How can I assist?'],
+          booking: 'To book a flight:\n1. Visit "Flight Bookings" page\n2. Choose destination and dates\n3. Select suitable flight\n4. Enter passenger details\n5. Complete payment\nDo you need help with a specific step?',
+          payment: 'For payment issues:\n1. Verify card details\n2. Try different payment method\n3. Check internet connection\n4. Contact bank to confirm transaction\nAre you facing a specific problem?',
+          cancel: 'To cancel booking:\n1. Login to your account\n2. Go to "My Bookings"\n3. Select booking to cancel\n4. Click "Cancel Booking"\n5. Check refund policy\nDo you have booking reference?',
+          hotel: 'To book hotel:\n1. Search hotel in destination\n2. Choose dates\n3. Select room type and services\n4. Complete booking details\n5. Confirm and pay\nWhich city are you planning to visit?',
+          package: 'Travel packages include:\n• Round-trip flight\n• Hotel accommodation\n• Transfers\n• Some activities\n• Travel insurance\nWhat\'s your budget range?',
+          support: 'To contact support:\n📧 Email: support@travelo.com\n📞 Phone: 800-123-4567\n🕒 Available 24/7\nDo you need help with something specific?',
+          thanks: ['You\'re welcome! Happy to help.', 'My pleasure!', 'You deserve the best.'],
+          unknown: 'I understand you\'re saying: "' + userMessage + '"\nHow can I help you with Travelo? You can ask about bookings, payments, hotels, or any other inquiry.'
+        }
       };
-      localStorage.setItem(KEY, JSON.stringify(data));
-    }
-    function loadDraft(){
-      const raw = localStorage.getItem(KEY); if(!raw) return;
-      try{
-        const d = JSON.parse(raw);
-        nameEl.value = d.name || '';
-        emailEl.value = d.email || '';
-        topicEl.value = d.topic || '';
-        if(bookingEl) bookingEl.value = d.booking || '';
-        priorityEl.value = d.priority || 'normal';
-        if(phoneEl) phoneEl.value = d.phone || '';
-        messageEl.value = d.message || '';
-        updateCounter(); refreshUrgencyNote();
-      }catch(e){}
-    }
-    ['input','change'].forEach(evt => form.addEventListener(evt, saveDraft));
-    loadDraft();
-  </script>
-</body>
-</html>
+
+      // Check for specific intents
+      if (message.includes('مرحبا') || message.includes('اهلا') || message.includes('hello') || message.includes('hi')) {
+        const greetings = responses[lang].greeting;
+        return greetings[Math.floor(Math.random() * greetings.length)];
+      }
+      
+      if (message.includes('شكر') || message.includes('thank')) {
+        const thanks = responses[lang].thanks;
+        return thanks[Math.floor(Math.random() * thanks.length)];
+      }
+      
+      if (message.includes('حجز') || message.includes('رحلة') || message.includes('flight') || message.includes('book')) {
+        return responses[lang].booking
