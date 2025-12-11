@@ -35,36 +35,36 @@
                     <h1>Create Account</h1>
                     <p class="subtitle">Join Travelo today</p>
 
-                    <form id="signupForm" novalidate autocomplete="off" action="registeration.php" method="post">
+                    <form id="signupForm" novalidate autocomplete="off" action="registeration.php" method="POST">
                                                 <div class="name-row">
                             <div class="field half">
-                                <input class="input" id="firstName" type="text" placeholder=" " required autocomplete="given-name">
+                                <input class="input" id="firstName" name="first_name" type="text" placeholder=" " required autocomplete="given-name">
                                 <label for="firstName">First Name</label>
                                 <div class="err" id="firstNameErr"></div>
                             </div>
 
                             <div class="field half">
-                                <input class="input" id="lastName" type="text" placeholder=" " required autocomplete="family-name">
+                                <input class="input" id="lastName" name="last_name" type="text" placeholder=" " required autocomplete="family-name">
                                 <label for="lastName">Last Name</label>
                                 <div class="err" id="lastNameErr"></div>
                             </div>
                         </div>
 
                         <div class="field">
-                            <input class="input" id="email" type="email" placeholder=" " required autocomplete="email">
+                            <input class="input" id="email" name="email" type="email" placeholder=" " required autocomplete="email">
                             <label for="email">Email Address</label>
                             <div class="err" id="emailErr"></div>
                         </div>
 
                                                 <div class="user-birth-row">
                             <div class="field two-thirds">
-                                <input class="input" id="username" type="text" placeholder=" " required autocomplete="username">
+                                <input class="input" id="username" name="username" type="text" placeholder=" " required autocomplete="username">
                                 <label for="username">Username</label>
                                 <div class="err" id="usernameErr"></div>
                             </div>
 
                             <div class="field one-third">
-                                <input class="input" id="birthDate" type="date" placeholder=" " required autocomplete="bday">
+                                <input class="input" id="birthDate" name="birth_date" type="date" placeholder=" " required autocomplete="bday">
                                 <label for="birthDate">Birth Date</label>
                                 <div class="err" id="birthDateErr"></div>
                             </div>
@@ -72,14 +72,14 @@
 
                                                 <div class="password-row">
                             <div class="field half">
-                                <input class="input" id="password" type="password" placeholder=" " minlength="6" required autocomplete="new-password">
+                                <input class="input" id="password" name="password" type="password" placeholder=" " minlength="6" required autocomplete="new-password">
                                 <label for="password">Password</label>
                                 <div class="caps" id="capsNote"></div>
                                 <div class="err" id="passErr"></div>
                             </div>
 
                             <div class="field half">
-                                <input class="input" id="confirmPassword" type="password" placeholder=" " required autocomplete="new-password">
+                                <input class="input" id="confirmPassword" name="confirm_password" type="password" placeholder=" " required autocomplete="new-password">
                                 <label for="confirmPassword">Confirm Password</label>
                                 <div class="err" id="confirmPassErr"></div>
                             </div>
@@ -126,7 +126,16 @@
             </clipPath>
         </defs>
     </svg>
-
+<div id="successModal" class="modal">
+  <div class="modal-content">
+    <p>Account created successfully!</p>
+    <p>Do you want to log in now?</p>
+    <div class="modal-buttons">
+      <button id="yesBtn">Yes</button>
+      <button id="noBtn">No</button>
+    </div>
+  </div>
+</div>
     <script src="./assets/js/signup.js"></script>
 </body>
 </html>

@@ -265,9 +265,10 @@ function toastShow(msg, ok = true) {
 }
 
 // ============= SUBMIT =============
-form.addEventListener('submit', e => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
+  // Run validations
   validatefirstName();
   validatelastName();
   validateEmail();
@@ -275,6 +276,7 @@ form.addEventListener('submit', e => {
   validatePassword();
   validateConfirmPassword();
 
+  // Stop if there are validation errors
   if (submitBtn.disabled) {
     form.classList.add('shake');
     setTimeout(() => form.classList.remove('shake'), 380);
@@ -286,20 +288,49 @@ form.addEventListener('submit', e => {
   submitBtn.disabled = true;
   toastShow('Creating your account...');
 
-  setTimeout(() => {
-    toastShow('Account created successfully! ✅');
-    card.style.transition =
-      'transform .5s cubic-bezier(.2,.9,.3,1), box-shadow .5s';
-    card.style.transform = 'translateY(-14px)';
-    card.style.boxShadow = '0 36px 80px rgba(135,43,255,.16)';
+  try {
+    const formData = new FormData(form);
 
-    setTimeout(() => {
-      form.reset();
-      submitBtn.disabled = true;
-      card.style.transform = '';
-      card.style.boxShadow = '';
-    }, 2000);
-  }, 1500);
+    const response = await fetch("registeration.php", {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.json();
+    console.log(result); // debug
+
+    if (result.status === "success") {
+      toastShow(result.message);
+        // Show modal
+  const modal = document.getElementById('successModal');
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+
+  modal.style.display = 'flex'; // show modal
+
+  // Reset form and card styles
+  form.reset();
+  card.style.transform = '';
+  card.style.boxShadow = '';
+
+  yesBtn.onclick = () => {
+    window.location.href = 'login.html'; // go to login page
+  };
+
+  noBtn.onclick = () => {
+    modal.style.display = 'none'; // just close modal
+  };
+    
+    } else {
+      // Show error from PHP
+      toastShow('Error: ' + (result.message || 'Unknown error'), false);
+      submitBtn.disabled = false;
+    }
+  } catch (err) {
+    toastShow('Network error. Please try again.', false);
+    submitBtn.disabled = false;
+    console.error(err);
+  }
 });
 
 // ============= HELP / BACK BUTTONS (لو موجودة) =============
@@ -330,6 +361,9 @@ card.addEventListener('mousemove', e => {
 card.addEventListener('mouseleave', () => {
   card.style.transform = 'translateZ(0)';
 });
+  document.getElementById("helpCenter").addEventListener("click", function() {
+    window.location.href = "faqs.html";
+  });
 
 // preload slider images
 imgs.forEach(i => {
