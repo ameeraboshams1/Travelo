@@ -1,7 +1,19 @@
 <?php
 $subStatus = $_GET['sub'] ?? null;
+
+require __DIR__ . '/db.php';
 session_start();
 
+// top destinations (is_top = 1)
+$stmtTop = $pdo->prepare("
+  SELECT id, name, city, country, image_url, short_desc, base_price, category
+  FROM destinations
+  WHERE is_active = 1 AND is_top = 1
+  ORDER BY created_at DESC
+  LIMIT 6
+");
+$stmtTop->execute();
+$topDestinations = $stmtTop->fetchAll();
 ?>
 
 <!doctype html>
@@ -242,6 +254,17 @@ session_start();
 }
   </style>
 
+  <!-- TRAVELO user info للـ JS (زي hotel.php) -->
+  <script>
+    window.TRAVELO = window.TRAVELO || {};
+    window.TRAVELO.isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+    <?php if (isset($_SESSION['user_id'])): ?>
+      window.TRAVELO.userId    = <?= (int) $_SESSION['user_id'] ?>;
+      window.TRAVELO.userName  = <?= json_encode($_SESSION['user_name']  ?? '') ?>;
+      window.TRAVELO.userEmail = <?= json_encode($_SESSION['user_email'] ?? '') ?>;
+    <?php endif; ?>
+  </script>
+
 </head>
 
 <body>
@@ -262,7 +285,6 @@ session_start();
             <li><a href="./fligths.php">Flights</a></li>
             <li><a href="./hotel.php">Hotels</a></li>
             <li><a href="./packages.php">Packages</a></li>
-
             <li><a href="./destination.php">Destinations</a></li>
 
           </ul>
@@ -282,7 +304,7 @@ session_start();
         <span class="user-text">
           Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
         </span>
-        <i class="fa-solid fa-chevron-down"></i>
+        
       </button>
 
       <div class="user-menu" id="userMenu">
@@ -427,213 +449,74 @@ session_start();
       </div>
 
       <div class="category-tabs">
-        <button class="category-btn active" data-category="all">City</button>
+        <button class="category-btn" data-category="city">City</button>
         <button class="category-btn" data-category="mountain">Mountain</button>
         <button class="category-btn" data-category="forest">Forest</button>
         <button class="category-btn" data-category="island">Island</button>
-        <a href="#" class="see-all-link">see all</a>
+        <a href="./destination.php" class="see-all-link">see all</a>
       </div>
     </div>
 
     <div class="row g-4">
-      <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
-        <div class="destination-card">
-          <div class="image-container">
-            <div class="image-blur-effect"></div>
-            <img src="Rectangle 1434.svg" alt="Tokyo" class="destination-image" />
-            <div class="rating-badge">
-              <span class="star">★</span>
-              <span>5.0</span>
-            </div>
-          </div>
+     <?php foreach ($topDestinations as $dest): ?>
+      <div class="col-12 col-md-6 col-lg-4 destination-col"
+         data-category="<?= htmlspecialchars(strtolower($dest['category'] ?? 'city')) ?>">
+       <div class="destination-card">
+        <div class="image-container">
+          <div class="image-blur-effect"></div>
 
-          <div class="card-content">
-            <div class="destination-city">Tokyo</div>
-            <div class="destination-desc">
-              Lorem Ipsum is simply dummy text of the printing and…see more
-            </div>
+          <img
+            src="<?= htmlspecialchars($dest['image_url']) ?>"
+            alt="<?= htmlspecialchars($dest['name']) ?>"
+            class="destination-image"
+          />
 
-            <div class="destination-bottom">
-              <div class="destination-footer-top">
-                <span class="location-city">Tokyo, Japan</span>
-              </div>
-              <div class="destination-footer-bottom">
-                <div class="destination-price">
-                  $360 <span>+12 interest free</span>
-                </div>
-                <button class="btn-gradient view-btn" data-city="Tokyo">See More</button>
-              </div>
-            </div>
+          <div class="rating-badge">
+            <span class="star">★</span>
+            <span>5.0</span>
           </div>
         </div>
-      </div>
 
-      <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
-        <div class="destination-card">
-          <div class="image-container">
-            <div class="image-blur-effect"></div>
-            <img src="https://images.pexels.com/photos/532263/pexels-photo-532263.jpeg" alt="Rome"
-              class="destination-image" />
-            <div class="rating-badge">
-              <span class="star">★</span>
-              <span>5.0</span>
-            </div>
+        <div class="card-content">
+          <div class="destination-city"><?= htmlspecialchars($dest['name']) ?></div>
+
+          <div class="destination-desc">
+            <?= htmlspecialchars($dest['short_desc']) ?>
           </div>
 
-          <div class="card-content">
-            <div class="destination-city">Rome</div>
-            <div class="destination-desc">
-              Lorem Ipsum is simply dummy text of the printing and…see more
+          <div class="destination-bottom">
+            <div class="destination-footer-top">
+              <span class="location-city">
+                <?= htmlspecialchars($dest['city'] . ', ' . $dest['country']) ?>
+              </span>
             </div>
 
-            <div class="destination-bottom">
-              <div class="destination-footer-top">
-                <span class="location-city">Rome, Italy</span>
+            <div class="destination-footer-bottom">
+              <div class="destination-price">
+                $<?= htmlspecialchars($dest['base_price']) ?>
+                <span>+12 interest free</span>
               </div>
-              <div class="destination-footer-bottom">
-                <div class="destination-price">
-                  $370 <span>+12 interest free</span>
-                </div>
-                <button class="btn-gradient view-btn" data-city="Rome">See More</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
-        <div class="destination-card">
-          <div class="image-container">
-            <div class="image-blur-effect"></div>
-            <img src="https://images.pexels.com/photos/586052/pexels-photo-586052.jpeg" alt="Barcelona"
-              class="destination-image" />
-            <div class="rating-badge">
-              <span class="star">★</span>
-              <span>5.0</span>
-            </div>
-          </div>
+              <button class="btn-gradient view-btn"
+                data-id="<?= (int)$dest['id'] ?>"
+                data-name="<?= htmlspecialchars($dest['name']) ?>"
+                data-location="<?= htmlspecialchars($dest['city'] . ', ' . $dest['country']) ?>"
+                data-image="<?= htmlspecialchars($dest['image_url']) ?>"
+                data-desc="<?= htmlspecialchars($dest['short_desc']) ?>"
+                data-price="$<?= htmlspecialchars($dest['base_price']) ?>"
+                data-rating="5.0">
+                See More
+              </button>
 
-          <div class="card-content">
-            <div class="destination-city">Barcelona</div>
-            <div class="destination-desc">
-              Lorem Ipsum is simply dummy text of the printing and…see more
-            </div>
-
-            <div class="destination-bottom">
-              <div class="destination-footer-top">
-                <span class="location-city">Barcelona, Spain</span>
-              </div>
-              <div class="destination-footer-bottom">
-                <div class="destination-price">
-                  $400 <span>+12 interest free</span>
-                </div>
-                <button class="btn-gradient view-btn" data-city="Barcelona">See More</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="city">
-        <div class="destination-card">
-          <div class="image-container">
-            <div class="image-blur-effect"></div>
-            <img src="https://images.pexels.com/photos/373290/pexels-photo-373290.jpeg" alt="Bangkok"
-              class="destination-image" />
-            <div class="rating-badge">
-              <span class="star">★</span>
-              <span>5.0</span>
-            </div>
-          </div>
-
-          <div class="card-content">
-            <div class="destination-city">Bangkok</div>
-            <div class="destination-desc">
-              Lorem Ipsum is simply dummy text of the printing and…see more
-            </div>
-
-            <div class="destination-bottom">
-              <div class="destination-footer-top">
-                <span class="location-city">Bangkok, Thailand</span>
-              </div>
-              <div class="destination-footer-bottom">
-                <div class="destination-price">
-                  $300 <span>+12 interest free</span>
-                </div>
-                <button class="btn-gradient view-btn" data-city="Bangkok">See More</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="island">
-        <div class="destination-card">
-          <div class="image-container">
-            <div class="image-blur-effect"></div>
-            <img src="https://images.pexels.com/photos/2193300/pexels-photo-2193300.jpeg" alt="Sydney"
-              class="destination-image" />
-            <div class="rating-badge">
-              <span class="star">★</span>
-              <span>5.0</span>
-            </div>
-          </div>
-
-          <div class="card-content">
-            <div class="destination-city">Sydney</div>
-            <div class="destination-desc">
-              Lorem Ipsum is simply dummy text of the printing and…see more
-            </div>
-
-            <div class="destination-bottom">
-              <div class="destination-footer-top">
-                <span class="location-city">Sydney, Australia</span>
-              </div>
-              <div class="destination-footer-bottom">
-                <div class="destination-price">
-                  $300 <span>+12 interest free</span>
-                </div>
-                <button class="btn-gradient view-btn" data-city="Sydney">See More</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-12 col-md-6 col-lg-4 destination-col" data-category="forest">
-        <div class="destination-card">
-          <div class="image-container">
-            <div class="image-blur-effect"></div>
-            <img src="https://images.pexels.com/photos/2946729/pexels-photo-2946729.jpeg" alt="Toronto"
-              class="destination-image" />
-            <div class="rating-badge">
-              <span class="star">★</span>
-              <span>5.0</span>
-            </div>
-          </div>
-
-          <div class="card-content">
-            <div class="destination-city">Toronto</div>
-            <div class="destination-desc">
-              Lorem Ipsum is simply dummy text of the printing and…see more
-            </div>
-
-            <div class="destination-bottom">
-              <div class="destination-footer-top">
-                <span class="location-city">Toronto, Canada</span>
-              </div>
-              <div class="destination-footer-bottom">
-                <div class="destination-price">
-                  $370 <span>+12 interest free</span>
-                </div>
-                <button class="btn-gradient view-btn" data-city="Toronto">See More</button>
-              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+      <?php endforeach; ?>
+   </div>
   </div>
+
   <div class="destination-modal-overlay" id="destinationModal">
     <div class="destination-modal">
       <button class="destination-modal-close" id="destinationModalClose">&times;</button>
@@ -962,28 +845,6 @@ session_start();
     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
     crossorigin="anonymous"></script>
   <script src="./assets/js/home.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('userMenuToggle');
-    const menu   = document.getElementById('userMenu');
-
-    if (toggle && menu) {
-      // افتح/سكر المنيو لما أكبس عالأفاتار
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.toggle('show');
-      });
-
-      // سكّر المنيو لو كبست برا
-      document.addEventListener('click', () => {
-        menu.classList.remove('show');
-      });
-    }
-  });
-</script>
-
-
-
 
 </body>
 

@@ -1,75 +1,69 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const slides = document.querySelectorAll('.testimonial-slide');
-    const prevBtn = document.querySelector('.prev-btn');
-    const nextBtn = document.querySelector('.next-btn');
-    const paginationContainer = document.querySelector('.slider-pagination');
+// ===============================
+// Testimonials Slider
+// ===============================
+document.addEventListener("DOMContentLoaded", function () {
+  const slides = document.querySelectorAll(".testimonial-slide");
+  const prevBtn = document.querySelector(".prev-btn");
+  const nextBtn = document.querySelector(".next-btn");
+  const paginationContainer = document.querySelector(".slider-pagination");
 
-    let currentSlide = 0;
+  if (!slides.length || !prevBtn || !nextBtn || !paginationContainer) return;
 
-    function showSlide(index) {
-        slides.forEach((slide, slideIndex) => {
-            slide.classList.remove('active-slide');
-            if (slideIndex === index) {
-                void slide.offsetWidth;
-                slide.classList.add('active-slide');
-            }
-        });
-        updateDots(index);
-    }
+  let currentSlide = 0;
 
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
-    }
+  function updateDots(index) {
+    const dots = document.querySelectorAll(".pagination-dot");
+    dots.forEach((dot, dotIndex) => {
+      dot.classList.toggle("active", dotIndex === index);
+    });
+  }
 
-    function prevSlide() {
-        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-        showSlide(currentSlide);
-    }
+  function showSlide(index) {
+    slides.forEach((slide, slideIndex) => {
+      slide.classList.remove("active-slide");
+      if (slideIndex === index) {
+        void slide.offsetWidth;
+        slide.classList.add("active-slide");
+      }
+    });
+    updateDots(index);
+  }
 
-    function createDots() {
-        slides.forEach((_, index) => {
-            const dot = document.createElement('button');
-            dot.classList.add('pagination-dot');
-            dot.addEventListener('click', () => {
-                showSlide(index);
-            });
-            paginationContainer.appendChild(dot);
-        });
-    }
-
-    function updateDots(index) {
-        const dots = document.querySelectorAll('.pagination-dot');
-        dots.forEach((dot, dotIndex) => {
-            if (dotIndex === index) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
-        });
-    }
-
-    createDots();
+  function nextSlide() {
+    currentSlide = (currentSlide + 1) % slides.length;
     showSlide(currentSlide);
+  }
 
-    nextBtn.addEventListener('click', nextSlide);
-    prevBtn.addEventListener('click', prevSlide);
+  function prevSlide() {
+    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+    showSlide(currentSlide);
+  }
+
+  function createDots() {
+    paginationContainer.innerHTML = "";
+    slides.forEach((_, index) => {
+      const dot = document.createElement("button");
+      dot.classList.add("pagination-dot");
+      dot.addEventListener("click", () => showSlide(index));
+      paginationContainer.appendChild(dot);
+    });
+  }
+
+  createDots();
+  showSlide(currentSlide);
+
+  nextBtn.addEventListener("click", nextSlide);
+  prevBtn.addEventListener("click", prevSlide);
 });
 
-
+// ===============================
+// Top Destinations Carousel (if you have td-nav-btn prev/next)
+// ===============================
 document.addEventListener("DOMContentLoaded", function () {
-
   const style = document.createElement("style");
   style.textContent = `
-    .td-card {
-      transition: all 0.4s ease;
-      opacity: 0;
-      transform: translateX(30px);
-    }
-    .td-card.show {
-      opacity: 1 !important;
-      transform: translateX(0) !important;
-    }
+    .td-card { transition: all 0.4s ease; opacity: 0; transform: translateX(30px); }
+    .td-card.show { opacity: 1 !important; transform: translateX(0) !important; }
     .td-fix-justify { justify-content: flex-start !important; }
   `;
   document.head.appendChild(style);
@@ -83,11 +77,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const prevBtn = document.querySelector(".td-nav-btn.prev");
   const nextBtn = document.querySelector(".td-nav-btn.next");
 
-  if (!container || !prevBtn || !nextBtn) {
-    console.warn("تأكدي من وجود الحاوية (.row.g-4 أو .td-cards) وأزرار (.td-nav-btn.prev / .td-nav-btn.next).");
-    return;
-  }
-
+  // لو ما عندك هالأزرار، ما رح يشتغل هالجزء (مو مشكلة)
+  if (!container || !prevBtn || !nextBtn) return;
 
   container.classList.add("td-fix-justify");
   container.classList.remove(
@@ -103,20 +94,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function autoMarkCardsIfNeeded(list) {
     if (list.length > 0) return list;
-    const candidates = Array.from(container.children).filter(el => {
+
+    const candidates = Array.from(container.children).filter((el) => {
       if (isHeadingLike(el)) return false;
       const cls = el.className || "";
       const looksLikeCol = /(col-|^col\s|^col$|col-auto)/.test(cls);
       const hasCardInside = el.querySelector(".card, [data-card], .td-card");
       return looksLikeCol && hasCardInside;
     });
-    candidates.forEach(el => el.setAttribute("data-td-card", "1"));
+
+    candidates.forEach((el) => el.setAttribute("data-td-card", "1"));
     return candidates;
   }
 
   function collectCards() {
-    let list = Array.from(container.querySelectorAll(".td-card, [data-td-card='1']"))
-      .filter(el => !isHeadingLike(el) && !el.classList.contains("td-seeall") && !el.closest(".td-seeall"));
+    let list = Array.from(
+      container.querySelectorAll(".td-card, [data-td-card='1']")
+    ).filter(
+      (el) =>
+        !isHeadingLike(el) &&
+        !el.classList.contains("td-seeall") &&
+        !el.closest(".td-seeall")
+    );
+
     list = autoMarkCardsIfNeeded(list);
     return Array.from(new Set(list));
   }
@@ -128,23 +128,29 @@ document.addEventListener("DOMContentLoaded", function () {
   function render(direction = "next") {
     cards = collectCards();
     const total = cards.length;
+    if (!total) return;
+
     if (startIndex >= total) startIndex = Math.max(0, total - pageSize);
 
-    cards.forEach(c => {
+    cards.forEach((c) => {
       c.classList.remove("show");
       c.style.display = "none";
-      c.style.transform = direction === "next" ? "translateX(30px)" : "translateX(-30px)";
+      c.style.transform =
+        direction === "next" ? "translateX(30px)" : "translateX(-30px)";
       c.style.opacity = "0";
     });
 
     const end = Math.min(startIndex + pageSize, total);
     for (let i = startIndex; i < end; i++) {
       const card = cards[i];
-      card.style.display = "";      requestAnimationFrame(() => setTimeout(() => card.classList.add("show"), 30));
+      card.style.display = "";
+      requestAnimationFrame(() =>
+        setTimeout(() => card.classList.add("show"), 30)
+      );
     }
 
-    prevBtn.disabled = (startIndex === 0);
-    nextBtn.disabled = (end >= total);
+    prevBtn.disabled = startIndex === 0;
+    nextBtn.disabled = end >= total;
     prevBtn.style.opacity = prevBtn.disabled ? "0.5" : "1";
     nextBtn.style.opacity = nextBtn.disabled ? "0.5" : "1";
   }
@@ -155,6 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
       render("next");
     }
   }
+
   function goPrev() {
     if (startIndex > 0) {
       startIndex -= pageSize;
@@ -164,9 +171,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
   nextBtn.addEventListener("click", goNext);
   prevBtn.addEventListener("click", goPrev);
+
   document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
-    if (e.key === "ArrowLeft")  { e.preventDefault(); goPrev(); }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      goNext();
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      goPrev();
+    }
   });
 
   const observer = new MutationObserver(() => {
@@ -182,200 +196,178 @@ document.addEventListener("DOMContentLoaded", function () {
   render();
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-  const btn = document.getElementById('btnLogin');
-  const spinner = document.getElementById('spinner');
+// ===============================
+// Login / Signup with spinner
+// ===============================
+document.addEventListener("DOMContentLoaded", function () {
+  const spinner = document.getElementById("spinner");
 
-  if (!btn || !spinner) return;
-  btn.addEventListener('click', function (e) {
-    e.preventDefault();                    spinner.classList.add('show');     
-
-
-    setTimeout(function () {
-      window.location.href = 'login.html';
-    }, 1000);
-  });
-});
-document.addEventListener('DOMContentLoaded', function () {
-  const btn = document.getElementById('btnLogin1');
-  const spinner = document.getElementById('spinner');
-
-  if (!btn || !spinner) return; 
-
-  btn.addEventListener('click', function (e) {
-    e.preventDefault();                 
-    spinner.classList.add('show');      
-
-
-    setTimeout(function () {
-      window.location.href = 'signup.html';
-    }, 1000);
-  });
-});
-// Tabs filtering
-const tabs = document.querySelectorAll(".category-btn");
-const cards = document.querySelectorAll(".destination-col");
-
-tabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    tabs.forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
-
-    const cat = tab.dataset.category;
-    
-    cards.forEach((col) => {
-      if (cat === "all") {
-        col.classList.remove("hidden");
-        col.classList.remove("filtered-out");
-      } else {
-        const c = col.dataset.category;
-        if (c === cat) {
-          col.classList.remove("hidden");
-          col.classList.remove("filtered-out");
-        } else {
-          col.classList.add("hidden");
-          col.classList.add("filtered-out");
-        }
-      }
+  const btnLogin = document.getElementById("btnLogin");
+  if (btnLogin && spinner) {
+    btnLogin.addEventListener("click", function (e) {
+      e.preventDefault();
+      spinner.classList.add("show");
+      setTimeout(function () {
+        window.location.href = "login.html";
+      }, 600);
     });
-  });
+  }
+
+  const btnSignup = document.getElementById("btnLogin1");
+  if (btnSignup && spinner) {
+    btnSignup.addEventListener("click", function (e) {
+      e.preventDefault();
+      spinner.classList.add("show");
+      setTimeout(function () {
+        window.location.href = "signup.html";
+      }, 600);
+    });
+  }
 });
 
-// --------- "See More" → Open Modal ---------
-const modalOverlay = document.getElementById("destinationModal");
-const modalCloseBtn = document.getElementById("destinationModalClose");
+// ===============================
+// Top Destinations Tabs + Modal (from data-* on button)
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+  // ---- Tabs filtering ----
+  const tabs = document.querySelectorAll(".category-btn");
+  const cols = document.querySelectorAll(".destination-col");
 
-const modalImg = document.getElementById("modalDestinationImage");
-const modalTitle = document.getElementById("modalDestinationTitle");
-const modalLocation = document.getElementById("modalDestinationLocation");
-const modalDesc = document.getElementById("modalDestinationDesc");
-const modalVisitors = document.getElementById("modalVisitors");
-const modalSeason = document.getElementById("modalSeason");
-const modalPrice = document.getElementById("modalPrice");
+  if (tabs.length && cols.length) {
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
 
-// معلومات إضافية لكل مدينة (بتقدري تعدلي النصوص براحتك)
-const cityDetails = {
-  Tokyo: {
-    desc: "Tokyo blends ultra-modern city life with traditional temples, colorful streets, and unforgettable food experiences. Perfect for both solo travelers and groups.",
-    visitors: "14M / year",
-    season: "Mar – Apr (Sakura)"
-  },
-  Rome: {
-    desc: "Walk through ancient history in Rome – from the Colosseum to the Vatican – with charming streets, cafés, and vibrant Italian culture.",
-    visitors: "9.8M / year",
-    season: "Apr – Jun"
-  },
-  Barcelona: {
-    desc: "Barcelona offers a unique mix of beaches, Gaudí’s architecture, and lively nightlife – making it one of Europe’s most loved destinations.",
-    visitors: "11M / year",
-    season: "May – Sep"
-  },
-  Bangkok: {
-    desc: "Bangkok is full of energy, night markets, temples, and incredible street food – a must-visit hub in Southeast Asia.",
-    visitors: "22M / year",
-    season: "Nov – Feb"
-  },
-  Sydney: {
-    desc: "Famous for its harbour, Opera House, and beaches, Sydney is ideal for outdoor lovers and city explorers alike.",
-    visitors: "10M / year",
-    season: "Dec – Feb"
-  },
-  Toronto: {
-    desc: "Toronto is a modern, multicultural city with iconic skylines, nearby nature, and a rich food scene.",
-    visitors: "8M / year",
-    season: "May – Sep"
+        const cat = (tab.dataset.category || "all").toLowerCase();
+
+        cols.forEach((col) => {
+          const itemCat = (col.dataset.category || "").toLowerCase();
+
+          if (cat === "all") {
+            col.classList.remove("hidden", "filtered-out");
+            col.style.display = "";
+          } else {
+            const show = itemCat === cat;
+            col.classList.toggle("hidden", !show);
+            col.classList.toggle("filtered-out", !show);
+            col.style.display = show ? "" : "none";
+          }
+        });
+      });
+    });
   }
-};
 
-// دالة فتح المودال وتعبئته من الكارد
-function openDestinationModal(card) {
-  const city = card.querySelector(".destination-city")?.textContent.trim() || "";
-  const location = card.querySelector(".location-city")?.textContent.trim() || "";
-  const priceText = card.querySelector(".destination-price")?.childNodes[0].textContent.trim() || "";
-  const imgEl = card.querySelector(".destination-image");
-  const imgSrc = imgEl ? imgEl.src : "";
+  // ---- Modal ----
+  const modalOverlay = document.getElementById("destinationModal");
+  const modalCloseBtn = document.getElementById("destinationModalClose");
 
-  // تعبئة البيانات
-  modalTitle.textContent = city || "Destination";
-  modalLocation.textContent = location || "";
-  modalImg.src = imgSrc;
-  modalImg.alt = city;
+  const modalImg = document.getElementById("modalDestinationImage");
+  const modalTitle = document.getElementById("modalDestinationTitle");
+  const modalLocation = document.getElementById("modalDestinationLocation");
+  const modalDesc = document.getElementById("modalDestinationDesc");
+  const modalVisitors = document.getElementById("modalVisitors");
+  const modalSeason = document.getElementById("modalSeason");
+  const modalPrice = document.getElementById("modalPrice");
 
-  const info = cityDetails[city] || {
-    desc: "Discover this wonderful destination with flexible packages, guided trips, and hand-picked hotels tailored to your travel style.",
-    visitors: "Millions / year",
-    season: "All year"
+  // اختياري: بيانات إضافية حسب الاسم (لو مش موجود، بحط defaults)
+  const detailsByName = {
+    Tokyo: { visitors: "14M / year", season: "Mar – Apr (Sakura)" },
+    Rome: { visitors: "9.8M / year", season: "Apr – Jun" },
+    Barcelona: { visitors: "11M / year", season: "May – Sep" },
+    Bangkok: { visitors: "22M / year", season: "Nov – Feb" },
+    Sydney: { visitors: "10M / year", season: "Dec – Feb" },
+    Toronto: { visitors: "8M / year", season: "May – Sep" },
   };
 
-  modalDesc.textContent = info.desc;
-  modalVisitors.textContent = info.visitors;
-  modalSeason.textContent = info.season;
-  modalPrice.textContent = priceText || "$ ---";
+  function openDestinationModalFromBtn(btn) {
+    if (!modalOverlay) return;
 
-  // إظهار المودال
-  modalOverlay.classList.add("show");
-  document.body.classList.add("no-scroll");
-}
+    const name = btn.dataset.name || "Destination";
+    const location = btn.dataset.location || "";
+    const imgSrc = btn.dataset.image || "";
+    const desc = btn.dataset.desc || "Discover this destination with Travelo.";
+    const price = btn.dataset.price || "$ ---";
 
-// ربط أزرار See More بالمودال
-document.querySelectorAll(".view-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const card = btn.closest(".destination-card");
-    if (!card) return;
-    openDestinationModal(card);
-  });
-});
+    if (modalTitle) modalTitle.textContent = name;
+    if (modalLocation) modalLocation.textContent = location;
+    if (modalDesc) modalDesc.textContent = desc;
 
-// إغلاق المودال
-function closeDestinationModal() {
-  modalOverlay.classList.remove("show");
-  document.body.classList.remove("no-scroll");
-}
+    if (modalImg) {
+      modalImg.src = imgSrc;
+      modalImg.alt = name;
+    }
 
-modalCloseBtn.addEventListener("click", closeDestinationModal);
+    if (modalPrice) modalPrice.textContent = price;
 
-// إغلاق عند الضغط خارج الكارد
-modalOverlay.addEventListener("click", (e) => {
-  if (e.target === modalOverlay) {
-    closeDestinationModal();
+    const extra = detailsByName[name] || {
+      visitors: "Millions / year",
+      season: "All year",
+    };
+    if (modalVisitors) modalVisitors.textContent = extra.visitors;
+    if (modalSeason) modalSeason.textContent = extra.season;
+
+    modalOverlay.classList.add("show");
+    document.body.classList.add("no-scroll");
   }
-});
 
-// إغلاق بـ ESC
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modalOverlay.classList.contains("show")) {
-    closeDestinationModal();
+  function closeDestinationModal() {
+    if (!modalOverlay) return;
+    modalOverlay.classList.remove("show");
+    document.body.classList.remove("no-scroll");
   }
-});
-// SEE ALL + SPINNER REDIRECT
-const seeAllBtn = document.querySelector(".see-all-link");
-const globalSpinner = document.getElementById("spinner");
 
-if (seeAllBtn && globalSpinner) {
-  seeAllBtn.addEventListener("click", function (e) {
-    e.preventDefault();
-
-    // Show existing signup spinner
-    globalSpinner.classList.add("show");
-
-    // Redirect after delay
-    setTimeout(function () {
-      window.location.href = "destination.html";
-    }, 1000); // تقدر تعدلي الوقت
+  // Delegation: يشتغل حتى لو الكروت PHP
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".view-btn");
+    if (!btn) return;
+    openDestinationModalFromBtn(btn);
   });
-}
-document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('userMenuToggle');
-    const menu   = document.getElementById('userMenu');
 
-    if (toggle && menu) {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.toggle('show');
-      });
+  if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeDestinationModal);
 
-      document.addEventListener('click', () => {
-        menu.classList.remove('show');
-      });
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) closeDestinationModal();
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalOverlay?.classList.contains("show")) {
+      closeDestinationModal();
     }
   });
+
+  // ---- See all link (destination.php) + spinner ----
+  const seeAllBtn = document.querySelector(".see-all-link");
+  const globalSpinner = document.getElementById("spinner");
+
+  if (seeAllBtn && globalSpinner) {
+    seeAllBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      globalSpinner.classList.add("show");
+      setTimeout(function () {
+        window.location.href = "destination.php";
+      }, 600);
+    });
+  }
+});
+
+// ===============================
+// User menu toggle (avatar dropdown)
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("userMenuToggle");
+  const menu = document.getElementById("userMenu");
+
+  if (toggle && menu) {
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.classList.toggle("show");
+    });
+
+    document.addEventListener("click", () => {
+      menu.classList.remove("show");
+    });
+  }
+});

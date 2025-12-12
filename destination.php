@@ -248,6 +248,18 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
   background: rgba(255, 255, 255, 1);
 }
   </style>
+
+  <!-- TRAVELO user info للـ JS (زي hotel.php) -->
+  <script>
+    window.TRAVELO = window.TRAVELO || {};
+    window.TRAVELO.isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+    <?php if (isset($_SESSION['user_id'])): ?>
+      window.TRAVELO.userId    = <?= (int) $_SESSION['user_id'] ?>;
+      window.TRAVELO.userName  = <?= json_encode($_SESSION['user_name']  ?? '') ?>;
+      window.TRAVELO.userEmail = <?= json_encode($_SESSION['user_email'] ?? '') ?>;
+    <?php endif; ?>
+  </script>
+
 </head>
 <body class="destination-page">
   <div class="spinner-overlay" id="spinner">
@@ -268,52 +280,52 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
             <li><a href="./index.php">Home</a></li>
             <li><a href="./fligths.php">Flights</a></li>
             <li><a href="./hotel.php">Hotels</a></li>
-            <li><a href="./packages.php">Packages</a></li>
-            <li><a href="destination.php" class="active-nav">Destinations</a></li>
+            <li><a href="./packages.php" class="active">Packages</a></li>
+            <li><a href="./destination.php">Destinations</a></li>
           </ul>
         </div>
 
-<div class="nav-button">
-  <?php if (isset($_SESSION['user_id'])): ?>
-    <!-- ====== Logged-in state ====== -->
-    <div class="nav-user">
-      <button type="button" class="user-toggle" id="userMenuToggle">
-        <span class="user-avatar">
-          <?php
-            $name = $_SESSION['user_name'] ?? 'U';
-            echo strtoupper(mb_substr($name, 0, 1));
-          ?>
-        </span>
-        <span class="user-text">
-          Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
-        </span>
-        <i class="fa-solid fa-chevron-down"></i>
-      </button>
+        <div class="nav-button">
+          <?php if (isset($_SESSION['user_id'])): ?>
+            <!-- ====== Logged-in state ====== -->
+            <div class="nav-user">
+              <button type="button" class="user-toggle" id="userMenuToggle">
+                <span class="user-avatar">
+                  <?php
+                    $name = $_SESSION['user_name'] ?? 'U';
+                    echo strtoupper(mb_substr($name, 0, 1));
+                  ?>
+                </span>
+                <span class="user-text">
+                  Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
+                </span>
+                
+              </button>
 
-      <div class="user-menu" id="userMenu">
-        <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-          <a href="admin-dashboard.php">Admin dashboard</a>
-        <?php else: ?>
-          <a href="my-bookings.php">My bookings</a>
-        <?php endif; ?>
+              <div class="user-menu" id="userMenu">
+                <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                  <a href="admin-dashboard.php">Admin dashboard</a>
+                <?php else: ?>
+                  <a href="my-bookings.php">My bookings</a>
+                <?php endif; ?>
 
-        <form action="logout.php" method="post">
-          <button type="submit">Log out</button>
-        </form>
-      </div>
-    </div>
-  <?php else: ?>
-    <!-- ====== Guest state ====== -->
-    <button id="btnLogin" type="button" class="sign_in">Login</button>
-    <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
-  <?php endif; ?>
-</div>
-
+                <form action="logout.php" method="post">
+                  <button type="submit">Log out</button>
+                </form>
+              </div>
+            </div>
+          <?php else: ?>
+            <!-- ====== Guest state ====== -->
+            <button id="btnLogin" type="button" class="sign_in">Login</button>
+            <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
+          <?php endif; ?>
+        </div>
 
         <button class="menu-toggle" aria-label="Open menu"><span></span></button>
       </nav>
     </div>
   </section>
+
 
   <!-- HERO / BANNER -->
   <section class="destination-banner"
@@ -552,25 +564,6 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
 
   <script src="./assets/js/home.js"></script>
   <script src="./assets/js/destination.js"></script>
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('userMenuToggle');
-    const menu   = document.getElementById('userMenu');
-
-    if (toggle && menu) {
-      // افتح/سكر المنيو لما أكبس عالأفاتار
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.toggle('show');
-      });
-
-      // سكّر المنيو لو كبست برا
-      document.addEventListener('click', () => {
-        menu.classList.remove('show');
-      });
-    }
-  });
-</script>
 
 </body>
 </html>

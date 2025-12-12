@@ -352,7 +352,6 @@ function fakeReviews($id)
                 <span class="user-text">
                   Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
                 </span>
-                <i class="fa-solid fa-chevron-down"></i>
               </button>
 
               <div class="user-menu" id="userMenu">

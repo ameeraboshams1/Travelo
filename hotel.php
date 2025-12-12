@@ -313,7 +313,7 @@ try {
                         <span class="user-text">
                           Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
                         </span>
-                        <i class="fa-solid fa-chevron-down"></i>
+                        
                       </button>
 
                       <div class="user-menu" id="userMenu">
@@ -858,22 +858,6 @@ try {
 
     <script src="./assets/js/home.js"></script>
     <script src="./assets/js/hotel.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const toggle = document.getElementById('userMenuToggle');
-        const menu   = document.getElementById('userMenu');
-
-        if (toggle && menu) {
-          toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('show');
-          });
-
-          document.addEventListener('click', () => {
-            menu.classList.remove('show');
-          });
-        }
-      });
-    </script>
+  
 </body>
 </html>

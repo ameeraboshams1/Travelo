@@ -310,7 +310,7 @@ function formatDateLabel($dateStr)
                 <span class="user-text">
                   Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
                 </span>
-                <i class="fa-solid fa-chevron-down"></i>
+            
               </button>
 
               <div class="user-menu" id="userMenu">
@@ -704,22 +704,6 @@ function formatDateLabel($dateStr)
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="./assets/js/home.js"></script>
   <script src="./assets/js/fligth.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggle = document.getElementById('userMenuToggle');
-      const menu   = document.getElementById('userMenu');
-
-      if (toggle && menu) {
-        toggle.addEventListener('click', (e) => {
-          e.stopPropagation();
-          menu.classList.toggle('show');
-        });
-
-        document.addEventListener('click', () => {
-          menu.classList.remove('show');
-        });
-      }
-    });
-  </script>
+  
 </body>
 </html>
