@@ -2,6 +2,7 @@
 // destination.php
 
 require __DIR__ . '/db.php';   // يجلب $pdo من db.php
+session_start();
 
 // جلب الديستناشنز الفعّالة فقط
 $sql = "SELECT id, name, city, country, category, image_url, short_desc, base_price
@@ -25,6 +26,228 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
 
   <link rel="stylesheet" href="./assets/css/home.css">
   <link rel="stylesheet" href="./assets/css/destination.css">
+    <style>
+    /* ===== Travelo User Chip (Premium Design) ===== */
+.nav-user {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+}
+
+/* الزر الرئيسي - نسخة أكثر أناقة */
+.nav-button .user-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 16px 5px 8px;
+  border-radius: 999px;
+  border: none;
+  outline: none;
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  box-shadow: 
+    0 4px 12px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+  backdrop-filter: blur(12px) saturate(180%);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* تأثير توهج خفيف عند التحويم */
+.nav-button .user-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+}
+
+.nav-button .user-toggle:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 
+    0 12px 28px rgba(15, 23, 42, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.nav-button .user-toggle:active {
+  transform: translateY(0);
+  transition-duration: 0.1s;
+}
+
+/* الأفاتار الدائري - تصميم متطور */
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.user-avatar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: translateX(-100%);
+}
+
+.nav-button .user-toggle:hover .user-avatar {
+  transform: scale(1.05) rotate(5deg);
+}
+
+.nav-button .user-toggle:hover .user-avatar::after {
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* النص */
+.user-text {
+  white-space: nowrap;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  position: relative;
+}
+
+/* السهم */
+.user-toggle i {
+  font-size: 12px;
+  color: #94a3b8;
+  transition: transform 0.3s ease;
+  margin-left: 2px;
+}
+
+.user-toggle.show-menu i {
+  transform: rotate(180deg);
+}
+
+/* القائمة المنسدلة - نسخة أكثر تطوراً */
+.user-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 200px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 16px;
+  padding: 8px 0;
+  display: none;
+  z-index: 1000;
+  box-shadow: 
+    0 20px 60px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  backdrop-filter: blur(20px);
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: menuFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  overflow: hidden;
+}
+
+@keyframes menuFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* حدود ناعمة للقائمة */
+.user-menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+}
+
+.user-menu a,
+.user-menu form button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* أيقونات داخل القائمة */
+.user-menu a i,
+.user-menu form button i {
+  width: 18px;
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.user-menu a:hover,
+.user-menu form button:hover {
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.08), transparent);
+  color: #7c3aed;
+  padding-left: 22px;
+}
+
+.user-menu a:hover i,
+.user-menu form button:hover i {
+  color: #7c3aed;
+  transform: scale(1.1);
+}
+
+/* فاصل أنيق بين العناصر */
+.user-menu hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+  margin: 6px 16px;
+}
+
+.user-menu.show {
+  display: block;
+}
+
+/* تأثير عند فتح القائمة */
+.user-menu.show ~ .nav-button .user-toggle {
+  box-shadow: 
+    0 8px 24px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(124, 58, 237, 0.1) inset;
+  background: rgba(255, 255, 255, 1);
+}
+  </style>
 </head>
 <body class="destination-page">
   <div class="spinner-overlay" id="spinner">
@@ -50,10 +273,42 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
           </ul>
         </div>
 
-        <div class="nav-button">
-          <button id="btnLogin" type="button" class="sign_in">Login</button>
-          <button id="btnLogin1" class="sign_up">Sign up</button>
-        </div>
+<div class="nav-button">
+  <?php if (isset($_SESSION['user_id'])): ?>
+    <!-- ====== Logged-in state ====== -->
+    <div class="nav-user">
+      <button type="button" class="user-toggle" id="userMenuToggle">
+        <span class="user-avatar">
+          <?php
+            $name = $_SESSION['user_name'] ?? 'U';
+            echo strtoupper(mb_substr($name, 0, 1));
+          ?>
+        </span>
+        <span class="user-text">
+          Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
+        </span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+
+      <div class="user-menu" id="userMenu">
+        <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+          <a href="admin-dashboard.php">Admin dashboard</a>
+        <?php else: ?>
+          <a href="my-bookings.php">My bookings</a>
+        <?php endif; ?>
+
+        <form action="logout.php" method="post">
+          <button type="submit">Log out</button>
+        </form>
+      </div>
+    </div>
+  <?php else: ?>
+    <!-- ====== Guest state ====== -->
+    <button id="btnLogin" type="button" class="sign_in">Login</button>
+    <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
+  <?php endif; ?>
+</div>
+
 
         <button class="menu-toggle" aria-label="Open menu"><span></span></button>
       </nav>
@@ -286,5 +541,25 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
 
   <script src="./assets/js/home.js"></script>
   <script src="./assets/js/destination.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('userMenuToggle');
+    const menu   = document.getElementById('userMenu');
+
+    if (toggle && menu) {
+      // افتح/سكر المنيو لما أكبس عالأفاتار
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu.classList.toggle('show');
+      });
+
+      // سكّر المنيو لو كبست برا
+      document.addEventListener('click', () => {
+        menu.classList.remove('show');
+      });
+    }
+  });
+</script>
+
 </body>
 </html>

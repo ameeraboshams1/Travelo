@@ -364,3 +364,18 @@ if (seeAllBtn && globalSpinner) {
     }, 1000); // تقدر تعدلي الوقت
   });
 }
+document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('userMenuToggle');
+    const menu   = document.getElementById('userMenu');
+
+    if (toggle && menu) {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu.classList.toggle('show');
+      });
+
+      document.addEventListener('click', () => {
+        menu.classList.remove('show');
+      });
+    }
+  });

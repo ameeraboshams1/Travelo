@@ -92,6 +92,109 @@
   </defs>
 </svg>
 
+<!-- ===== Forgot Password Modal ===== -->
+  <div class="fp-overlay" id="fpOverlay" aria-hidden="true">
+    <div class="fp-modal" role="dialog" aria-modal="true" aria-labelledby="fpTitle">
+      <button class="fp-close" type="button" id="fpCloseBtn" aria-label="Close reset dialog">×</button>
+
+      <div class="fp-layout">
+        <div class="fp-side">
+          <span class="fp-pill">Password reset</span>
+          <h2 class="fp-title" id="fpTitle">Reset your password</h2>
+          <p class="fp-text" id="fpDesc">
+            Enter the email address linked with your Travelo account and we’ll send you
+            a 6-digit verification code to continue.
+          </p>
+
+          <!-- STEP 0: enter email -->
+          <div class="fp-step" id="fpStepEmail">
+            <label for="fpEmailInput" class="fp-label">Email address</label>
+            <input
+              id="fpEmailInput"
+              class="fp-input"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+            <div class="fp-error" id="fpEmailErr"></div>
+
+            <div class="fp-actions">
+              <button type="button" class="fp-btn ghost" id="fpCancelBtn">Cancel</button>
+              <button type="button" class="fp-btn primary" id="fpSendCodeBtn">Send code</button>
+            </div>
+          </div>
+
+          <!-- STEP 1: verify code -->
+<div class="fp-step is-hidden" id="fpStepCode">
+  <label for="fpCodeInput" class="fp-label">Verification code</label>
+  <input
+    id="fpCodeInput"
+    class="fp-input"
+    type="text"
+    inputmode="numeric"
+    maxlength="6"
+    placeholder="123456"
+    autocomplete="one-time-code"
+  />
+  <div class="fp-error" id="fpCodeErr"></div>
+
+  <div class="fp-actions">
+    <button type="button" class="fp-btn ghost" id="fpBackToEmailBtn">Back</button>
+    <button type="button" class="fp-btn primary" id="fpNextBtn">Next</button>
+  </div>
+
+  <button type="button" class="fp-resend" id="fpResendBtn">
+    Didn’t get it? <span>Resend code</span>
+  </button>
+</div>
+
+
+          <!-- STEP 2: new password -->
+          <div class="fp-step is-hidden" id="fpStepNew">
+            <label for="fpNewPass" class="fp-label">New password</label>
+            <input
+              id="fpNewPass"
+              class="fp-input"
+              type="password"
+              minlength="6"
+              placeholder="Enter a strong password"
+            />
+            <div class="fp-error" id="fpNewPassErr"></div>
+
+            <label for="fpConfirmPass" class="fp-label">Confirm password</label>
+            <input
+              id="fpConfirmPass"
+              class="fp-input"
+              type="password"
+              minlength="6"
+              placeholder="Repeat new password"
+            />
+            <div class="fp-error" id="fpConfirmPassErr"></div>
+
+            <div class="fp-actions">
+              <button type="button" class="fp-btn ghost" id="fpBackBtn">Back</button>
+              <button type="button" class="fp-btn primary" id="fpSubmitBtn">Update password</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="fp-preview" aria-hidden="true">
+          <div class="fp-badge">Travelo Secure</div>
+          <h3>Secure reset</h3>
+          <p>
+            We use email verification and encrypted passwords to keep your trips
+            and personal data safe.
+          </p>
+          <ul>
+            <li><i class="dot"></i> 2-step verification</li>
+            <li><i class="dot"></i> Encrypted credentials</li>
+            <li><i class="dot"></i> 24/7 security monitoring</li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </div>
+  <!-- ================================ -->
 
   <script src="./assets/js/login.js"></script>
 </body>

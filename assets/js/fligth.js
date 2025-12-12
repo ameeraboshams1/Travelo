@@ -1,4 +1,4 @@
-// ================== FILTER + SORT + MODAL ==================
+// ================== FILTER + SORT + MODAL + BOOKING ==================
 document.addEventListener("DOMContentLoaded", () => {
   const tabItems = document.querySelectorAll(".tab-item");
   const tripChips = document.querySelectorAll(".trip-chip");
@@ -18,6 +18,134 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!flightList || allCards.length === 0) return;
 
+  // ====== BOOKING LOGIC ======
+  // 🚨 الملف الجديد تبع الويزرد
+  const bookingBaseUrl = "booking.html";
+  let lastSelectedCard = null;
+
+  function buildBookingParams(card) {
+    if (!card) return "";
+
+    const fromCityEl = card.querySelector(".ticket-route .city:first-child");
+    const toCityEl = card.querySelector(".ticket-route .city:last-child");
+    const depTimeEl = card.querySelector(
+      ".ticket-times .time:first-child strong"
+    );
+    const arrTimeEl = card.querySelector(
+      ".ticket-times .time:last-child strong"
+    );
+    const airlineEl = card.querySelector(".airline-name");
+    const flightCodeEl = card.querySelector(".ticket-code");
+
+    const fromCode =
+      (fromCityEl && fromCityEl.dataset.code) ||
+      (fromCityEl && fromCityEl.textContent.trim()) ||
+      "";
+    const toCode =
+      (toCityEl && toCityEl.dataset.code) ||
+      (toCityEl && toCityEl.textContent.trim()) ||
+      "";
+
+    const depTime = depTimeEl ? depTimeEl.textContent.trim() : "";
+    const arrTime = arrTimeEl ? arrTimeEl.textContent.trim() : "";
+    const airline = airlineEl ? airlineEl.textContent.trim() : "";
+    const flightCode = flightCodeEl ? flightCodeEl.textContent.trim() : "";
+
+    const tripType = card.dataset.trip || "oneway";
+    const depDateLabel = card.dataset.depDateLabel || "";
+    const retDateLabel = card.dataset.retDateLabel || "";
+
+    const base = Number(card.dataset.price || "0");
+    const tax = +(base * 0.15).toFixed(2); // ضريبة 15% بشكل مرتب
+    const add = 0;
+
+    // بيانات اليوزر من السكربت في PHP
+    const userId =
+      window.TRAVELO && window.TRAVELO.userId ? window.TRAVELO.userId : "";
+    const userName =
+      window.TRAVELO && window.TRAVELO.userName ? window.TRAVELO.userName : "";
+    const userEmail =
+      window.TRAVELO && window.TRAVELO.userEmail
+        ? window.TRAVELO.userEmail
+        : "";
+
+    const flightId = card.dataset.flightId || "";
+
+    const params = new URLSearchParams();
+
+    // ========= Booking / trip info =========
+    params.set("booking_type", "flight");
+    params.set("booking_status", "pending");
+
+    if (fromCityEl) params.set("from_city", fromCityEl.textContent.trim());
+    if (toCityEl) params.set("to_city", toCityEl.textContent.trim());
+
+    // التواريخ (الويزرد بس بعرضهم ستـرينغ، فآمن نبعث الـ label)
+    if (depDateLabel) params.set("trip_start_date", depDateLabel);
+    if (tripType === "roundtrip" && retDateLabel) {
+      params.set("trip_end_date", retDateLabel);
+    } else if (depDateLabel) {
+      params.set("trip_end_date", depDateLabel);
+    }
+
+    // نرسل كمان شوية معلومات شكلية لو حبيتي تستخدميها لاحقاً
+    if (airline) params.set("airline", airline);
+    if (flightCode) params.set("flight_number", flightCode);
+    if (fromCode) params.set("from_airport_code", fromCode);
+    if (toCode) params.set("to_airport_code", toCode);
+    if (depTime) params.set("departure_time", depTime);
+    if (arrTime) params.set("arrival_time", arrTime);
+
+    if (flightId) params.set("flight_id", flightId);
+
+    // ========= Amount columns (جدول الـ bookings + payments) =========
+    params.set("amount_flight", base.toString());
+    params.set("amount_hotel", "0");
+    params.set("amount_package", "0");
+    params.set("amount_taxes", tax.toString());
+    params.set("discount_amount", "0");
+    params.set("currency", "USD");
+
+    // ========= Travellers (لو مش موجودين، الويزرد بيفترض 1 adult) =========
+    // هون ممكن لاحقاً نجيبهم من كويري الـ search لو عندك
+    // params.set("travellers_adults", "2") ... الخ
+
+    // ========= User info =========
+    if (userId) params.set("user_id", userId);
+    if (userName) params.set("user_name", userName);
+    if (userEmail) params.set("user_email", userEmail);
+
+    return params.toString();
+  }
+
+  function goToBooking(card) {
+    if (!card) return;
+
+    // لو مش عامل لوجين → نفتح مودال اللوجين بدال ما نروح على البوكنج
+    if (!window.TRAVELO || !window.TRAVELO.isLoggedIn) {
+      const loginBtn = document.getElementById("btnLogin");
+      if (loginBtn) {
+        loginBtn.click();
+        return;
+      }
+    }
+
+    const qs = buildBookingParams(card);
+    if (!qs) return;
+    window.location.href = bookingBaseUrl + "?" + qs;
+  }
+
+  // ربط Book Now
+  const bookButtons = document.querySelectorAll(".book-btn");
+  bookButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".flight-card.ticket");
+      lastSelectedCard = card;
+      goToBooking(card);
+    });
+  });
+
+  // باقي الفلترة والفرز
   function renderCards(cards) {
     flightList.innerHTML = "";
     cards.forEach((card) => flightList.appendChild(card));
@@ -71,7 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // تبويبات الفرز
   tabItems.forEach((tab) => {
     tab.addEventListener("click", () => {
       tabItems.forEach((t) => t.classList.remove("active"));
@@ -81,7 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // نوع الرحلة (كل، ون واي، راونددرب)
   tripChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       tripChips.forEach((c) => c.classList.remove("active"));
@@ -91,7 +217,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // فلتر السعر
   if (maxPriceInput && maxPriceValue) {
     maxPriceInput.addEventListener("input", () => {
       maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
@@ -99,12 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // فلتر الـ Non stop
   if (nonStopOnly) {
     nonStopOnly.addEventListener("change", applySortAndFilter);
   }
 
-  // فلتر وقت الإقلاع
   timeChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       timeChips.forEach((c) => c.classList.remove("active"));
@@ -114,7 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Reset filters
   if (resetBtn && maxPriceInput && maxPriceValue) {
     resetBtn.addEventListener("click", () => {
       maxPriceInput.value = maxPriceInput.max || 600;
@@ -151,6 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const detailsButtons = document.querySelectorAll(".details-btn");
+  const modalBookBtn = document.getElementById("modalBookBtn");
 
   detailsButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -158,6 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const card = btn.closest(".flight-card.ticket");
       if (!card) return;
+      lastSelectedCard = card;
 
       const airlineName =
         card.querySelector(".airline-name")?.textContent.trim() || "";
@@ -215,10 +339,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  if (modalBookBtn) {
+    modalBookBtn.addEventListener("click", () => {
+      if (lastSelectedCard) {
+        goToBooking(lastSelectedCard);
+      }
+    });
+  }
+
   applySortAndFilter();
 });
 
-// ================== FLASH / ANIMATION SECTION ==================
+// ================== FLASH / ANIMATION SECTION (نفسه) ==================
 function animateTextReveal() {
   const title = document.querySelector(".main-title");
   if (!title) return;
@@ -300,9 +432,9 @@ function initFlashButtons() {
       }, 150);
 
       if (this.classList.contains("btn-primary")) {
-        simulateBooking();
+        // simulateBooking(); // مش لازمتنا حالياً
       } else {
-        simulateExplore();
+        // simulateExplore();
       }
     });
   });
@@ -329,150 +461,6 @@ function enhanceAirplanes() {
       const randomDuration = Math.random() * 10 + 20;
       plane.style.animationDuration = `${randomDuration}s`;
     });
-  });
-}
-
-function simulateBooking() {
-  const bookingModal = document.createElement("div");
-  bookingModal.className = "booking-modal";
-
-  bookingModal.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    animation: fadeIn 0.3s forwards;
-  `;
-
-  const modalContent = document.createElement("div");
-  modalContent.style.cssText = `
-    background: white;
-    padding: 40px;
-    border-radius: 15px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    transform: translateY(-50px);
-    animation: slideUp 0.5s forwards 0.3s;
-  `;
-
-  modalContent.innerHTML = `
-    <div style="font-size: 60px; color: #27ae60; margin-bottom: 20px;">✈️</div>
-    <h3 style="color: #2c3e50; margin-bottom: 10px;">Ready to Book!</h3>
-    <p style="color: #7f8c8d; margin-bottom: 20px;">
-      You're about to start your journey. Let's find the perfect flight for you!
-    </p>
-    <p style="color: #95a5a6; font-size: 14px; margin-bottom: 30px;">
-      Explore our amazing deals and destinations.
-    </p>
-    <button id="closeModal" style="
-      background: #3498db;
-      color: white;
-      border: none;
-      padding: 12px 30px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    ">Continue</button>
-  `;
-
-  bookingModal.appendChild(modalContent);
-  document.body.appendChild(bookingModal);
-
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
-    @keyframes slideUp {
-      to { transform: translateY(0); }
-    }
-    @keyframes fadeOut {
-      to { opacity: 0; }
-    }
-  `;
-  document.head.appendChild(style);
-
-  bookingModal.addEventListener("click", function (e) {
-    if (e.target === bookingModal || e.target.id === "closeModal") {
-      bookingModal.style.animation = "fadeOut 0.3s forwards";
-      setTimeout(() => {
-        document.body.removeChild(bookingModal);
-      }, 300);
-    }
-  });
-}
-
-function simulateExplore() {
-  const exploreModal = document.createElement("div");
-  exploreModal.className = "explore-modal";
-
-  exploreModal.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    animation: fadeIn 0.3s forwards;
-  `;
-
-  const modalContent = document.createElement("div");
-  modalContent.style.cssText = `
-    background: white;
-    padding: 40px;
-    border-radius: 15px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    transform: translateY(-50px);
-    animation: slideUp 0.5s forwards 0.3s;
-  `;
-
-  modalContent.innerHTML = `
-    <div style="font-size: 60px; color: #3498db; margin-bottom: 20px;">🗺️</div>
-    <h3 style="color: #2c3e50; margin-bottom: 10px;">Explore Destinations!</h3>
-    <p style="color: #7f8c8d; margin-bottom: 20px;">
-      Discover amazing places around the world. From beaches to mountains, we have it all!
-    </p>
-    <p style="color: #95a5a6; font-size: 14px; margin-bottom: 30px;">
-      Top destinations: Paris, Tokyo, Dubai, New York, Bali
-    </p>
-    <button id="closeExploreModal" style="
-      background: #9b59b6;
-      color: white;
-      border: none;
-      padding: 12px 30px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    ">Let's Explore</button>
-  `;
-
-  exploreModal.appendChild(modalContent);
-  document.body.appendChild(exploreModal);
-
-  exploreModal.addEventListener("click", function (e) {
-    if (e.target === exploreModal || e.target.id === "closeExploreModal") {
-      exploreModal.style.animation = "fadeOut 0.3s forwards";
-      setTimeout(() => {
-        document.body.removeChild(exploreModal);
-      }, 300);
-    }
   });
 }
 

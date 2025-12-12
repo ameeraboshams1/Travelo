@@ -1,49 +1,99 @@
 <?php
-header("Content-Type: application/json");
-include 'db.php';
+session_start();
+header("Content-Type: application/json; charset=utf-8");
+include 'db.php'; // نتوقع هنا إنو $pdo جاهز ومتصل بقاعدة البيانات
 
-// Get login input
-$login = trim($_POST['login']);
-$password = $_POST['password'];
+// =======================
+// دالة مساعدة لفحص الباسورد
+// =======================
+function checkPassword(string $plain, string $stored): bool
+{
+    // لو شكله hash (طويل) جرّبي password_verify
+    if (!empty($stored) && strlen($stored) > 20) {
+        if (password_verify($plain, $stored)) {
+            return true;
+        }
+    }
 
-// First, check admins table
-$sqlAdmin = "SELECT * FROM admins WHERE email = ?";
+    // غير هيك نفترضه نص عادي (مشروع جامعة)
+    return $plain === $stored;
+}
+
+// =======================
+// قراءة بيانات الفورم
+// =======================
+$login    = isset($_POST['login']) ? trim($_POST['login']) : '';
+$password = $_POST['password'] ?? '';
+
+if ($login === '' || $password === '') {
+    echo json_encode([
+        "status"  => "error",
+        "message" => "Please enter your email/username and password."
+    ]);
+    exit();
+}
+
+// =======================
+// 1) نتحقق أولاً من admins
+// =======================
+$sqlAdmin = "SELECT * FROM admins WHERE email = ? LIMIT 1";
 $stmtAdmin = $pdo->prepare($sqlAdmin);
 $stmtAdmin->execute([$login]);
 
 if ($stmtAdmin->rowCount() == 1) {
     $admin = $stmtAdmin->fetch();
-    if (password_verify($password, $admin['password_hash'])) {
+    if ($password === $admin['password_hash']) {
         echo json_encode([
             "status" => "success",
-            "role" => "admin"
+            "role"   => "admin"
         ]);
         exit();
     }
+
+    // الإيميل تبع أدمِن لكن الباسورد غلط
+    echo json_encode([
+        "status"  => "error",
+        "message" => "Invalid password for admin account."
+    ]);
+    exit();
 }
 
-// If not admin, check users table
-$sqlUser = "SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = 1";
+// =======================
+// 2) لو مش أدمِن، نتحقق من users
+// =======================
+$sqlUser = "SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = 1 LIMIT 1";
 $stmtUser = $pdo->prepare($sqlUser);
 $stmtUser->execute([$login, $login]);
+$user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-if ($stmtUser->rowCount() == 1) {
-    $user = $stmtUser->fetch();
-    if (password_verify($password, $user['password_hash'])) {
+if ($user) {
+    $stored = $user['password_hash'];
+
+    if (checkPassword($password, $stored)) {
+        // نخزن السيشن لليوزر
+        $_SESSION['user_id']   = $user['id'];
+        $_SESSION['role']      = 'user';
+        $_SESSION['user_name'] = $user['first_name'];
+
         echo json_encode([
             "status" => "success",
-            "role" => "user"
+            "role"   => "user"
+        ]);
+        exit();
+    } else {
+        echo json_encode([
+            "status"  => "error",
+            "message" => "Invalid password."
         ]);
         exit();
     }
 }
 
-// If no match
+// =======================
+// 3) لا أدمِن ولا يوزر
+// =======================
 echo json_encode([
-    "status" => "error",
+    "status"  => "error",
     "message" => "Invalid username/email or password."
 ]);
 exit();
-?>
-
-

@@ -1,31 +1,31 @@
 // ============= DOM REFERENCES =============
-const slidesNode        = document.getElementById('slides');
-const imgs              = Array.from(slidesNode.querySelectorAll('img'));
-const indicators        = document.getElementById('indicators');
+const slidesNode = document.getElementById('slides');
+const imgs = Array.from(slidesNode.querySelectorAll('img'));
+const indicators = document.getElementById('indicators');
 
-const firstName          = document.getElementById('firstName');
-const lastName          = document.getElementById('lastName');
-const email             = document.getElementById('email');
-const username          = document.getElementById('username');
-const password          = document.getElementById('password');
-const confirmPassword   = document.getElementById('confirmPassword');
+const firstName = document.getElementById('firstName');
+const lastName = document.getElementById('lastName');
+const email = document.getElementById('email');
+const username = document.getElementById('username');
+const password = document.getElementById('password');
+const confirmPassword = document.getElementById('confirmPassword');
 
-const togglePass        = document.getElementById('togglePass');
+const togglePass = document.getElementById('togglePass');
 const toggleConfirmPass = document.getElementById('toggleConfirmPass');
 
-const form              = document.getElementById('signupForm');
-const toast             = document.getElementById('toast');
+const form = document.getElementById('signupForm');
+const toast = document.getElementById('toast');
 
-const firstnameErr      = document.getElementById('firstNameErr');
-const lastnameErr       = document.getElementById('lastNameErr');
-const emailErr          = document.getElementById('emailErr');
-const usernameErr       = document.getElementById('usernameErr');
-const passErr           = document.getElementById('passErr');
-const confirmPassErr    = document.getElementById('confirmPassErr');
+const firstnameErr = document.getElementById('firstNameErr');
+const lastnameErr = document.getElementById('lastNameErr');
+const emailErr = document.getElementById('emailErr');
+const usernameErr = document.getElementById('usernameErr');
+const passErr = document.getElementById('passErr');
+const confirmPassErr = document.getElementById('confirmPassErr');
 
-const terms             = document.getElementById('terms');
-const submitBtn         = document.getElementById('submitBtn');
-const card              = document.getElementById('card');
+const terms = document.getElementById('terms');
+const submitBtn = document.getElementById('submitBtn');
+const card = document.getElementById('card');
 
 let current = 0, timer = null, hover = false, visible = true, swipeStartX = null;
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -45,15 +45,15 @@ function show(n, manual) {
   dots.forEach((d, i) => d.classList.toggle('active', i === current));
   if (manual) restart();
 }
-function next()         { show(current + 1, false); }
-function start()        { if (REDUCED || hover || !visible) return; stop(); timer = setInterval(next, 5200); }
-function stop()         { if (timer) { clearInterval(timer); timer = null; } }
-function restart()      { stop(); start(); }
+function next() { show(current + 1, false); }
+function start() { if (REDUCED || hover || !visible) return; stop(); timer = setInterval(next, 5200); }
+function stop() { if (timer) { clearInterval(timer); timer = null; } }
+function restart() { stop(); start(); }
 
-slidesNode.addEventListener('mouseenter', () => { hover = true;  stop(); });
+slidesNode.addEventListener('mouseenter', () => { hover = true; stop(); });
 slidesNode.addEventListener('mouseleave', () => { hover = false; start(); });
 slidesNode.addEventListener('touchstart', e => { swipeStartX = e.touches[0].clientX; stop(); }, { passive: true });
-slidesNode.addEventListener('touchmove',  e => {
+slidesNode.addEventListener('touchmove', e => {
   if (swipeStartX === null) return;
   const dx = e.touches[0].clientX - swipeStartX;
   if (Math.abs(dx) > 60) {
@@ -64,7 +64,7 @@ slidesNode.addEventListener('touchmove',  e => {
 slidesNode.addEventListener('touchend', () => { swipeStartX = null; start(); }, { passive: true });
 document.addEventListener('visibilitychange', () => { visible = !document.hidden; visible ? start() : stop(); });
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft')  show(current - 1, true);
+  if (e.key === 'ArrowLeft') show(current - 1, true);
   if (e.key === 'ArrowRight') show(current + 1, true);
 });
 
@@ -301,26 +301,26 @@ form.addEventListener('submit', async (e) => {
 
     if (result.status === "success") {
       toastShow(result.message);
-        // Show modal
-  const modal = document.getElementById('successModal');
-  const yesBtn = document.getElementById('yesBtn');
-  const noBtn = document.getElementById('noBtn');
+      // Show modal
+      const modal = document.getElementById('successModal');
+      const yesBtn = document.getElementById('yesBtn');
+      const noBtn = document.getElementById('noBtn');
 
-  modal.style.display = 'flex'; // show modal
+      modal.style.display = 'flex'; // show modal
 
-  // Reset form and card styles
-  form.reset();
-  card.style.transform = '';
-  card.style.boxShadow = '';
+      // Reset form and card styles
+      form.reset();
+      card.style.transform = '';
+      card.style.boxShadow = '';
 
-  yesBtn.onclick = () => {
-    window.location.href = 'login.html'; // go to login page
-  };
+      yesBtn.onclick = () => {
+        window.location.href = 'login.html'; // go to login page
+      };
 
-  noBtn.onclick = () => {
-    modal.style.display = 'none'; // just close modal
-  };
-    
+      noBtn.onclick = () => {
+        modal.style.display = 'none'; // just close modal
+      };
+
     } else {
       // Show error from PHP
       toastShow('Error: ' + (result.message || 'Unknown error'), false);
@@ -361,12 +361,18 @@ card.addEventListener('mousemove', e => {
 card.addEventListener('mouseleave', () => {
   card.style.transform = 'translateZ(0)';
 });
-  document.getElementById("helpCenter").addEventListener("click", function() {
-    window.location.href = "faqs.html";
-  });
+document.getElementById("helpCenter").addEventListener("click", function () {
+  window.location.href = "faqs.html";
+});
 
 // preload slider images
 imgs.forEach(i => {
   const im = new Image();
   im.src = i.src;
 });
+// فتح المودال
+document.getElementById('successModal').classList.add('is-visible');
+
+// إخفاؤه
+document.getElementById('successModal').classList.remove('is-visible');
+
