@@ -39,19 +39,10 @@ if ($login === '' || $password === '') {
 $sqlAdmin = "SELECT * FROM admins WHERE email = ? LIMIT 1";
 $stmtAdmin = $pdo->prepare($sqlAdmin);
 $stmtAdmin->execute([$login]);
-$admin = $stmtAdmin->fetch(PDO::FETCH_ASSOC);
 
-if ($admin) {
-    $stored = $admin['password_hash'];
-
-    if (checkPassword($password, $stored)) {
-        // نخزن السيشن للأدمن
-        $_SESSION['user_id']   = $admin['id'];
-        $_SESSION['role']      = 'admin';
-        $_SESSION['user_name'] = $admin['display_name']
-            ? $admin['display_name']
-            : ($admin['first_name'] . ' ' . $admin['last_name']);
-
+if ($stmtAdmin->rowCount() == 1) {
+    $admin = $stmtAdmin->fetch();
+    if ($password === $admin['password_hash']) {
         echo json_encode([
             "status" => "success",
             "role"   => "admin"
