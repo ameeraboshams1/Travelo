@@ -342,3 +342,234 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+// ===== Forgot password elements =====
+const forgotLink = document.getElementById('forgotLink');
+const fpOverlay = document.getElementById('fpOverlay');
+const fpCloseBtn = document.getElementById('fpCloseBtn');
+
+const fpTitle = document.getElementById('fpTitle');
+const fpDesc = document.getElementById('fpDesc');
+
+// step email
+const fpStepEmail = document.getElementById('fpStepEmail');
+const fpEmailInput = document.getElementById('fpEmailInput');
+const fpEmailErr = document.getElementById('fpEmailErr');
+const fpSendCodeBtn = document.getElementById('fpSendCodeBtn');
+const fpCancelBtn = document.getElementById('fpCancelBtn');
+
+// step code
+const fpStepCode = document.getElementById('fpStepCode');
+const fpCodeInput = document.getElementById('fpCodeInput');
+const fpCodeErr = document.getElementById('fpCodeErr');
+const fpNextBtn = document.getElementById('fpNextBtn');
+const fpResendBtn = document.getElementById('fpResendBtn');
+const fpBackToEmailBtn = document.getElementById('fpBackToEmailBtn');
+
+// step new password
+const fpStepNew = document.getElementById('fpStepNew');
+const fpNewPass = document.getElementById('fpNewPass');
+const fpConfirmPass = document.getElementById('fpConfirmPass');
+const fpNewPassErr = document.getElementById('fpNewPassErr');
+const fpConfirmPassErr = document.getElementById('fpConfirmPassErr');
+const fpBackBtn = document.getElementById('fpBackBtn');
+const fpSubmitBtn = document.getElementById('fpSubmitBtn');
+
+let fpCode = null;
+let fpTargetEmail = '';
+
+// توليد كود عشوائي 6 أرقام
+function generateCode() {
+  fpCode = String(Math.floor(100000 + Math.random() * 900000));
+  console.log('%cTravelo reset code:', 'color:#a855f7;font-weight:bold;', fpCode);
+}
+
+// إعادة ضبط حقول المودال
+function resetForgotUI() {
+  fpEmailInput.value = '';
+  fpEmailErr.textContent = '';
+  fpCodeInput.value = '';
+  fpCodeErr.textContent = '';
+  fpNewPass.value = '';
+  fpConfirmPass.value = '';
+  fpNewPassErr.textContent = '';
+  fpConfirmPassErr.textContent = '';
+}
+
+// ===== عرض كل ستب =====
+function showStepEmail() {
+  fpStepEmail.classList.remove('is-hidden');
+  fpStepCode.classList.add('is-hidden');
+  fpStepNew.classList.add('is-hidden');
+
+  fpTitle.textContent = 'Reset your password';
+  fpDesc.textContent =
+    'Enter the email address linked with your Travelo account and we’ll send you a 6-digit verification code to continue.';
+  fpEmailInput.focus();
+}
+
+function showStepCode() {
+  fpStepEmail.classList.add('is-hidden');
+  fpStepCode.classList.remove('is-hidden');
+  fpStepNew.classList.add('is-hidden');
+
+  fpTitle.textContent = 'Check your inbox';
+  fpDesc.innerHTML =
+    `We’ve sent a 6-digit verification code to ` +
+    `<strong class="fp-email">${fpTargetEmail}</strong>. ` +
+    `Enter the code below to continue resetting your Travelo password.`;
+
+  fpCodeInput.focus();
+}
+
+function showStepNewPass() {
+  fpStepEmail.classList.add('is-hidden');
+  fpStepCode.classList.add('is-hidden');
+  fpStepNew.classList.remove('is-hidden');
+
+  fpTitle.textContent = 'Create a new password';
+  fpDesc.textContent =
+    'Choose a strong password that you haven’t used before for Travelo. You will use it the next time you sign in.';
+  fpNewPass.focus();
+}
+
+// ===== فتح / إغلاق المودال =====
+function openForgotModal() {
+  if (!fpOverlay) return;
+  resetForgotUI();
+  fpTargetEmail = '';
+  fpOverlay.classList.add('show');
+  document.body.classList.add('no-scroll');
+  showStepEmail();
+}
+
+function closeForgotModal() {
+  if (!fpOverlay) return;
+  fpOverlay.classList.remove('show');
+  document.body.classList.remove('no-scroll');
+}
+
+// ===== ربط الأحداث =====
+if (forgotLink && fpOverlay) {
+  // فتح المودال من "Forgot password?"
+  forgotLink.addEventListener('click', e => {
+    e.preventDefault();
+    openForgotModal();
+  });
+
+  // إغلاق
+  fpCloseBtn.addEventListener('click', closeForgotModal);
+  fpCancelBtn.addEventListener('click', closeForgotModal);
+  fpOverlay.addEventListener('click', e => {
+    if (e.target === fpOverlay) closeForgotModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && fpOverlay.classList.contains('show')) {
+      closeForgotModal();
+    }
+  });
+
+  // ===== STEP 1: Email -> Send code =====
+  fpSendCodeBtn.addEventListener('click', () => {
+    const v = fpEmailInput.value.trim();
+    fpEmailErr.textContent = '';
+
+    if (!v) {
+      fpEmailErr.textContent = 'Enter your email address';
+      fpEmailInput.focus();
+      return;
+    }
+    if (!isEmail(v)) {               // يعتمد على isEmail من فوق
+      fpEmailErr.textContent = 'Enter a valid email address';
+      fpEmailInput.focus();
+      return;
+    }
+
+    fpTargetEmail = v;
+    generateCode();
+    toastShow('Verification code sent to your email ✉️');  // يستخدم toastShow من فوق
+    showStepCode();
+  });
+
+  // رجوع من الكود إلى الإيميل
+  fpBackToEmailBtn.addEventListener('click', () => {
+    showStepEmail();
+  });
+
+  // ===== STEP 2: Code -> Next =====
+  fpNextBtn.addEventListener('click', () => {
+    const code = fpCodeInput.value.trim();
+    fpCodeErr.textContent = '';
+
+    if (!code) {
+      fpCodeErr.textContent = 'Enter the 6-digit code';
+      fpCodeInput.focus();
+      return;
+    }
+    if (code !== fpCode) {
+      fpCodeErr.textContent = 'Incorrect code. Please try again.';
+      fpCodeInput.focus();
+      if (navigator.vibrate) navigator.vibrate(60);
+      return;
+    }
+
+    showStepNewPass();
+  });
+
+  // إعادة إرسال الكود
+  fpResendBtn.addEventListener('click', () => {
+    if (!fpTargetEmail) {
+      showStepEmail();
+      fpEmailErr.textContent = 'Enter your email first';
+      fpEmailInput.focus();
+      return;
+    }
+    generateCode();
+    toastShow('A new code has been sent ✉️');
+  });
+
+  // ===== STEP 3: New password =====
+  fpBackBtn.addEventListener('click', () => {
+    showStepCode();
+  });
+
+  function validateResetPasswords() {
+    let ok = true;
+    const p1 = fpNewPass.value.trim();
+    const p2 = fpConfirmPass.value.trim();
+
+    fpNewPassErr.textContent = '';
+    fpConfirmPassErr.textContent = '';
+
+    if (!p1) {
+      fpNewPassErr.textContent = 'Enter a new password';
+      ok = false;
+    } else if (p1.length < 6) {
+      fpNewPassErr.textContent = 'Password must be at least 6 characters';
+      ok = false;
+    }
+
+    if (!p2) {
+      fpConfirmPassErr.textContent = 'Confirm your new password';
+      ok = false;
+    } else if (p1 && p1 !== p2) {
+      fpConfirmPassErr.textContent = 'Passwords do not match';
+      ok = false;
+    }
+
+    return ok;
+  }
+
+  fpSubmitBtn.addEventListener('click', () => {
+    if (!validateResetPasswords()) return;
+
+    // هنا المفروض تنادي الـ backend لتحديث الباسورد فعليًا
+
+    closeForgotModal();
+
+    // نرجّع المستخدم على فورم اللوج إن مع الباسوورد الجديد
+    pass.value = fpNewPass.value.trim();  // يستخدم المتغير pass من فوق
+    validatePass();                       // يستخدم دالة validatePass من فوق
+    toastShow('Password updated successfully. You can now sign in ✅');
+    pass.focus();
+  });
+}
