@@ -25,6 +25,12 @@ class TourPage {
 
     this.bookingBaseUrl = "booking.php";
 
+    const qs = new URLSearchParams(window.location.search);
+    this.destinationFilterId = qs.get("destination_id")
+  ? String(qs.get("destination_id"))
+  : null;
+
+
     this.cacheElements();
     this.buildToursData();
     this.initPriceSlider();
@@ -501,6 +507,14 @@ class TourPage {
     if (!this.tours.length) return;
 
     let result = [...this.tours];
+
+    // ✅ destination_id filter (جاي من destination modal)
+    if (this.destinationFilterId) {
+      result = result.filter((t) => {
+      const cardDestId = String(t.element.dataset.destinationId || "");
+      return cardDestId === this.destinationFilterId;
+      });
+    }
 
     // price
     if (this.filters.maxPrice != null) {

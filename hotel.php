@@ -461,6 +461,7 @@ try {
                 class="hotel-card"
                 data-hotel-id="<?= (int)$hotel['id'] ?>"
                 data-index="<?= $index ?>"
+                data-destination-id="<?= (int)$hotel['destination_id'] ?>"
                 data-price="<?= htmlspecialchars((string)$price, ENT_QUOTES) ?>"
                 data-rating="<?= htmlspecialchars(number_format($rating, 1), ENT_QUOTES) ?>"
                 data-reviews="<?= $reviews ?>"

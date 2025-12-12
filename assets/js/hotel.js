@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const bookingBaseUrl = 'booking.php';
   let   modalCurrentCard = null;
 
+  const qs = new URLSearchParams(window.location.search);
+  const destinationFilterId = qs.get('destination_id') ? String(qs.get('destination_id')) : null;
+
+
   function formatPrice(num) {
     const n = Number(num) || 0;
     return `$${n.toFixed(2)}`;
@@ -165,46 +169,55 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function applyAllFilters() {
-    const selectedFilters = getSelectedFilters();
-    const hasFilters      = selectedFilters.length > 0;
+  const selectedFilters = getSelectedFilters();
+  const hasFilters      = selectedFilters.length > 0;
 
-    const visibleCards = [];
+  const visibleCards = [];
 
-    hotelCards.forEach(card => {
-      const price = parseFloat(card.dataset.price) || 0;
+  hotelCards.forEach(card => {
+    const price = parseFloat(card.dataset.price) || 0;
 
-      let match = price >= currentMinPrice && price <= currentMaxPrice;
-
-      if (match && hasFilters) {
-        const text = (card.textContent || '').toLowerCase();
-        let filterMatch = false;
-
-        selectedFilters.forEach(f => {
-          if (text.includes(f)) filterMatch = true;
-          if (f.includes('breakfast') && text.includes('free breakfast')) filterMatch = true;
-          if (f.includes('airport') && text.includes('airport shuttle')) filterMatch = true;
-        });
-
-        match = filterMatch;
+    // ✅ فلترة حسب الوجهة (destination_id) إذا جاي من الرابط
+    if (destinationFilterId) {
+      const cardDestId = String(card.dataset.destinationId || '');
+      if (cardDestId !== destinationFilterId) {
+        card.style.display = 'none';
+        return; // مهم جداً عشان ما يكمل باقي الفلاتر
       }
+    }
 
-      card.style.display = match ? '' : 'none';
-      if (match) visibleCards.push(card);
-    });
+    let match = price >= currentMinPrice && price <= currentMaxPrice;
 
-    visibleCards.sort(compareCards);
+    if (match && hasFilters) {
+      const text = (card.textContent || '').toLowerCase();
+      let filterMatch = false;
 
-    if (!hotelsList) return;
+      selectedFilters.forEach(f => {
+        if (text.includes(f)) filterMatch = true;
+        if (f.includes('breakfast') && text.includes('free breakfast')) filterMatch = true;
+        if (f.includes('airport') && text.includes('airport shuttle')) filterMatch = true;
+      });
 
-    hotelsList.innerHTML = '';
-    visibleCards.forEach(card => hotelsList.appendChild(card));
+      match = filterMatch;
+    }
 
-    hotelCards.forEach(card => {
-      if (card.style.display === 'none') {
-        hotelsList.appendChild(card);
-      }
-    });
-  }
+    card.style.display = match ? '' : 'none';
+    if (match) visibleCards.push(card);
+  });
+
+  visibleCards.sort(compareCards);
+
+  if (!hotelsList) return;
+
+  hotelsList.innerHTML = '';
+  visibleCards.forEach(card => hotelsList.appendChild(card));
+
+  hotelCards.forEach(card => {
+    if (card.style.display === 'none') {
+      hotelsList.appendChild(card);
+    }
+  });
+}
 
   // ========= SORT TABS =========
   sortTabs.forEach(tab => {

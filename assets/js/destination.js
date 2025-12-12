@@ -1,8 +1,8 @@
-// فلترة حسب الكاتيجوري + المودال + أزرار اللوجين
-
+// فلترة حسب الكاتيجوري + المودال + Book Trip/Hotel + أزرار اللوجين
 document.addEventListener('DOMContentLoaded', () => {
+
   // ========== Tabs Filter ==========
-  const tabs = document.querySelectorAll('.category-btn');
+  const tabs  = document.querySelectorAll('.category-btn');
   const cards = document.querySelectorAll('.destination-col');
 
   tabs.forEach((tab) => {
@@ -25,104 +25,133 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ========== Modal ==========
   const modalOverlay = document.getElementById('destinationModal');
-  const modalClose = document.getElementById('destinationModalClose');
+  const modalClose   = document.getElementById('destinationModalClose');
 
-  const modalImg = document.getElementById('modalDestinationImage');
-  const modalTitle = document.getElementById('modalDestinationTitle');
+  const modalImg      = document.getElementById('modalDestinationImage');
+  const modalTitle    = document.getElementById('modalDestinationTitle');
   const modalLocation = document.getElementById('modalDestinationLocation');
-  const modalDesc = document.getElementById('modalDestinationDesc');
+  const modalDesc     = document.getElementById('modalDestinationDesc');
   const modalVisitors = document.getElementById('modalVisitors');
-  const modalSeason = document.getElementById('modalSeason');
-  const modalPrice = document.getElementById('modalPrice');
-  const modalRating = document.getElementById('modalRating');
+  const modalSeason   = document.getElementById('modalSeason');
+  const modalPrice    = document.getElementById('modalPrice');
+  const modalRatingEl = document.getElementById('modalRating');
+
+  const bookFlightBtn = document.getElementById('modalBookFlightBtn');
+  const bookHotelBtn  = document.getElementById('modalBookHotelBtn');
+  const bookPackageBtn = document.getElementById('modalBookPackageBtn');
+
+
+  let currentDestId = null;
 
   function openModalFromButton(btn) {
-    const name = btn.dataset.name || btn.dataset.city || 'Destination';
+    // ✅ نخزّن ID الوجهة (من الزر أو من الـ parent)
+    const parentCol = btn.closest('.destination-col');
+    currentDestId = btn.dataset.id || (parentCol ? parentCol.dataset.id : null) || null;
+
+    const name     = btn.dataset.name || btn.dataset.city || 'Destination';
     const location = btn.dataset.location || '';
-    const image = btn.dataset.image || '';
-    const desc = btn.dataset.desc || '';
-    const price = btn.dataset.price || '';
-    const rating = btn.dataset.rating || '';
+    const image    = btn.dataset.image || '';
+    const desc     = btn.dataset.desc || '';
+    const price    = btn.dataset.price || '';
+    const rating   = btn.dataset.rating || '';
 
-    // لو حابة تعملي visitors / season حسب المدينة ممكن تضيفيها بالداتا
     const visitors = btn.dataset.visitors || '';
-    const season = btn.dataset.season || '';
+    const season   = btn.dataset.season || '';
 
-    modalTitle.textContent = name;
-    modalLocation.textContent = location;
-    modalImg.src = image;
-    modalDesc.textContent = desc;
+    if (modalTitle)    modalTitle.textContent = name;
+    if (modalLocation) modalLocation.textContent = location;
+    if (modalImg)      { modalImg.src = image; modalImg.alt = name; }
+    if (modalDesc)     modalDesc.textContent = desc;
 
-    if (price) modalPrice.textContent = price;
-    if (rating) modalRating.textContent = `★ ${rating}`;
-    if (visitors) modalVisitors.textContent = visitors;
-    if (season) modalSeason.textContent = season;
+    if (modalPrice && price) modalPrice.textContent = price;
 
-    modalOverlay.classList.add('show');
-    document.body.classList.add('no-scroll');
+    if (modalRatingEl && rating) modalRatingEl.textContent = `★ ${rating}`;
+
+    if (modalVisitors) modalVisitors.textContent = visitors || '—';
+    if (modalSeason)   modalSeason.textContent   = season   || '—';
+
+    if (modalOverlay) {
+      modalOverlay.classList.add('show');
+      document.body.classList.add('no-scroll');
+    }
   }
 
   function closeModal() {
+    if (!modalOverlay) return;
     modalOverlay.classList.remove('show');
     document.body.classList.remove('no-scroll');
   }
 
-  const viewButtons = document.querySelectorAll('.view-btn');
-  viewButtons.forEach((btn) => {
+  // فتح المودال
+  document.querySelectorAll('.view-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       openModalFromButton(btn);
     });
   });
 
-  if (modalClose) {
-    modalClose.addEventListener('click', () => {
-      closeModal();
-    });
-  }
+  // إغلاق
+  if (modalClose) modalClose.addEventListener('click', closeModal);
 
   if (modalOverlay) {
     modalOverlay.addEventListener('click', (e) => {
-      if (e.target === modalOverlay) {
-        closeModal();
-      }
+      if (e.target === modalOverlay) closeModal();
     });
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modalOverlay.classList.contains('show')) {
+    if (e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('show')) {
       closeModal();
     }
   });
-});
 
-// ========== Login / Signup Spinner ==========
-document.addEventListener('DOMContentLoaded', function () {
-  const btn = document.getElementById('btnLogin');
-  const spinner = document.getElementById('spinner');
+  // ✅ Book Trip -> fligths.php?destination_id=ID
+  if (bookFlightBtn) {
+    bookFlightBtn.addEventListener('click', () => {
+      if (!currentDestId) return;
+      window.location.href = `fligths.php?destination_id=${encodeURIComponent(currentDestId)}`;
+    });
+  }
 
-  if (!btn || !spinner) return;
+  // ✅ Book Hotel -> hotel.php?destination_id=ID
+  if (bookHotelBtn) {
+    bookHotelBtn.addEventListener('click', () => {
+      if (!currentDestId) return;
+      window.location.href = `hotel.php?destination_id=${encodeURIComponent(currentDestId)}`;
+    });
+  }
 
-  btn.addEventListener('click', function (e) {
-    e.preventDefault();
-    spinner.classList.add('show');
-    setTimeout(function () {
-      window.location.href = 'login.html';
-    }, 1000);
+  // ✅ Book Package -> packages.php?destination_id=ID
+if (bookPackageBtn) {
+  bookPackageBtn.addEventListener('click', () => {
+    if (!currentDestId) return;
+    window.location.href = `packages.php?destination_id=${encodeURIComponent(currentDestId)}`;
   });
-});
+}
 
-document.addEventListener('DOMContentLoaded', function () {
-  const btn = document.getElementById('btnLogin1');
+
+  // ========== Login / Signup Spinner ==========
   const spinner = document.getElementById('spinner');
+  const btnLogin  = document.getElementById('btnLogin');
+  const btnSignup = document.getElementById('btnLogin1');
 
-  if (!btn || !spinner) return;
+  if (btnLogin && spinner) {
+    btnLogin.addEventListener('click', function (e) {
+      e.preventDefault();
+      spinner.classList.add('show');
+      setTimeout(function () {
+        window.location.href = 'login.html';
+      }, 1000);
+    });
+  }
 
-  btn.addEventListener('click', function (e) {
-    e.preventDefault();
-    spinner.classList.add('show');
-    setTimeout(function () {
-      window.location.href = 'signup.html';
-    }, 1000);
-  });
+  if (btnSignup && spinner) {
+    btnSignup.addEventListener('click', function (e) {
+      e.preventDefault();
+      spinner.classList.add('show');
+      setTimeout(function () {
+        window.location.href = 'signup.html';
+      }, 1000);
+    });
+  }
 });

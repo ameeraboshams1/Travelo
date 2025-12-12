@@ -411,6 +411,7 @@ function formatDateLabel($dateStr)
 <article
   class="flight-card ticket"
   data-flight-id="<?= (int)$flight['id'] ?>"
+  data-destination-id="<?= (int)$flight['destination_id'] ?>"
   data-price="<?= htmlspecialchars($price) ?>"
   data-duration="<?= htmlspecialchars($duration) ?>"
   data-stops="<?= htmlspecialchars($stops) ?>"

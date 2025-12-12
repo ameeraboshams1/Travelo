@@ -266,7 +266,7 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
         <div class="nav-links">
           <ul class="nav-links-ul">
             <li><a href="./index.php">Home</a></li>
-            <li><a href="./flights.php">Flights</a></li>
+            <li><a href="./fligths.php">Flights</a></li>
             <li><a href="./hotel.php">Hotels</a></li>
             <li><a href="./packages.php">Packages</a></li>
             <li><a href="destination.php" class="active-nav">Destinations</a></li>
@@ -388,10 +388,18 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
                         $<?= htmlspecialchars($dest['base_price']) ?>
                         <span>per person</span>
                       </div>
-                      <button class="btn-gradient view-btn"
-                              data-city="<?= htmlspecialchars($dest['name']) ?>">
+                     <button class="btn-gradient view-btn"
+                        data-id="<?= (int)$dest['id'] ?>"
+                        data-name="<?= htmlspecialchars($dest['name'], ENT_QUOTES) ?>"
+                        data-location="<?= htmlspecialchars($dest['city'] . ', ' . $dest['country'], ENT_QUOTES) ?>"
+                        data-image="<?= htmlspecialchars($dest['image_url'], ENT_QUOTES) ?>"
+                        data-desc="<?= htmlspecialchars($dest['short_desc'], ENT_QUOTES) ?>"
+                        data-price="$<?= htmlspecialchars($dest['base_price'], ENT_QUOTES) ?>"
+                        data-rating="5.0"
+                        >
                         See More
                       </button>
+
                     </div>
                   </div>
                 </div>
@@ -448,29 +456,32 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
           </div>
 
           <div class="destination-modal-actions">
-            <button class="modal-btn primary">
-              <span class="icon">✈️</span>
-              <div class="text">
-                <span class="title">Book Trip</span>
-                <span class="subtitle">Flights & activities</span>
-              </div>
-            </button>
+            <button class="modal-btn primary" type="button" id="modalBookFlightBtn">
+  <span class="icon">✈️</span>
+  <div class="text">
+    <span class="title">Book Trip</span>
+    <span class="subtitle">Flights & activities</span>
+  </div>
+</button>
 
-            <button class="modal-btn outline">
-              <span class="icon">🎁</span>
-              <div class="text">
-                <span class="title">Book Package</span>
-                <span class="subtitle">Flight + hotel + tour</span>
-              </div>
-            </button>
 
-            <button class="modal-btn ghost">
-              <span class="icon">🏨</span>
-              <div class="text">
-                <span class="title">Book Hotel</span>
-                <span class="subtitle">Hand-picked stays</span>
-              </div>
-            </button>
+            <button class="modal-btn outline" type="button" id="modalBookPackageBtn">
+  <span class="icon">🎁</span>
+  <div class="text">
+    <span class="title">Book Package</span>
+    <span class="subtitle">Flight + hotel + tour</span>
+  </div>
+</button>
+
+
+           <button class="modal-btn ghost" type="button" id="modalBookHotelBtn">
+  <span class="icon">🏨</span>
+  <div class="text">
+    <span class="title">Book Hotel</span>
+    <span class="subtitle">Hand-picked stays</span>
+  </div>
+</button>
+
           </div>
         </div>
       </div>

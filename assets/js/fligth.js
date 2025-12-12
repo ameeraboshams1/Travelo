@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentTimeFilter = "all";
   let currentTripFilter = "all";
 
+  const qs = new URLSearchParams(window.location.search);
+const destinationFilterId = qs.get("destination_id") ? String(qs.get("destination_id")) : null;
+
+
   if (!flightList || allCards.length === 0) return;
 
   // ====== BOOKING LOGIC ======
@@ -152,34 +156,42 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getFilteredCards() {
-    const maxPrice = maxPriceInput ? Number(maxPriceInput.value) : Infinity;
+  const maxPrice = maxPriceInput ? Number(maxPriceInput.value) : Infinity;
 
-    return allCards.filter((card) => {
-      const price = Number(card.dataset.price || 0);
-      const stops = Number(card.dataset.stops || 0);
-      const tripType = card.dataset.trip || "all";
+  return allCards.filter((card) => {
 
-      if (maxPriceInput && price > maxPrice) return false;
-      if (nonStopOnly && nonStopOnly.checked && stops !== 0) return false;
+    // ✅ فلترة حسب الوجهة فقط إذا جاي destination_id من الرابط
+    if (destinationFilterId) {
+      const cardDestId = String(card.dataset.destinationId || "");
+      if (cardDestId !== destinationFilterId) return false;
+    }
 
-      if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
-        return false;
-      }
+    const price = Number(card.dataset.price || 0);
+    const stops = Number(card.dataset.stops || 0);
+    const tripType = card.dataset.trip || "all";
 
-      if (currentTimeFilter !== "all") {
-        const depTimeEl = card.querySelector(
-          ".ticket-times .time:first-child strong"
-        );
-        if (!depTimeEl) return false;
-        const depTimeText = depTimeEl.textContent.trim();
-        const hour = Number(depTimeText.split(":")[0]);
-        if (currentTimeFilter === "morning" && hour >= 12) return false;
-        if (currentTimeFilter === "evening" && hour < 12) return false;
-      }
+    if (maxPriceInput && price > maxPrice) return false;
+    if (nonStopOnly && nonStopOnly.checked && stops !== 0) return false;
 
-      return true;
-    });
-  }
+    if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
+      return false;
+    }
+
+    if (currentTimeFilter !== "all") {
+      const depTimeEl = card.querySelector(".ticket-times .time:first-child strong");
+      if (!depTimeEl) return false;
+
+      const depTimeText = depTimeEl.textContent.trim();
+      const hour = Number(depTimeText.split(":")[0]);
+
+      if (currentTimeFilter === "morning" && hour >= 12) return false;
+      if (currentTimeFilter === "evening" && hour < 12) return false;
+    }
+
+    return true;
+  });
+}
+
 
   function applySortAndFilter() {
     const filtered = getFilteredCards();
@@ -239,6 +251,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (resetBtn && maxPriceInput && maxPriceValue) {
     resetBtn.addEventListener("click", () => {
+
+       if (destinationFilterId) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("destination_id");
+      window.location.href = url.toString();
+      return;
+    }
+    
       maxPriceInput.value = maxPriceInput.max || 600;
       maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
       if (nonStopOnly) nonStopOnly.checked = false;
