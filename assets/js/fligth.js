@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ====== BOOKING LOGIC ======
   // 🚨 الملف الجديد تبع الويزرد
-  const bookingBaseUrl = "booking.html";
+  const bookingBaseUrl = "booking.php";
   let lastSelectedCard = null;
 
   function buildBookingParams(card) {
