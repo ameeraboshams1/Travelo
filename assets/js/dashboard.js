@@ -98,7 +98,7 @@ gSearch?.addEventListener('keydown', (e) => {
 
 // ===================== API Helper =====================
 
-const USE_API = true; // رح نشتغل PHP بعدين
+const USE_API = true;
 const cache = {
   users: [],
   admins: [],
@@ -218,6 +218,14 @@ function applyDtDarkSkin() {
   }
 }
 
+// small helper to parse date safely
+function parseDateSafe(str) {
+  if (!str) return null;
+  const t = Date.parse(str);
+  if (Number.isNaN(t)) return null;
+  return new Date(t);
+}
+
 // ===================== KPI (Dashboard Small Numbers) =====================
 
 async function fillKpis() {
@@ -236,9 +244,8 @@ async function fillKpis() {
       0
     );
 
-    // نحسب On-Time كنسبة الحجوزات الـ confirmed من كل الحجوزات
-    const confirmedCount = bookings.filter((b) =>
-      String(b.booking_status || '').toLowerCase() === 'confirmed'
+    const confirmedCount = bookings.filter(
+      (b) => String(b.booking_status || '').toLowerCase() === 'confirmed'
     ).length;
 
     const onTimePercent =
@@ -320,7 +327,6 @@ function buildFlightsMap() {
       css.getPropertyValue('--p2') ||
       '#8b5cf6').trim();
 
-  // نحاول نرسم من جدول flights لو متوفر
   let routes = [];
   const flights = cache.flights || [];
   flights.forEach((f) => {
@@ -331,7 +337,6 @@ function buildFlightsMap() {
     }
   });
 
-  // لو ما في داتا/إحداثيات من الداتا بيز، نرجع للروتات الثابتة
   if (!routes.length) {
     routes = [
       ['AMM', 'IST'],
@@ -368,7 +373,6 @@ function buildFlightsMap() {
   const firstRoute = routes[0] || ['AMM', 'IST'];
   const start = L.latLng(coords[firstRoute[0]]);
   const end = L.latLng(coords[firstRoute[1]]);
-
 
   function bearing(a, b) {
     const toRad = (d) => (d * Math.PI) / 180;
@@ -419,318 +423,309 @@ function refreshMapTiles() {
   }
 }
 
-// ===================== Initers (Per Section) =====================
-// ======== Small date helper for dashboard aggregations ========
-function parseDateSafe(str) {
-  if (!str) return null;
-  const t = Date.parse(str);
-  if (Number.isNaN(t)) return null;
-  return new Date(t);
-}
+// ===================== Initers =====================
+
 const initers = {
   // ---------- Dashboard ----------
-  // ---------- Dashboard ----------
-dashboard: (function () {
-  let done = false;
-  return async function () {
-    if (done) return;
-    done = true;
+  dashboard: (function () {
+    let done = false;
+    return async function () {
+      if (done) return;
+      done = true;
 
-    const css = getComputedStyle(document.documentElement);
-    const p1 = css.getPropertyValue('--p1').trim();
-    const p2 = css.getPropertyValue('--p2').trim();
-    const p3 = css.getPropertyValue('--p3').trim();
-    const p4 = css.getPropertyValue('--p4').trim();
-    const pink1 = (css.getPropertyValue('--pink1') || p3).trim();
-    const pink2 = (css.getPropertyValue('--pink2') || p4).trim();
+      const css = getComputedStyle(document.documentElement);
+      const p1 = css.getPropertyValue('--p1').trim();
+      const p2 = css.getPropertyValue('--p2').trim();
+      const p3 = css.getPropertyValue('--p3').trim();
+      const p4 = css.getPropertyValue('--p4').trim();
+      const pink1 = (css.getPropertyValue('--pink1') || p3).trim();
+      const pink2 = (css.getPropertyValue('--pink2') || p4).trim();
 
-    // ----- تحميل الداتا من الـ API / الكاش -----
-    let bookings = cache.bookings || [];
-    let payments = cache.payments || [];
-    let users = cache.users || [];
-    let flights = cache.flights || [];
+      let bookings = cache.bookings || [];
+      let payments = cache.payments || [];
+      let users = cache.users || [];
+      let flights = cache.flights || [];
 
-    try {
-      if (!bookings.length) bookings = await apiList('bookings');
-      if (!payments.length) payments = await apiList('payments');
-      if (!users.length) users = await apiList('users');
-      if (!flights.length) flights = await apiList('flights');
-    } catch (e) {
-      console.error('dashboard data error:', e);
-    }
+      try {
+        if (!bookings.length) bookings = await apiList('bookings');
+        if (!payments.length) payments = await apiList('payments');
+        if (!users.length) users = await apiList('users');
+        if (!flights.length) flights = await apiList('flights');
+      } catch (e) {
+        console.error('dashboard data error:', e);
+      }
 
-    // ===== 1) Charts Aggregations =====
-
-    // شهريًا (12 شهر)
-    const revenuePerMonth = Array(12).fill(0);
-    payments.forEach((p) => {
-      const d = parseDateSafe(p.created_at);
-      if (!d) return;
-      const m = d.getMonth(); // 0..11
-      revenuePerMonth[m] += Number(p.amount_total || 0);
-    });
-
-    const bookingsPerMonth = Array(12).fill(0);
-    bookings.forEach((b) => {
-      const d =
-        parseDateSafe(b.created_at) ||
-        parseDateSafe(b.trip_start_date);
-      if (!d) return;
-      const m = d.getMonth();
-      bookingsPerMonth[m] += 1;
-    });
-
-    // آخر 30 يوم – ريفينيو
-    const today = new Date();
-    const labels30 = [];
-    const revenueLast30 = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      const label = `${d.getMonth() + 1}/${d.getDate()}`;
-      labels30.push(label);
-      let sum = 0;
+      // ---------- aggregations ----------
+      const revenuePerMonth = Array(12).fill(0);
       payments.forEach((p) => {
-        const k = (p.created_at || '').slice(0, 10);
-        if (k === key) sum += Number(p.amount_total || 0);
+        const d = parseDateSafe(p.created_at);
+        if (!d) return;
+        const m = d.getMonth();
+        revenuePerMonth[m] += Number(p.amount_total || 0);
       });
-      revenueLast30.push(sum);
-    }
 
-    // آخر 14 يوم – عدد الحجوزات
-    const labels14 = [];
-    const bookingsLast14 = [];
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      const label = `${d.getMonth() + 1}/${d.getDate()}`;
-      labels14.push(label);
-      let cnt = 0;
+      const bookingsPerMonth = Array(12).fill(0);
       bookings.forEach((b) => {
-        const k =
-          (b.created_at || b.trip_start_date || '').slice(0, 10);
-        if (k === key) cnt++;
+        const d = parseDateSafe(b.created_at) || parseDateSafe(b.trip_start_date);
+        if (!d) return;
+        const m = d.getMonth();
+        bookingsPerMonth[m] += 1;
       });
-      bookingsLast14.push(cnt);
-    }
 
-    // توزيع حالات الحجز
-    const statusCounts = { confirmed: 0, pending: 0, cancelled: 0 };
-    bookings.forEach((b) => {
-      const st = (b.booking_status || 'pending').toLowerCase();
-      if (statusCounts[st] == null) statusCounts.pending++;
-      else statusCounts[st]++;
-    });
+      const today = new Date();
 
-    // ===== 2) بناء التشارتات من الداتا الحقيقية =====
+      // last 30 days revenue
+      const labels30 = [];
+      const revenueLast30 = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const label = `${d.getMonth() + 1}/${d.getDate()}`;
+        labels30.push(label);
+        let sum = 0;
+        payments.forEach((p) => {
+          const k = (p.created_at || '').slice(0, 10);
+          if (k === key) sum += Number(p.amount_total || 0);
+        });
+        revenueLast30.push(sum);
+      }
 
-    if (document.getElementById('dashLine')) {
-      new Chart(document.getElementById('dashLine'), {
-        type: 'line',
-        data: {
-          labels: [
-            'Jan','Feb','Mar','Apr','May','Jun',
-            'Jul','Aug','Sep','Oct','Nov','Dec'
-          ],
-          datasets: [
-            {
-              label: 'Revenue',
-              data: revenuePerMonth,
-              tension: 0.35,
-              borderWidth: 2,
-              pointRadius: 3,
-              fill: false,
-              borderColor: p1
-            },
-            {
-              label: 'Bookings',
-              data: bookingsPerMonth,
-              yAxisID: 'y1',
-              tension: 0.4,
-              borderDash: [6, 6],
-              borderWidth: 2,
-              borderColor: pink1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: getGridColor() },
-              title: { display: true, text: '$' }
-            },
-            y1: {
-              beginAtZero: true,
-              position: 'right',
-              grid: { display: false },
-              title: { display: true, text: 'count' }
+      // last 14 days bookings
+      const labels14 = [];
+      const bookingsLast14 = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const label = `${d.getMonth() + 1}/${d.getDate()}`;
+        labels14.push(label);
+        let cnt = 0;
+        bookings.forEach((b) => {
+          const k = (b.created_at || b.trip_start_date || '').slice(0, 10);
+          if (k === key) cnt++;
+        });
+        bookingsLast14.push(cnt);
+      }
+
+      const statusCounts = { confirmed: 0, pending: 0, cancelled: 0 };
+      bookings.forEach((b) => {
+        const st = (b.booking_status || 'pending').toLowerCase();
+        if (statusCounts[st] == null) statusCounts.pending++;
+        else statusCounts[st]++;
+      });
+
+      // ---------- charts ----------
+      if (document.getElementById('dashLine')) {
+        new Chart(document.getElementById('dashLine'), {
+          type: 'line',
+          data: {
+            labels: [
+              'Jan',
+              'Feb',
+              'Mar',
+              'Apr',
+              'May',
+              'Jun',
+              'Jul',
+              'Aug',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dec'
+            ],
+            datasets: [
+              {
+                label: 'Revenue',
+                data: revenuePerMonth,
+                tension: 0.35,
+                borderWidth: 2,
+                pointRadius: 3,
+                fill: false,
+                borderColor: p1
+              },
+              {
+                label: 'Bookings',
+                data: bookingsPerMonth,
+                yAxisID: 'y1',
+                tension: 0.4,
+                borderDash: [6, 6],
+                borderWidth: 2,
+                borderColor: pink1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: getGridColor() },
+                title: { display: true, text: '$' }
+              },
+              y1: {
+                beginAtZero: true,
+                position: 'right',
+                grid: { display: false },
+                title: { display: true, text: 'count' }
+              }
             }
           }
-        }
-      });
-    }
-
-    if (document.getElementById('dashDonut')) {
-      new Chart(document.getElementById('dashDonut'), {
-        type: 'doughnut',
-        data: {
-          labels: ['Confirmed', 'Pending', 'Cancelled'],
-          datasets: [
-            {
-              data: [
-                statusCounts.confirmed,
-                statusCounts.pending,
-                statusCounts.cancelled
-              ],
-              backgroundColor: [p2, pink1, p4]
-            }
-          ]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } },
-          cutout: '58%',
-          maintainAspectRatio: false
-        }
-      });
-    }
-
-    if (document.getElementById('dashArea')) {
-      new Chart(document.getElementById('dashArea'), {
-        type: 'line',
-        data: {
-          labels: labels30,
-          datasets: [
-            {
-              label: 'Revenue ($)',
-              data: revenueLast30,
-              tension: 0.4,
-              borderWidth: 2,
-              pointRadius: 0,
-              fill: true,
-              borderColor: p2,
-              backgroundColor: resolveAlpha(p2, 0.15)
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } }
-        }
-      });
-    }
-
-    if (document.getElementById('dashBarMini')) {
-      new Chart(document.getElementById('dashBarMini'), {
-        type: 'bar',
-        data: {
-          labels: labels14,
-          datasets: [
-            {
-              label: 'Bookings',
-              data: bookingsLast14,
-              backgroundColor: pink2
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } }
-        }
-      });
-    }
-
-    // ===== 3) جدول الـ Activity في أول الداشبورد =====
-    const tbody = document.querySelector('#dashTable tbody');
-    if (tbody) {
-      tbody.innerHTML = '';
-
-      const rows = [];
-
-      // Bookings rows
-      bookings.forEach((b) => {
-        const u = users.find((u) => u.id === b.user_id);
-        const uname =
-          (u &&
-            ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-              u.username ||
-              u.email)) ||
-          `#${b.user_id}`;
-
-        rows.push({
-          sortDate: b.created_at || b.trip_start_date || '',
-          type: 'Booking',
-          ref: b.booking_code || `BK-${b.id}`,
-          user: uname,
-          from: b.from_city || '—',
-          to: b.to_city || '—',
-          date: (b.trip_start_date || b.created_at || '—').slice(0, 10),
-          amt: '$' + Number(b.total_amount || 0).toFixed(2),
-          st: b.booking_status || 'pending'
         });
-      });
+      }
 
-      // Payments rows
-      payments.forEach((p) => {
-        const u = users.find((u) => u.id === p.user_id);
-        const uname =
-          (u &&
-            ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-              u.username ||
-              u.email)) ||
-          (p.user_id ? `#${p.user_id}` : '—');
-
-        rows.push({
-          sortDate: p.created_at || '',
-          type: 'Payment',
-          ref: p.gateway_reference || `TX-${p.id}`,
-          user: uname,
-          from: '—',
-          to: '—',
-          date: (p.created_at || '—').slice(0, 10),
-          amt: '$' + Number(p.amount_total || 0).toFixed(2),
-          st: p.status || 'pending'
+      if (document.getElementById('dashDonut')) {
+        new Chart(document.getElementById('dashDonut'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Confirmed', 'Pending', 'Cancelled'],
+            datasets: [
+              {
+                data: [
+                  statusCounts.confirmed,
+                  statusCounts.pending,
+                  statusCounts.cancelled
+                ],
+                backgroundColor: [p2, pink1, p4]
+              }
+            ]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '58%',
+            maintainAspectRatio: false
+          }
         });
-      });
+      }
 
-      rows
-        .sort((a, b) => (b.sortDate || '').localeCompare(a.sortDate || ''))
-        .slice(0, 30)
-        .forEach((x) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${x.type}</td>
-            <td>${x.ref}</td>
-            <td>${x.user}</td>
-            <td>${x.from}</td>
-            <td>${x.to}</td>
-            <td>${x.date}</td>
-            <td>${x.amt}</td>
-            <td>${badge(x.st)}</td>`;
-          tbody.appendChild(tr);
+      if (document.getElementById('dashArea')) {
+        new Chart(document.getElementById('dashArea'), {
+          type: 'line',
+          data: {
+            labels: labels30,
+            datasets: [
+              {
+                label: 'Revenue ($)',
+                data: revenueLast30,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                borderColor: p2,
+                backgroundColor: resolveAlpha(p2, 0.15)
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } }
+          }
+        });
+      }
+
+      if (document.getElementById('dashBarMini')) {
+        new Chart(document.getElementById('dashBarMini'), {
+          type: 'bar',
+          data: {
+            labels: labels14,
+            datasets: [
+              {
+                label: 'Bookings',
+                data: bookingsLast14,
+                backgroundColor: pink2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } }
+          }
+        });
+      }
+
+      // ---------- activity table ----------
+      const tbody = document.querySelector('#dashTable tbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        const rows = [];
+
+        bookings.forEach((b) => {
+          const u = users.find((u) => u.id === b.user_id);
+          const uname =
+            (u &&
+              ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
+                u.username ||
+                u.email)) ||
+            `#${b.user_id}`;
+
+          rows.push({
+            sortDate: b.created_at || b.trip_start_date || '',
+            type: 'Booking',
+            ref: b.booking_code || `BK-${b.id}`,
+            user: uname,
+            from: b.from_city || '—',
+            to: b.to_city || '—',
+            date: (b.trip_start_date || b.created_at || '—').slice(0, 10),
+            amt: '$' + Number(b.total_amount || 0).toFixed(2),
+            st: b.booking_status || 'pending'
+          });
         });
 
-      $('#dashTable').DataTable({
-        pageLength: 7,
-        order: [[5, 'desc']],
-        columnDefs: [{ targets: [7], orderable: false }]
-      });
-      applyDtDarkSkin();
-    }
+        payments.forEach((p) => {
+          const u = users.find((u) => u.id === p.user_id);
+          const uname =
+            (u &&
+              ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
+                u.username ||
+                u.email)) ||
+            (p.user_id ? `#${p.user_id}` : '—');
 
-    // ===== 4) الماب – رح تستخدم الفلايتس من الكاش (ولو مش موجودة ترجع للـ sample) =====
-    buildFlightsMap();
-  };
-})(),
+          rows.push({
+            sortDate: p.created_at || '',
+            type: 'Payment',
+            ref: p.gateway_reference || `TX-${p.id}`,
+            user: uname,
+            from: '—',
+            to: '—',
+            date: (p.created_at || '—').slice(0, 10),
+            amt: '$' + Number(p.amount_total || 0).toFixed(2),
+            st: p.status || 'pending'
+          });
+        });
 
+        rows
+          .sort((a, b) => (b.sortDate || '').localeCompare(a.sortDate || ''))
+          .slice(0, 30)
+          .forEach((x) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${x.type}</td>
+              <td>${x.ref}</td>
+              <td>${x.user}</td>
+              <td>${x.from}</td>
+              <td>${x.to}</td>
+              <td>${x.date}</td>
+              <td>${x.amt}</td>
+              <td>${badge(x.st)}</td>`;
+            tbody.appendChild(tr);
+          });
+
+        $('#dashTable').DataTable({
+          pageLength: 7,
+          order: [[5, 'desc']],
+          columnDefs: [{ targets: [7], orderable: false }]
+        });
+        applyDtDarkSkin();
+      }
+
+      buildFlightsMap();
+    };
+  })(),
 
   // ---------- Users ----------
   users: (function () {
@@ -866,7 +861,7 @@ dashboard: (function () {
 
       $('#destinationsTable').DataTable({
         pageLength: 7,
-        order: [[1, 'asc']], // نرتّب بالاسم
+        order: [[1, 'asc']],
         columnDefs: [{ targets: [10], orderable: false }]
       });
       applyDtDarkSkin();
@@ -874,74 +869,68 @@ dashboard: (function () {
   })(),
 
   // ---------- Flights ----------
-  // ---------- Flights ----------
-flights: (function () {
-  let done = false;
-  return async function () {
-    if (done) return;
-    done = true;
+  flights: (function () {
+    let done = false;
+    return async function () {
+      if (done) return;
+      done = true;
 
-    const tbody = document.querySelector('#flightsTable tbody');
-    if (!tbody) return;
+      const tbody = document.querySelector('#flightsTable tbody');
+      if (!tbody) return;
 
-    let flights = [];
-    let dests = cache.destinations;
-    let bookings = cache.bookings;
+      let flights = [];
+      let dests = cache.destinations;
+      let bookings = cache.bookings;
 
-    // نجيب الفلايتس
-    try {
-      flights = await apiList('flights');
-    } catch (e) {
-      console.error('flights API error:', e);
-      flights = [];
-    }
-
-    // نجيب الديستنيشنز إذا مش بالكاش
-    if (!dests || !dests.length) {
       try {
-        dests = await apiList('destinations');
+        flights = await apiList('flights');
       } catch (e) {
-        console.error('destinations API error (for flights):', e);
-        dests = [];
+        console.error('flights API error:', e);
+        flights = [];
       }
-    }
 
-    // نجيب البوكنجز عشان التشارتس
-    if (!bookings || !bookings.length) {
-      try {
-        bookings = await apiList('bookings');
-      } catch (e) {
-        console.error('bookings API error (for flights charts):', e);
-        bookings = [];
+      if (!dests || !dests.length) {
+        try {
+          dests = await apiList('destinations');
+        } catch (e) {
+          console.error('destinations API error (for flights):', e);
+          dests = [];
+        }
       }
-    }
 
-    // ================== جدول الفلايتس ==================
-    tbody.innerHTML = '';
+      if (!bookings || !bookings.length) {
+        try {
+          bookings = await apiList('bookings');
+        } catch (e) {
+          console.error('bookings API error (for flights charts):', e);
+          bookings = [];
+        }
+      }
 
-    (flights || []).forEach((f) => {
-      const dest = dests.find((d) => String(d.id) === String(f.destination_id));
-      const destName = dest ? dest.name : '—';
-      const destCity = dest ? dest.city : (f.destination_city || '—');
+      tbody.innerHTML = '';
 
-      const originCity = f.origin_city || 'Amman';
-      const route = `${originCity} → ${destCity}`;
+      (flights || []).forEach((f) => {
+        const dest = dests.find((d) => String(d.id) === String(f.destination_id));
+        const destName = dest ? dest.name : '—';
+        const destCity = dest ? dest.city : f.destination_city || '—';
 
-      const departDate = f.departure_date || f.depart_date || '—';
-      const returnDate = f.return_date || '—';
-      const departTime = f.departure_time || '—';
-      const arriveTime = f.arrival_time || '—';
-      const duration =
-        f.duration_hours != null ? Number(f.duration_hours).toFixed(1) : '—';
-      const stops =
-        f.stops_count != null ? Number(f.stops_count) : 0;
+        const originCity = f.origin_city || 'Amman';
+        const route = `${originCity} → ${destCity}`;
 
-      const price = `$${Number(f.base_price || 0).toFixed(2)}`;
-      const currency = f.currency || 'USD';
-      const active = f.is_active ? 'Yes' : 'No';
+        const departDate = f.departure_date || f.depart_date || '—';
+        const returnDate = f.return_date || '—';
+        const departTime = f.departure_time || '—';
+        const arriveTime = f.arrival_time || '—';
+        const duration =
+          f.duration_hours != null ? Number(f.duration_hours).toFixed(1) : '—';
+        const stops = f.stops_count != null ? Number(f.stops_count) : 0;
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+        const price = `$${Number(f.base_price || 0).toFixed(2)}`;
+        const currency = f.currency || 'USD';
+        const active = f.is_active ? 'Yes' : 'No';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
         <td>${f.airline_name || '—'}</td>
         <td>${f.flight_number || '—'}</td>
         <td>${destName}</td>
@@ -956,158 +945,148 @@ flights: (function () {
         <td>${price}</td>
         <td>${currency}</td>
         <td>${active}</td>
-        <td>${actions({ edit: true, del: true }, f.id, 'flights')}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+        <td>${actions({ edit: true, del: true }, f.id, 'flights')}</td>`;
+        tbody.appendChild(tr);
+      });
 
-    $('#flightsTable').DataTable({
-      pageLength: 7,
-      order: [[5, 'asc']],                // حسب تاريخ الإقلاع
-      columnDefs: [{ targets: [14], orderable: false }]
-    });
+      $('#flightsTable').DataTable({
+        pageLength: 7,
+        order: [[5, 'asc']],
+        columnDefs: [{ targets: [14], orderable: false }]
+      });
 
-    applyDtDarkSkin();
+      applyDtDarkSkin();
 
-    // ================== التشارتس الديناميكية ==================
-    const css = getComputedStyle(document.documentElement);
-    const p1 = css.getPropertyValue('--p1').trim();
-    const p3 = css.getPropertyValue('--p3').trim();
-    const p5 = css.getPropertyValue('--p5').trim() || resolveAlpha(p3, 0.4);
+      const css = getComputedStyle(document.documentElement);
+      const p1 = css.getPropertyValue('--p1').trim();
+      const p3 = css.getPropertyValue('--p3').trim();
+      const p5 = css.getPropertyValue('--p5').trim() || resolveAlpha(p3, 0.4);
 
-    // نحسب إحصائيات البوكنجز تبعات الفلايتس
-const flightBookings = (bookings || []).filter(
-  (b) => b.flight_id != null && b.flight_id !== ''
-);
-    let onTimeCount = 0;
-    let delayedCount = 0;
-    let cancelledCount = 0;
+      const flightBookings = (bookings || []).filter(
+        (b) => b.flight_id != null && b.flight_id !== ''
+      );
 
-    flightBookings.forEach((b) => {
-      const st = (b.booking_status || '').toLowerCase();
-      if (st === 'confirmed') onTimeCount++;
-      else if (st === 'cancelled') cancelledCount++;
-      else delayedCount++; // أي شيء غير هيك بنعتبره delayed
-    });
+      let onTimeCount = 0;
+      let delayedCount = 0;
+      let cancelledCount = 0;
 
-    const totalForDonut = onTimeCount + delayedCount + cancelledCount;
-    const donutData =
-      totalForDonut > 0
-        ? [onTimeCount, delayedCount, cancelledCount]
-        : [68, 22, 10]; // fallback لو ما في داتا
+      flightBookings.forEach((b) => {
+        const st = (b.booking_status || '').toLowerCase();
+        if (st === 'confirmed') onTimeCount++;
+        else if (st === 'cancelled') cancelledCount++;
+        else delayedCount++;
+      });
 
-    if (document.getElementById('flightsDonut')) {
-      new Chart(document.getElementById('flightsDonut'), {
-        type: 'doughnut',
-        data: {
-          labels: ['On-Time', 'Delayed', 'Cancelled'],
-          datasets: [
-            {
-              data: donutData,
-              backgroundColor: [p1, p3, p5]
-            }
-          ]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } },
-          cutout: '58%',
-          maintainAspectRatio: false
+      const totalForDonut = onTimeCount + delayedCount + cancelledCount;
+      const donutData =
+        totalForDonut > 0 ? [onTimeCount, delayedCount, cancelledCount] : [68, 22, 10];
+
+      if (document.getElementById('flightsDonut')) {
+        new Chart(document.getElementById('flightsDonut'), {
+          type: 'doughnut',
+          data: {
+            labels: ['On-Time', 'Delayed', 'Cancelled'],
+            datasets: [
+              {
+                data: donutData,
+                backgroundColor: [p1, p3, p5]
+              }
+            ]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '58%',
+            maintainAspectRatio: false
+          }
+        });
+      }
+
+      const airlineStats = {};
+
+      flightBookings.forEach((b) => {
+        const fl = flights.find((f) => String(f.id) === String(b.flight_id));
+        if (!fl || !fl.airline_name) return;
+        const name = fl.airline_name;
+
+        if (!airlineStats[name]) airlineStats[name] = { total: 0, onTime: 0 };
+        airlineStats[name].total++;
+        if ((b.booking_status || '').toLowerCase() === 'confirmed') {
+          airlineStats[name].onTime++;
         }
       });
-    }
 
-    // ---------- Airline OTP % ----------
-    const airlineStats = {}; // { 'Royal Jordanian': {total:.., onTime:..}, ... }
+      let labels = Object.keys(airlineStats);
+      let otpValues = labels.map((name) => {
+        const s = airlineStats[name];
+        return s.total > 0 ? Math.round((s.onTime / s.total) * 100) : 0;
+      });
 
-    flightBookings.forEach((b) => {
-      const fl = flights.find((f) => String(f.id) === String(b.flight_id));
-      if (!fl || !fl.airline_name) return;
-      const name = fl.airline_name;
-
-      if (!airlineStats[name]) airlineStats[name] = { total: 0, onTime: 0 };
-      airlineStats[name].total++;
-      if ((b.booking_status || '').toLowerCase() === 'confirmed') {
-        airlineStats[name].onTime++;
+      if (!labels.length) {
+        labels = ['RJ', 'EK', 'QR', 'SV'];
+        otpValues = [92, 86, 88, 83];
       }
-    });
 
-    let labels = Object.keys(airlineStats);
-    let otpValues = labels.map((name) => {
-      const s = airlineStats[name];
-      return s.total > 0 ? Math.round((s.onTime / s.total) * 100) : 0;
-    });
-
-    // لو ما في داتا، نرجع للـ sample
-    if (!labels.length) {
-      labels = ['RJ', 'EK', 'QR', 'SV'];
-      otpValues = [92, 86, 88, 83];
-    }
-
-    if (document.getElementById('flightsBar')) {
-      new Chart(document.getElementById('flightsBar'), {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            { label: 'OTP %', data: otpValues, backgroundColor: p3 }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              grid: { color: getGridColor() }
+      if (document.getElementById('flightsBar')) {
+        new Chart(document.getElementById('flightsBar'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{ label: 'OTP %', data: otpValues, backgroundColor: p3 }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: getGridColor() }
+              }
             }
           }
-        }
-      });
-    }
-  };
-})(),
-
-  // ---------- Hotels ----------
-  // ---------- Hotels ----------
-hotels: (function () {
-  let done = false;
-  return async function () {
-    if (done) return;
-    done = true;
-
-    const tbody = document.querySelector('#hotelsTable tbody');
-    if (!tbody) return;
-
-    let hotels = [];
-    let dests = cache.destinations;
-
-    try {
-      hotels = await apiList('hotels');
-    } catch (e) {
-      console.error('hotels API error:', e);
-      hotels = [];
-    }
-
-    if (!dests || !dests.length) {
-      try {
-        dests = await apiList('destinations');
-      } catch (e) {
-        console.error('destinations API error (for hotels):', e);
-        dests = [];
+        });
       }
-    }
+    };
+  })(),
 
-    // ================== جدول الفنادق ==================
-    tbody.innerHTML = '';
-    (hotels || []).forEach((h) => {
-      const dest = dests.find((d) => d.id === h.destination_id);
-      const destName = dest ? dest.name : '—';
-      const city = dest ? dest.city : '—';
-      const country = dest ? dest.country : '—';
+  // ---------- Hotels ----------
+  hotels: (function () {
+    let done = false;
+    return async function () {
+      if (done) return;
+      done = true;
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+      const tbody = document.querySelector('#hotelsTable tbody');
+      if (!tbody) return;
+
+      let hotels = [];
+      let dests = cache.destinations;
+
+      try {
+        hotels = await apiList('hotels');
+      } catch (e) {
+        console.error('hotels API error:', e);
+        hotels = [];
+      }
+
+      if (!dests || !dests.length) {
+        try {
+          dests = await apiList('destinations');
+        } catch (e) {
+          console.error('destinations API error (for hotels):', e);
+          dests = [];
+        }
+      }
+
+      tbody.innerHTML = '';
+      (hotels || []).forEach((h) => {
+        const dest = dests.find((d) => d.id === h.destination_id);
+        const destName = dest ? dest.name : '—';
+        const city = dest ? dest.city : '—';
+        const country = dest ? dest.country : '—';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
         <td>${h.id}</td>
         <td>${h.name || '—'}</td>
         <td>${destName}</td>
@@ -1120,135 +1099,117 @@ hotels: (function () {
         <td>${h.is_active ? 'Yes' : 'No'}</td>
         <td>${h.created_at || '—'}</td>
         <td>${actions({ edit: true, del: true }, h.id, 'hotels')}</td>`;
-      tbody.appendChild(tr);
-    });
-
-    $('#hotelsTable').DataTable({
-      pageLength: 7,
-      order: [[1, 'asc']],
-      columnDefs: [{ targets: [11], orderable: false }]
-    });
-    applyDtDarkSkin();
-
-    // ================== نحضّر الداتا للتشارتس ==================
-
-    // 1) Occupancy: بنقيس "نسبة إشغال" تقريبية من معدّل الـ rating لكل مدينة
-    const cityStats = {};
-    (hotels || []).forEach((h) => {
-      const dest = dests.find((d) => d.id === h.destination_id);
-      const city = dest ? dest.city : 'Other';
-      const r = parseFloat(h.rating) || 0;
-      if (!cityStats[city]) cityStats[city] = { sumRating: 0, count: 0 };
-      cityStats[city].sumRating += r;
-      cityStats[city].count += 1;
-    });
-
-    let occLabels = [];
-    let occValues = [];
-
-    const cityNames = Object.keys(cityStats);
-    if (cityNames.length > 0) {
-      cityNames.forEach((c) => {
-        const { sumRating, count } = cityStats[c];
-        const avgRating = count ? sumRating / count : 0;
-        const occ = Math.round((avgRating / 5) * 100); // من 0–5 → 0–100%
-        occLabels.push(c);
-        occValues.push(occ);
+        tbody.appendChild(tr);
       });
-    } else {
-      // لو ما في ولا فندق/داتا → نرجع للـ Sample
-      occLabels = ['Amman', 'Istanbul', 'Dubai', 'Cairo'];
-      occValues = [78, 84, 88, 69];
-    }
 
-    // 2) Star rating mix: توزيع عدد الفنادق حسب ★5 / ★4 / ★3 / ★2 وأقل
-    const starBuckets = { 5: 0, 4: 0, 3: 0, 2: 0 };
-    (hotels || []).forEach((h) => {
-      const r = parseFloat(h.rating);
-      if (!r) return;
-      if (r >= 4.5) starBuckets[5] += 1;
-      else if (r >= 3.5) starBuckets[4] += 1;
-      else if (r >= 2.5) starBuckets[3] += 1;
-      else starBuckets[2] += 1;
-    });
+      $('#hotelsTable').DataTable({
+        pageLength: 7,
+        order: [[1, 'asc']],
+        columnDefs: [{ targets: [11], orderable: false }]
+      });
+      applyDtDarkSkin();
 
-    let starData = [
-      starBuckets[5],
-      starBuckets[4],
-      starBuckets[3],
-      starBuckets[2]
-    ];
+      const cityStats = {};
+      (hotels || []).forEach((h) => {
+        const dest = dests.find((d) => d.id === h.destination_id);
+        const city = dest ? dest.city : 'Other';
+        const r = parseFloat(h.rating) || 0;
+        if (!cityStats[city]) cityStats[city] = { sumRating: 0, count: 0 };
+        cityStats[city].sumRating += r;
+        cityStats[city].count += 1;
+      });
 
-    const totalStars = starData.reduce((s, x) => s + x, 0);
-    if (!totalStars) {
-      // برضو لو ما في داتا، نرجع للأرقام القديمة
-      starData = [25, 45, 22, 8];
-    }
+      let occLabels = [];
+      let occValues = [];
 
-    // ================== رسم التشارتس ==================
-    const css = getComputedStyle(document.documentElement);
-    const p1 = css.getPropertyValue('--p1').trim();
-    const pink1 =
-      (css.getPropertyValue('--pink1') || css.getPropertyValue('--p3')).trim();
+      const cityNames = Object.keys(cityStats);
+      if (cityNames.length > 0) {
+        cityNames.forEach((c) => {
+          const { sumRating, count } = cityStats[c];
+          const avgRating = count ? sumRating / count : 0;
+          const occ = Math.round((avgRating / 5) * 100);
+          occLabels.push(c);
+          occValues.push(occ);
+        });
+      } else {
+        occLabels = ['Amman', 'Istanbul', 'Dubai', 'Cairo'];
+        occValues = [78, 84, 88, 69];
+      }
 
-    // Occupancy line chart
-    if (document.getElementById('hotelsLine')) {
-      new Chart(document.getElementById('hotelsLine'), {
-        type: 'line',
-        data: {
-          labels: occLabels,
-          datasets: [
-            {
-              label: 'Occupancy %',
-              data: occValues,
-              tension: 0.35,
-              borderWidth: 2,
-              pointRadius: 3,
-              borderColor: p1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              grid: { color: getGridColor() }
+      const starBuckets = { 5: 0, 4: 0, 3: 0, 2: 0 };
+      (hotels || []).forEach((h) => {
+        const r = parseFloat(h.rating);
+        if (!r) return;
+        if (r >= 4.5) starBuckets[5] += 1;
+        else if (r >= 3.5) starBuckets[4] += 1;
+        else if (r >= 2.5) starBuckets[3] += 1;
+        else starBuckets[2] += 1;
+      });
+
+      let starData = [starBuckets[5], starBuckets[4], starBuckets[3], starBuckets[2]];
+      const totalStars = starData.reduce((s, x) => s + x, 0);
+      if (!totalStars) starData = [25, 45, 22, 8];
+
+      const css = getComputedStyle(document.documentElement);
+      const p1 = css.getPropertyValue('--p1').trim();
+      const pink1 =
+        (css.getPropertyValue('--pink1') || css.getPropertyValue('--p3')).trim();
+
+      if (document.getElementById('hotelsLine')) {
+        new Chart(document.getElementById('hotelsLine'), {
+          type: 'line',
+          data: {
+            labels: occLabels,
+            datasets: [
+              {
+                label: 'Occupancy %',
+                data: occValues,
+                tension: 0.35,
+                borderWidth: 2,
+                pointRadius: 3,
+                borderColor: p1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: getGridColor() }
+              }
             }
           }
-        }
-      });
-    }
+        });
+      }
 
-    // Star rating pie chart
-    if (document.getElementById('hotelsPie')) {
-      new Chart(document.getElementById('hotelsPie'), {
-        type: 'pie',
-        data: {
-          labels: ['★5', '★4', '★3', '★2'],
-          datasets: [
-            {
-              data: starData,
-              backgroundColor: [
-                p1,
-                pink1,
-                resolveAlpha(p1, 0.35),
-                resolveAlpha(pink1, 0.35)
-              ]
-            }
-          ]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } },
-          maintainAspectRatio: false
-        }
-      });
-    }
-  };
-})(),
-
+      if (document.getElementById('hotelsPie')) {
+        new Chart(document.getElementById('hotelsPie'), {
+          type: 'pie',
+          data: {
+            labels: ['★5', '★4', '★3', '★2'],
+            datasets: [
+              {
+                data: starData,
+                backgroundColor: [
+                  p1,
+                  pink1,
+                  resolveAlpha(p1, 0.35),
+                  resolveAlpha(pink1, 0.35)
+                ]
+              }
+            ]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } },
+            maintainAspectRatio: false
+          }
+        });
+      }
+    };
+  })(),
 
   // ---------- Packages ----------
   packages: (function () {
@@ -1308,55 +1269,54 @@ hotels: (function () {
 
       $('#packagesTable').DataTable({
         pageLength: 7,
-        order: [[1, 'asc']], // نرتّب على العنوان
-        columnDefs: [{ targets: [12], orderable: false }] // actions = آخر عمود (index 12)
+        order: [[1, 'asc']],
+        columnDefs: [{ targets: [12], orderable: false }]
       });
       applyDtDarkSkin();
     };
   })(),
 
   // ---------- Bookings ----------
- // ---------- Bookings ----------
-bookings: (function () {
-  let done = false;
-  return async function () {
-    if (done) return;
-    done = true;
+  bookings: (function () {
+    let done = false;
+    return async function () {
+      if (done) return;
+      done = true;
 
-    const tbody = document.querySelector('#bookingsTable tbody');
-    if (!tbody) return;
+      const tbody = document.querySelector('#bookingsTable tbody');
+      if (!tbody) return;
 
-    let bookings = [];
-    let users = cache.users;
+      let bookings = [];
+      let users = cache.users;
 
-    try {
-      bookings = await apiList('bookings');
-    } catch (e) {
-      console.error('bookings API error:', e);
-      bookings = [];
-    }
-
-    if (!users || !users.length) {
       try {
-        users = await apiList('users');
+        bookings = await apiList('bookings');
       } catch (e) {
-        console.error('users API error (for bookings):', e);
-        users = [];
+        console.error('bookings API error:', e);
+        bookings = [];
       }
-    }
 
-    tbody.innerHTML = '';
-    (bookings || []).forEach((b) => {
-      const u = users.find((u) => u.id === b.user_id);
-      const uname =
-        (u &&
-          ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-            u.username ||
-            u.email)) ||
-        `#${b.user_id}`;
+      if (!users || !users.length) {
+        try {
+          users = await apiList('users');
+        } catch (e) {
+          console.error('users API error (for bookings):', e);
+          users = [];
+        }
+      }
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+      tbody.innerHTML = '';
+      (bookings || []).forEach((b) => {
+        const u = users.find((u) => u.id === b.user_id);
+        const uname =
+          (u &&
+            ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
+              u.username ||
+              u.email)) ||
+          `#${b.user_id}`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
         <td>${b.booking_code || b.id}</td>
         <td>${uname}</td>
         <td>${b.booking_type || 'bundle'}</td>
@@ -1365,180 +1325,166 @@ bookings: (function () {
         <td>${b.trip_end_date || '—'}</td>
         <td>$${Number(b.total_amount || 0).toFixed(2)}</td>
         <td>${b.currency || 'USD'}</td>
-        <td>${b.payment_status || 'pending'}</td>
         <td>${b.booking_status || 'pending'}</td>
         <td>${b.created_at || '—'}</td>
-        <td>${actions({ edit: true, cancel: true }, b.id, 'bookings')}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    $('#bookingsTable').DataTable({
-      pageLength: 7,
-      order: [[10, 'desc']],          // حسب عمود "CREATED"
-      columnDefs: [{ targets: [11], orderable: false }] // actions
-    });
-    applyDtDarkSkin();
-
-    // ================= Charts for Bookings =================
-
-    const css = getComputedStyle(document.documentElement);
-    const p1 = css.getPropertyValue('--p1').trim();  // لون رئيسي
-    const p3 = css.getPropertyValue('--p3').trim();  // لون ثاني
-
-    // ------- 1) Bookings by Type (doughnut) -------
-    if (document.getElementById('bookingsTypeChart')) {
-      const typeCounts = {
-        flight: 0,
-        hotel: 0,
-        package: 0,
-        bundle: 0,
-        other: 0
-      };
-
-      (bookings || []).forEach((b) => {
-        const t = (b.booking_type || 'other').toLowerCase();
-        if (typeCounts.hasOwnProperty(t)) typeCounts[t]++;
-        else typeCounts.other++;
+        <td>${actions({ edit: true, cancel: true }, b.id, 'bookings')}</td>`;
+        tbody.appendChild(tr);
       });
 
-      const labels = ['Flight', 'Hotel', 'Package', 'Bundle', 'Other'];
-      const dataVals = [
-        typeCounts.flight,
-        typeCounts.hotel,
-        typeCounts.package,
-        typeCounts.bundle,
-        typeCounts.other
-      ];
-
-      new Chart(document.getElementById('bookingsTypeChart'), {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [
-            {
-              data: dataVals,
-              backgroundColor: [
-                p1,
-                p3,
-                resolveAlpha(p1, 0.6),
-                resolveAlpha(p3, 0.6),
-                '#d6ccff'
-              ]
-            }
-          ]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } },
-          cutout: '58%',
-          maintainAspectRatio: false
-        }
+      $('#bookingsTable').DataTable({
+        pageLength: 7,
+        order: [[9, 'desc']],
+        columnDefs: [{ targets: [10], orderable: false }]
       });
-    }
+      applyDtDarkSkin();
 
-    // ------- 2) Daily Bookings (last 7 days) -------
-    if (document.getElementById('bookingsDailyChart')) {
-      const today = new Date();
-      const labels = [];
-      const counts = [];
+      const css = getComputedStyle(document.documentElement);
+      const p1 = css.getPropertyValue('--p1').trim();
+      const p3 = css.getPropertyValue('--p3').trim();
 
-      // نجهز آخر 7 أيام
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
-        labels.push(key);
-        counts.push(0);
+      if (document.getElementById('bookingsTypeChart')) {
+        const typeCounts = {
+          flight: 0,
+          hotel: 0,
+          package: 0,
+          bundle: 0,
+          other: 0
+        };
+
+        (bookings || []).forEach((b) => {
+          const t = (b.booking_type || 'other').toLowerCase();
+          if (typeCounts.hasOwnProperty(t)) typeCounts[t]++;
+          else typeCounts.other++;
+        });
+
+        const labels = ['Flight', 'Hotel', 'Package', 'Bundle', 'Other'];
+        const dataVals = [
+          typeCounts.flight,
+          typeCounts.hotel,
+          typeCounts.package,
+          typeCounts.bundle,
+          typeCounts.other
+        ];
+
+        new Chart(document.getElementById('bookingsTypeChart'), {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [
+              {
+                data: dataVals,
+                backgroundColor: [
+                  p1,
+                  p3,
+                  resolveAlpha(p1, 0.6),
+                  resolveAlpha(p3, 0.6),
+                  '#d6ccff'
+                ]
+              }
+            ]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '58%',
+            maintainAspectRatio: false
+          }
+        });
       }
 
-      // نعدّ لكل يوم كم booking (من created_at)
-      (bookings || []).forEach((b) => {
-        const created = (b.created_at || '').slice(0, 10);
-        const idx = labels.indexOf(created);
-        if (idx !== -1) counts[idx]++;
-      });
+      if (document.getElementById('bookingsDailyChart')) {
+        const today = new Date();
+        const labels = [];
+        const counts = [];
 
-      new Chart(document.getElementById('bookingsDailyChart'), {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Bookings',
-              data: counts,
-              tension: 0.35,
-              borderWidth: 2,
-              pointRadius: 3,
-              fill: true,
-              borderColor: p1,
-              backgroundColor: resolveAlpha(p1, 0.18)
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: getGridColor() }
-            },
-            x: {
-              grid: { display: false }
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const key = d.toISOString().slice(0, 10);
+          labels.push(key);
+          counts.push(0);
+        }
+
+        (bookings || []).forEach((b) => {
+          const created = (b.created_at || '').slice(0, 10);
+          const idx = labels.indexOf(created);
+          if (idx !== -1) counts[idx]++;
+        });
+
+        new Chart(document.getElementById('bookingsDailyChart'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Bookings',
+                data: counts,
+                tension: 0.35,
+                borderWidth: 2,
+                pointRadius: 3,
+                fill: true,
+                borderColor: p1,
+                backgroundColor: resolveAlpha(p1, 0.18)
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: getGridColor() }
+              },
+              x: { grid: { display: false } }
             }
           }
-        }
-      });
-    }
-  };
-})(),
-
+        });
+      }
+    };
+  })(),
 
   // ---------- Payments ----------
-// ---------- Payments ----------
-payments: (function () {
-  let done = false;
-  return async function () {
-    if (done) return;
-    done = true;
+  payments: (function () {
+    let done = false;
+    return async function () {
+      if (done) return;
+      done = true;
 
-    const tbody = document.querySelector('#paymentsTable tbody');
-    if (!tbody) return;
+      const tbody = document.querySelector('#paymentsTable tbody');
+      if (!tbody) return;
 
-    let payments = [];
-    let users = cache.users;
+      let payments = [];
+      let users = cache.users;
 
-    try {
-      payments = await apiList('payments');
-    } catch (e) {
-      console.error('payments API error:', e);
-      payments = [];
-    }
-
-    if (!users || !users.length) {
       try {
-        users = await apiList('users');
+        payments = await apiList('payments');
       } catch (e) {
-        console.error('users API error (for payments):', e);
-        users = [];
+        console.error('payments API error:', e);
+        payments = [];
       }
-    }
 
-    tbody.innerHTML = '';
-    (payments || []).forEach((p) => {
-      const u = users.find((u) => u.id === p.user_id);
-      const uname =
-        (u &&
-          ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-            u.username ||
-            u.email)) ||
-        (p.user_id ? `#${p.user_id}` : '—');
+      if (!users || !users.length) {
+        try {
+          users = await apiList('users');
+        } catch (e) {
+          console.error('users API error (for payments):', e);
+          users = [];
+        }
+      }
 
-      const tr = document.createElement('tr');
+      tbody.innerHTML = '';
+      (payments || []).forEach((p) => {
+        const u = users.find((u) => u.id === p.user_id);
+        const uname =
+          (u &&
+            ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
+              u.username ||
+              u.email)) ||
+          (p.user_id ? `#${p.user_id}` : '—');
 
-      // ID, Booking, User, Method, Amount, Currency, Status, Created, Actions
-      tr.innerHTML = `
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
         <td>${p.gateway_reference || p.id}</td>
         <td>${p.booking_id}</td>
         <td>${uname}</td>
@@ -1547,135 +1493,121 @@ payments: (function () {
         <td>${p.currency || 'USD'}</td>
         <td>${badge(p.status || 'pending')}</td>
         <td>${p.created_at || '—'}</td>
-        <td>${actions({ edit: true, refund: true }, p.id, 'payments')}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    $('#paymentsTable').DataTable({
-      pageLength: 7,
-      order: [[7, 'desc']], // حسب تاريخ الدفع
-      columnDefs: [{ targets: [8], orderable: false }] // Actions col
-    });
-    applyDtDarkSkin();
-
-    // ================= Charts for Payments =================
-    const css = getComputedStyle(document.documentElement);
-    const p1 = css.getPropertyValue('--p1').trim();
-    const p3 = css.getPropertyValue('--p3').trim();
-
-    // ------- 1) Methods Split (doughnut) -------
-    if (document.getElementById('payDoughnut')) {
-      const methodCounts = {
-        visa: 0,
-        mastercard: 0,
-        cashcard: 0,
-        other: 0
-      };
-
-      (payments || []).forEach((p) => {
-        const m = (p.payment_method || p.card_brand || '').toLowerCase();
-        if (m.includes('visa')) methodCounts.visa++;
-        else if (m.includes('master')) methodCounts.mastercard++;
-        else if (m.includes('cash')) methodCounts.cashcard++;
-        else methodCounts.other++;
+        <td>${actions({ edit: true, refund: true }, p.id, 'payments')}</td>`;
+        tbody.appendChild(tr);
       });
 
-      const labels = ['Visa', 'Mastercard', 'Cashcard', 'Other'];
-      const dataVals = [
-        methodCounts.visa,
-        methodCounts.mastercard,
-        methodCounts.cashcard,
-        methodCounts.other
-      ];
-
-      new Chart(document.getElementById('payDoughnut'), {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [
-            {
-              data: dataVals,
-              backgroundColor: [
-                p1,
-                p3,
-                resolveAlpha(p1, 0.45),
-                '#d6ccff'
-              ]
-            }
-          ]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } },
-          cutout: '58%',
-          maintainAspectRatio: false
-        }
+      $('#paymentsTable').DataTable({
+        pageLength: 7,
+        order: [[7, 'desc']],
+        columnDefs: [{ targets: [8], orderable: false }]
       });
-    }
+      applyDtDarkSkin();
 
-// ------- 2) Daily Payments (last 14 days including today) -------
-if (document.getElementById('payLine')) {
-  const today = new Date();
-  const dayKeys = [];
-  const labels = [];
-  const sums = [];
+      const css = getComputedStyle(document.documentElement);
+      const p1 = css.getPropertyValue('--p1').trim();
+      const p3 = css.getPropertyValue('--p3').trim();
 
-  // آخر 14 يوم **من اليوم نفسه (D-0) لغاية D-13**
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const iso = d.toISOString().slice(0, 10); // YYYY-MM-DD
-    dayKeys.push(iso);
-    labels.push(i === 0 ? 'Today' : `D-${i}`);
-    sums.push(0);
-  }
+      if (document.getElementById('payDoughnut')) {
+        const methodCounts = {
+          visa: 0,
+          mastercard: 0,
+          cashcard: 0,
+          other: 0
+        };
 
-  (payments || []).forEach((p) => {
-    const dateSrc = p.created_at || p.payment_date || p.paid_at;
-    if (!dateSrc) return;
-    const day = String(dateSrc).slice(0, 10);
-    const idx = dayKeys.indexOf(day);
-    if (idx !== -1) {
-      sums[idx] += Number(p.amount_total || p.amount || 0);
-    }
-  });
+        (payments || []).forEach((p) => {
+          const m = (p.payment_method || p.card_brand || '').toLowerCase();
+          if (m.includes('visa')) methodCounts.visa++;
+          else if (m.includes('master')) methodCounts.mastercard++;
+          else if (m.includes('cash')) methodCounts.cashcard++;
+          else methodCounts.other++;
+        });
 
-  new Chart(document.getElementById('payLine'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Payments',
-          data: sums,
-          tension: 0.35,
-          borderWidth: 2,
-          pointRadius: 3,
-          borderColor: p1,
-          fill: true,
-          backgroundColor: resolveAlpha(p1, 0.18)
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: getGridColor() }
-        },
-        x: {
-          grid: { display: false }
-        }
+        const labels = ['Visa', 'Mastercard', 'Cashcard', 'Other'];
+        const dataVals = [
+          methodCounts.visa,
+          methodCounts.mastercard,
+          methodCounts.cashcard,
+          methodCounts.other
+        ];
+
+        new Chart(document.getElementById('payDoughnut'), {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [
+              {
+                data: dataVals,
+                backgroundColor: [p1, p3, resolveAlpha(p1, 0.45), '#d6ccff']
+              }
+            ]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '58%',
+            maintainAspectRatio: false
+          }
+        });
       }
-    }
-  });
-}
 
-  };
-})()
+      if (document.getElementById('payLine')) {
+        const today = new Date();
+        const dayKeys = [];
+        const labels = [];
+        const sums = [];
 
+        for (let i = 13; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const iso = d.toISOString().slice(0, 10);
+          dayKeys.push(iso);
+          labels.push(i === 0 ? 'Today' : `D-${i}`);
+          sums.push(0);
+        }
+
+        (payments || []).forEach((p) => {
+          const dateSrc = p.created_at || p.payment_date || p.paid_at;
+          if (!dateSrc) return;
+          const day = String(dateSrc).slice(0, 10);
+          const idx = dayKeys.indexOf(day);
+          if (idx !== -1) {
+            sums[idx] += Number(p.amount_total || p.amount || 0);
+          }
+        });
+
+        new Chart(document.getElementById('payLine'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Payments',
+                data: sums,
+                tension: 0.35,
+                borderWidth: 2,
+                pointRadius: 3,
+                borderColor: p1,
+                fill: true,
+                backgroundColor: resolveAlpha(p1, 0.18)
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: getGridColor() }
+              },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+    };
+  })()
 };
 
 // ===================== Forms (CRUD) =====================
@@ -1701,7 +1633,7 @@ async function getDestinationOptions() {
   return rows.map((row) => ({
     value: row.id,
     label: `${row.name} (${row.city}, ${row.country})`,
-    city: row.city // 👈 مهم
+    city: row.city
   }));
 }
 
@@ -1746,8 +1678,8 @@ function fieldCheckbox(label, name, checked) {
   return `
   <div class="col-md-4 form-check mt-4">
     <input class="form-check-input" type="checkbox" id="${name}" name="${name}" ${
-      checked ? 'checked' : ''
-    }>
+    checked ? 'checked' : ''
+  }>
     <label class="form-check-label" for="${name}">${label}</label>
   </div>`;
 }
@@ -1767,7 +1699,12 @@ async function buildForm(entity, mode, data) {
     body += fieldText('Last Name', 'last_name', 'text', data?.last_name);
     body += fieldText('Display Name', 'display_name', 'text', data?.display_name);
     body += fieldText('Email', 'email', 'email', data?.email);
-    body += fieldText('Password (hash or plain to hash later)', 'password_hash', 'text', '');
+    body += fieldText(
+      'Password (hash or plain to hash later)',
+      'password_hash',
+      'text',
+      ''
+    );
     body += fieldText('Avatar URL', 'avatar_url', 'url', data?.avatar_url);
     body += fieldCheckbox('Is Super Admin', 'is_super', data?.is_super);
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
@@ -1777,7 +1714,12 @@ async function buildForm(entity, mode, data) {
     body += fieldText('Username', 'username', 'text', data?.username);
     body += fieldText('Email', 'email', 'email', data?.email);
     body += fieldText('Birth Date', 'birth_date', 'date', data?.birth_date);
-    body += fieldText('Password (hash or plain to hash later)', 'password_hash', 'text', '');
+    body += fieldText(
+      'Password (hash or plain to hash later)',
+      'password_hash',
+      'text',
+      ''
+    );
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
   } else if (entity === 'destinations') {
     body += fieldText('Name', 'name', 'text', data?.name);
@@ -1805,24 +1747,46 @@ async function buildForm(entity, mode, data) {
     const destOptions = await getDestinationOptions();
     body += fieldSelect('Destination', 'destination_id', destOptions, data?.destination_id);
     body += fieldText('Name', 'name', 'text', data?.name);
-    body += fieldText('Location Text (e.g., near center)', 'location_text', 'text', data?.location_text);
+    body += fieldText(
+      'Location Text (e.g., near center)',
+      'location_text',
+      'text',
+      data?.location_text
+    );
     body += fieldText('Rating (e.g., 4.5)', 'rating', 'number', data?.rating);
     body += fieldText('Reviews Count', 'reviews_count', 'number', data?.reviews_count);
-    body += fieldText('Price per Night (USD)', 'price_per_night', 'number', data?.price_per_night);
+    body += fieldText(
+      'Price per Night (USD)',
+      'price_per_night',
+      'number',
+      data?.price_per_night
+    );
     body += fieldText('Currency', 'currency', 'text', data?.currency || 'USD');
     body += fieldText('Discount %', 'discount_percent', 'number', data?.discount_percent);
     body += fieldTextarea('Description', 'description', data?.description);
     body += fieldCheckbox('Parking', 'has_parking', data?.has_parking);
-    body += fieldCheckbox('Attached Bathroom', 'has_attached_bathroom', data?.has_attached_bathroom);
+    body += fieldCheckbox(
+      'Attached Bathroom',
+      'has_attached_bathroom',
+      data?.has_attached_bathroom
+    );
     body += fieldCheckbox('CCTV', 'has_cctv', data?.has_cctv);
     body += fieldCheckbox('WiFi', 'has_wifi', data?.has_wifi);
     body += fieldCheckbox('Sea View', 'has_sea_view', data?.has_sea_view);
     body += fieldCheckbox('City View', 'has_city_view', data?.has_city_view);
-    body += fieldCheckbox('Free Breakfast', 'has_free_breakfast', data?.has_free_breakfast);
+    body += fieldCheckbox(
+      'Free Breakfast',
+      'has_free_breakfast',
+      data?.has_free_breakfast
+    );
     body += fieldCheckbox('Pay at Hotel', 'pay_at_hotel', data?.pay_at_hotel);
     body += fieldCheckbox('Couple Friendly', 'couple_friendly', data?.couple_friendly);
     body += fieldCheckbox('Pet Friendly', 'pet_friendly', data?.pet_friendly);
-    body += fieldCheckbox('Airport Shuttle', 'airport_shuttle', data?.airport_shuttle);
+    body += fieldCheckbox(
+      'Airport Shuttle',
+      'airport_shuttle',
+      data?.airport_shuttle
+    );
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
   } else if (entity === 'flights') {
     const destOptions = await getDestinationOptions();
@@ -1840,9 +1804,13 @@ async function buildForm(entity, mode, data) {
       data?.trip_type
     );
     body += fieldText('Origin City', 'origin_city', 'text', data?.origin_city);
-    body += fieldText('Origin Airport Code', 'origin_airport_code', 'text', data?.origin_airport_code);
+    body += fieldText(
+      'Origin Airport Code',
+      'origin_airport_code',
+      'text',
+      data?.origin_airport_code
+    );
 
-    // Destination City – auto-filled from destination select
     body += fieldText(
       'Destination City',
       'destination_city',
@@ -1851,14 +1819,34 @@ async function buildForm(entity, mode, data) {
       'readonly'
     );
 
-    body += fieldText('Destination Airport Code', 'destination_airport_code', 'text', data?.destination_airport_code);
+    body += fieldText(
+      'Destination Airport Code',
+      'destination_airport_code',
+      'text',
+      data?.destination_airport_code
+    );
     body += fieldText('Depart Date', 'depart_date', 'date', data?.depart_date);
     body += fieldText('Return Date (optional)', 'return_date', 'date', data?.return_date);
     body += fieldText('Departure Time', 'departure_time', 'time', data?.departure_time);
     body += fieldText('Arrival Time', 'arrival_time', 'time', data?.arrival_time);
-    body += fieldText('Return Departure Time', 'return_departure_time', 'time', data?.return_departure_time);
-    body += fieldText('Return Arrival Time', 'return_arrival_time', 'time', data?.return_arrival_time);
-    body += fieldText('Duration (hours)', 'duration_hours', 'number', data?.duration_hours);
+    body += fieldText(
+      'Return Departure Time',
+      'return_departure_time',
+      'time',
+      data?.return_departure_time
+    );
+    body += fieldText(
+      'Return Arrival Time',
+      'return_arrival_time',
+      'time',
+      data?.return_arrival_time
+    );
+    body += fieldText(
+      'Duration (hours)',
+      'duration_hours',
+      'number',
+      data?.duration_hours
+    );
     body += fieldText('Stops Count', 'stops_count', 'number', data?.stops_count);
     body += fieldText('Fare Subtitle', 'fare_subtitle', 'text', data?.fare_subtitle);
     body += fieldTextarea('Extras (JSON/Text)', 'extras', data?.extras);
@@ -1918,41 +1906,49 @@ async function buildForm(entity, mode, data) {
     );
     body += fieldText('Package ID (optional)', 'package_id', 'number', data?.package_id);
     body += fieldText('Booking Code', 'booking_code', 'text', data?.booking_code);
-    body += fieldText('Trip Start Date', 'trip_start_date', 'date', data?.trip_start_date);
+    body += fieldText(
+      'Trip Start Date',
+      'trip_start_date',
+      'date',
+      data?.trip_start_date
+    );
     body += fieldText('Trip End Date', 'trip_end_date', 'date', data?.trip_end_date);
-    body += fieldText('Adults', 'travellers_adults', 'number', data?.travellers_adults || 1);
-    body += fieldText('Children', 'travellers_children', 'number', data?.travellers_children || 0);
-    body += fieldText('Infants', 'travellers_infants', 'number', data?.travellers_infants || 0);
+    body += fieldText(
+      'Adults',
+      'travellers_adults',
+      'number',
+      data?.travellers_adults || 1
+    );
+    body += fieldText(
+      'Children',
+      'travellers_children',
+      'number',
+      data?.travellers_children || 0
+    );
+    body += fieldText(
+      'Infants',
+      'travellers_infants',
+      'number',
+      data?.travellers_infants || 0
+    );
     body += fieldText('Currency', 'currency', 'text', data?.currency || 'USD');
     body += fieldText('Amount Flight', 'amount_flight', 'number', data?.amount_flight);
     body += fieldText('Amount Hotel', 'amount_hotel', 'number', data?.amount_hotel);
-    body += fieldText('Amount Package', 'amount_package', 'number', data?.amount_package);
+    body += fieldText(
+      'Amount Package',
+      'amount_package',
+      'number',
+      data?.amount_package
+    );
     body += fieldText('Taxes', 'amount_taxes', 'number', data?.amount_taxes);
-    body += fieldText('Discount Amount', 'discount_amount', 'number', data?.discount_amount);
+    body += fieldText(
+      'Discount Amount',
+      'discount_amount',
+      'number',
+      data?.discount_amount
+    );
     body += fieldText('Coupon Code', 'coupon_code', 'text', data?.coupon_code);
     body += fieldText('Total Amount', 'total_amount', 'number', data?.total_amount);
-    body += fieldSelect(
-      'Payment Method',
-      'payment_method',
-      [
-        { value: '', label: '—' },
-        { value: 'visa', label: 'Visa' },
-        { value: 'mastercard', label: 'Mastercard' },
-        { value: 'cashcard', label: 'Cashcard' }
-      ],
-      data?.payment_method
-    );
-    body += fieldSelect(
-      'Payment Status',
-      'payment_status',
-      [
-        { value: 'pending', label: 'Pending' },
-        { value: 'paid', label: 'Paid' },
-        { value: 'failed', label: 'Failed' },
-        { value: 'refunded', label: 'Refunded' }
-      ],
-      data?.payment_status
-    );
     body += fieldSelect(
       'Booking Status',
       'booking_status',
@@ -1977,12 +1973,22 @@ async function buildForm(entity, mode, data) {
       ],
       data?.payment_method
     );
-    body += fieldText('Amount Subtotal', 'amount_subtotal', 'number', data?.amount_subtotal);
+    body += fieldText(
+      'Amount Subtotal',
+      'amount_subtotal',
+      'number',
+      data?.amount_subtotal
+    );
     body += fieldText('Amount Tax', 'amount_tax', 'number', data?.amount_tax);
-    body += fieldText('Amount Discount', 'amount_discount', 'number', data?.amount_discount);
+    body += fieldText(
+      'Amount Discount',
+      'amount_discount',
+      'number',
+      data?.amount_discount
+    );
     body += fieldText('Amount Total', 'amount_total', 'number', data?.amount_total);
     body += fieldText('Currency', 'currency', 'text', data?.currency || 'USD');
-    body += fieldText('Promo Code ID', 'promo_code_id', 'number', data?.promo_code_id);
+    body += fieldText('Promo Code', 'promo_code', 'text', data?.promo_code);
     body += fieldSelect(
       'Card Brand',
       'card_brand',
@@ -1995,7 +2001,12 @@ async function buildForm(entity, mode, data) {
       data?.card_brand
     );
     body += fieldText('Card Last4', 'card_last4', 'text', data?.card_last4);
-    body += fieldText('Card Holder Name', 'card_holder_name', 'text', data?.card_holder_name);
+    body += fieldText(
+      'Card Holder Name',
+      'card_holder_name',
+      'text',
+      data?.card_holder_name
+    );
     body += fieldText('Exp Month', 'exp_month', 'number', data?.exp_month);
     body += fieldText('Exp Year', 'exp_year', 'number', data?.exp_year);
     body += fieldCheckbox('Save Card', 'card_saved', data?.card_saved);
@@ -2010,7 +2021,12 @@ async function buildForm(entity, mode, data) {
       ],
       data?.status
     );
-    body += fieldText('Gateway Reference', 'gateway_reference', 'text', data?.gateway_reference);
+    body += fieldText(
+      'Gateway Reference',
+      'gateway_reference',
+      'text',
+      data?.gateway_reference
+    );
   }
 
   body += '</div>';
@@ -2023,7 +2039,6 @@ async function buildForm(entity, mode, data) {
   const modalBody = document.getElementById('formModalBody');
   modalBody.innerHTML = body;
 
-  // 🔗 تزامن Destination → Destination City في فورم الفلايتس
   if (entity === 'flights') {
     const destSelect = document.getElementById('destination_id');
     const destCityInput = document.getElementById('destination_city');
@@ -2035,10 +2050,7 @@ async function buildForm(entity, mode, data) {
         destCityInput.value = city;
       };
 
-      // أول ما يفتح المودال
       syncCity();
-
-      // كل ما نغيّر الـ Destination
       destSelect.addEventListener('change', syncCity);
     }
   }
@@ -2101,7 +2113,6 @@ document.addEventListener('click', async (e) => {
           alert('Deleted successfully.');
           location.reload();
         } else {
-          // cancel/refund منسلمهم للباك اند لاحقًا
           alert(label + ' (handled by backend later)');
         }
       } catch (err) {
@@ -2154,7 +2165,7 @@ const INT_FIELDS = {
     'travellers_children',
     'travellers_infants'
   ],
-  payments: ['booking_id', 'user_id', 'promo_code_id', 'exp_month', 'exp_year']
+  payments: ['booking_id', 'user_id', 'exp_month', 'exp_year']
 };
 
 const FLOAT_FIELDS = {
@@ -2182,12 +2193,10 @@ document.getElementById('entityForm')?.addEventListener('submit', async (e) => {
   const fd = new FormData(e.target);
   let payload = Object.fromEntries(fd.entries());
 
-  // checkboxes
   (BOOL_FIELDS[CURRENT_ENTITY] || []).forEach((k) => {
     payload[k] = fd.get(k) ? 1 : 0;
   });
 
-  // int
   (INT_FIELDS[CURRENT_ENTITY] || []).forEach((k) => {
     if (payload[k] !== undefined && payload[k] !== '') {
       payload[k] = parseInt(payload[k], 10);
@@ -2195,7 +2204,6 @@ document.getElementById('entityForm')?.addEventListener('submit', async (e) => {
     }
   });
 
-  // float
   (FLOAT_FIELDS[CURRENT_ENTITY] || []).forEach((k) => {
     if (payload[k] !== undefined && payload[k] !== '') {
       payload[k] = parseFloat(payload[k]);

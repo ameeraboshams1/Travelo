@@ -245,7 +245,7 @@ require __DIR__ . '/db.php';
               <th>Name</th>
               <th>Username</th>
               <th>Email</th>
-              <th>BIRTH DATE</th>   
+              <th>BIRTH DATE</th>
               <th>Active</th>
               <th>Created</th>
               <th>Actions</th>
@@ -482,8 +482,7 @@ require __DIR__ . '/db.php';
               <th>End</th>
               <th>Total</th>
               <th>Currency</th>
-              <th>Payment Status</th>
-              <th>Booking Status</th>
+              <th>Status</th> <!-- فقط booking_status من جدول bookings -->
               <th>Created</th>
               <th>Actions</th>
             </tr>
