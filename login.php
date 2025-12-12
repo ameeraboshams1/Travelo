@@ -13,7 +13,7 @@ $stmtAdmin->execute([$login]);
 
 if ($stmtAdmin->rowCount() == 1) {
     $admin = $stmtAdmin->fetch();
-    if ($password === $admin['password_hash']) {
+    if (password_verify($password, $admin['password_hash'])) {
         echo json_encode([
             "status" => "success",
             "role" => "admin"
