@@ -280,8 +280,8 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
             <li><a href="./index.php">Home</a></li>
             <li><a href="./fligths.php">Flights</a></li>
             <li><a href="./hotel.php">Hotels</a></li>
-            <li><a href="./packages.php" class="active">Packages</a></li>
-            <li><a href="./destination.php">Destinations</a></li>
+            <li><a href="./packages.php">Packages</a></li>
+            <li><a href="./destination.php" class="active">Destinations</a></li>
           </ul>
         </div>
 

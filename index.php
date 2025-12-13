@@ -311,7 +311,7 @@ $topDestinations = $stmtTop->fetchAll();
         <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
           <a href="admin-dashboard.php">Admin dashboard</a>
         <?php else: ?>
-          <a href="my-bookings.php">My bookings</a>
+          <a href="./myBooking.php">My bookings</a>
         <?php endif; ?>
 
         <form action="logout.php" method="post">

@@ -43,11 +43,25 @@ function generate_booking_code(PDO $pdo): string
     return $code;
 }
 
+/* ================== RESUME BOOKING (from MyBooking) ================== */
+$resumeId = (int)($_GET['booking_id'] ?? 0);
+$resumeBooking = null;
+
+if ($resumeId > 0 && isset($pdo) && isset($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM bookings
+        WHERE id = ? AND user_id = ? AND booking_status = 'pending'
+        LIMIT 1
+    ");
+    $stmt->execute([$resumeId, (int)$_SESSION['user_id']]);
+    $resumeBooking = $stmt->fetch() ?: null;
+}
+
 /* ========== AJAX handler: save booking + payment ========== */
 /*
    ملاحظة مهمّة:
    خَلّيت الشرط هو أي POST → معناها جاية من الجافاسكربت
-   وما عاد نحتاج field اسمه action=pay
 */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json; charset=utf-8');
@@ -64,10 +78,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // --------- BOOKING META ---------
-        $bookingType   = $_POST['booking_type']   ?? 'flight';
-        $bookingStatus = $_POST['booking_status'] ?? 'pending';
+        $bookingType     = $_POST['booking_type']   ?? 'flight';
+        $bookingStatus   = $_POST['booking_status'] ?? 'pending';
+        $existingBookingId = (int)($_POST['booking_id'] ?? 0); // ✅ NEW: resume booking id (optional)
 
-        $userId    = isset($_POST['user_id']) ? (int)$_POST['user_id'] : null;
+        // user_id (أمان: خذيها من السيشن لو موجودة)
+        $sessionUserId = (int)($_SESSION['user_id'] ?? 0);
+        $userId = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
+        if ($sessionUserId > 0) $userId = $sessionUserId;
+
         $userName  = trim($_POST['user_name']  ?? '');
         $userEmail = trim($_POST['user_email'] ?? '');
 
@@ -96,22 +115,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ? $amountTotalPost
             : $subtotal + $amountTaxes - $discountAmount;
 
-        // --------- booking_code (UNIQUE, ما يضل فاضي) ---------
-        $bookingCode = trim($_POST['booking_code'] ?? '');
-        if ($bookingCode === '') {
-            $bookingCode = generate_booking_code($pdo);
-        } else {
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM bookings WHERE booking_code = ?");
-            $stmt->execute([$bookingCode]);
-            if ($stmt->fetchColumn() > 0) {
-                $bookingCode = generate_booking_code($pdo);
-            }
-        }
-
         // --------- PAYMENT FIELDS ----------
         $paymentMethod  = $_POST['payment_method'] ?? 'visa';
         $promoCode      = trim($_POST['promo_code'] ?? '');
         $cardSaved      = isset($_POST['card_saved']) ? (int)$_POST['card_saved'] : 0;
+
+        // ✅ نخزنها كـ coupon_code بالحجز (لأن عندك عمود coupon_code بالـ bookings)
+        $couponCode = trim($_POST['coupon_code'] ?? '');
+        if ($couponCode === '' && $promoCode !== '') $couponCode = $promoCode;
 
         $cardHolderName = trim($_POST['card_holder_name'] ?? '');
         $cardNumberRaw  = preg_replace('/\D+/', '', $_POST['card_number'] ?? '');
@@ -121,91 +132,217 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cardLast4 = $cardNumberRaw ? substr($cardNumberRaw, -4) : null;
         $cardBrand = $paymentMethod;
 
-        $paymentStatus       = 'success'; // لأنو ما في بوابة حقيقية
-        $gatewayReferenceStr = 'LOCAL-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+        $isOffline = ($paymentMethod === 'cashcard');
+
+        if ($isOffline) {
+            // Offline: لا بيانات كرت + الدفع مو مكتمل
+            $paymentStatus       = 'pending';
+            $gatewayReferenceStr = null;
+
+            $cardHolderName = null;
+            $cardNumberRaw  = '';
+            $expMonth       = null;
+            $expYear        = null;
+
+            $cardLast4 = null;
+            $cardBrand = null;
+            $cardSaved = 0;
+
+            if ($bookingStatus === '' || $bookingStatus === null) $bookingStatus = 'pending';
+        } else {
+            $paymentStatus       = 'success';
+            $gatewayReferenceStr = 'LOCAL-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+            $cardBrand = $paymentMethod;
+            // منطقيا خلي الحجز confirmed لما الدفع success
+            $bookingStatus = 'confirmed';
+        }
+
+        // --------- booking_code (UNIQUE, ما يضل فاضي) ---------
+        $bookingCode = trim($_POST['booking_code'] ?? '');
+
+        // ✅ لو Resume وما بعثتي booking_code، خديه من DB
+        if ($existingBookingId > 0 && $bookingCode === '' && isset($pdo)) {
+            $stmt = $pdo->prepare("SELECT booking_code FROM bookings WHERE id=? AND user_id=? LIMIT 1");
+            $stmt->execute([$existingBookingId, $userId]);
+            $bookingCode = (string)($stmt->fetchColumn() ?: '');
+        }
+
+        // ✅ لو New booking: ولّدي booking_code
+        if ($existingBookingId <= 0) {
+            if ($bookingCode === '') {
+                $bookingCode = generate_booking_code($pdo);
+            } else {
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM bookings WHERE booking_code = ?");
+                $stmt->execute([$bookingCode]);
+                if ($stmt->fetchColumn() > 0) {
+                    $bookingCode = generate_booking_code($pdo);
+                }
+            }
+        }
 
         // ========== TRANSACTION ==========
         $pdo->beginTransaction();
 
-        /* ----- 1) INSERT INTO bookings ----- */
-               /* ----- 1) INSERT INTO bookings ----- */
-        $stmt = $pdo->prepare("
-            INSERT INTO bookings
-            (
-              user_id,
-              booking_type,
-              hotel_id,
-              flight_id,
-              package_id,
-              booking_code,
-              trip_start_date,
-              trip_end_date,
-              travellers_adults,
-              travellers_children,
-              travellers_infants,
-              currency,
-              amount_flight,
-              amount_hotel,
-              amount_package,
-              amount_taxes,
-              discount_amount,
-              total_amount,
-              booking_status,
-              notes,
-              created_at
-            )
-            VALUES
-            (
-              :user_id,
-              :booking_type,
-              :hotel_id,
-              :flight_id,
-              :package_id,
-              :booking_code,
-              :trip_start_date,
-              :trip_end_date,
-              :adults,
-              :children,
-              :infants,
-              :currency,
-              :amount_flight,
-              :amount_hotel,
-              :amount_package,
-              :amount_taxes,
-              :discount_amount,
-              :total_amount,
-              :booking_status,
-              NULL,
-              NOW()
-            )
-        ");
+        // =========================
+        // 1) BOOKINGS: UPDATE (Resume) OR INSERT (New)
+        // =========================
+        if ($existingBookingId > 0) {
 
-        $stmt->execute([
-            ':user_id'         => $userId,
-            ':booking_type'    => $bookingType,
-            ':hotel_id'        => $hotelId,
-            ':flight_id'       => $flightId,
-            ':package_id'      => $packageId,
-            ':booking_code'    => $bookingCode,
-            ':trip_start_date' => $tripStart ?: null,
-            ':trip_end_date'   => $tripEnd   ?: null,
-            ':adults'          => $adults,
-            ':children'        => $children,
-            ':infants'         => $infants,
-            ':currency'        => $currency,
-            ':amount_flight'   => $amountFlight,
-            ':amount_hotel'    => $amountHotel,
-            ':amount_package'  => $amountPackage,
-            ':amount_taxes'    => $amountTaxes,
-            ':discount_amount' => $discountAmount,
-            ':total_amount'    => $amountTotal,
-            ':booking_status'  => $bookingStatus,
-        ]);
+            // تأكد إنه الحجز pending وإلك
+            $chk = $pdo->prepare("
+                SELECT id, booking_status
+                FROM bookings
+                WHERE id=? AND user_id=? LIMIT 1
+            ");
+            $chk->execute([$existingBookingId, $userId]);
+            $row = $chk->fetch();
 
-        $bookingId = (int)$pdo->lastInsertId();
+            if (!$row) {
+                throw new Exception("Booking not found.");
+            }
 
+            if (strtolower((string)$row['booking_status']) !== 'pending') {
+                throw new Exception("Only pending bookings can be completed.");
+            }
 
-        /* ----- 2) INSERT INTO payments ----- */
+            // UPDATE booking (نحدّث تفاصيل + حالة)
+            $upd = $pdo->prepare("
+                UPDATE bookings
+                SET
+                  booking_type = :booking_type,
+                  hotel_id = :hotel_id,
+                  flight_id = :flight_id,
+                  package_id = :package_id,
+                  booking_code = :booking_code,
+                  trip_start_date = :trip_start_date,
+                  trip_end_date = :trip_end_date,
+                  travellers_adults = :adults,
+                  travellers_children = :children,
+                  travellers_infants = :infants,
+                  currency = :currency,
+                  amount_flight = :amount_flight,
+                  amount_hotel = :amount_hotel,
+                  amount_package = :amount_package,
+                  amount_taxes = :amount_taxes,
+                  discount_amount = :discount_amount,
+                  coupon_code = :coupon_code,
+                  total_amount = :total_amount,
+                  booking_status = :booking_status,
+                  updated_at = NOW()
+                WHERE id = :id AND user_id = :user_id
+            ");
+
+            $upd->execute([
+                ':booking_type'    => $bookingType,
+                ':hotel_id'        => $hotelId,
+                ':flight_id'       => $flightId,
+                ':package_id'      => $packageId,
+                ':booking_code'    => $bookingCode,
+                ':trip_start_date' => $tripStart ?: null,
+                ':trip_end_date'   => $tripEnd   ?: null,
+                ':adults'          => $adults,
+                ':children'        => $children,
+                ':infants'         => $infants,
+                ':currency'        => $currency,
+                ':amount_flight'   => $amountFlight,
+                ':amount_hotel'    => $amountHotel,
+                ':amount_package'  => $amountPackage,
+                ':amount_taxes'    => $amountTaxes,
+                ':discount_amount' => $discountAmount,
+                ':coupon_code'     => ($couponCode !== '' ? $couponCode : null),
+                ':total_amount'    => $amountTotal,
+                ':booking_status'  => $bookingStatus,
+                ':id'              => $existingBookingId,
+                ':user_id'         => $userId,
+            ]);
+
+            $bookingId = $existingBookingId;
+
+        } else {
+
+            // INSERT NEW booking (الكود القديم + أضفنا coupon_code)
+            $stmt = $pdo->prepare("
+                INSERT INTO bookings
+                (
+                  user_id,
+                  booking_type,
+                  hotel_id,
+                  flight_id,
+                  package_id,
+                  booking_code,
+                  trip_start_date,
+                  trip_end_date,
+                  travellers_adults,
+                  travellers_children,
+                  travellers_infants,
+                  currency,
+                  amount_flight,
+                  amount_hotel,
+                  amount_package,
+                  amount_taxes,
+                  discount_amount,
+                  coupon_code,
+                  total_amount,
+                  booking_status,
+                  notes,
+                  created_at
+                )
+                VALUES
+                (
+                  :user_id,
+                  :booking_type,
+                  :hotel_id,
+                  :flight_id,
+                  :package_id,
+                  :booking_code,
+                  :trip_start_date,
+                  :trip_end_date,
+                  :adults,
+                  :children,
+                  :infants,
+                  :currency,
+                  :amount_flight,
+                  :amount_hotel,
+                  :amount_package,
+                  :amount_taxes,
+                  :discount_amount,
+                  :coupon_code,
+                  :total_amount,
+                  :booking_status,
+                  NULL,
+                  NOW()
+                )
+            ");
+
+            $stmt->execute([
+                ':user_id'         => $userId,
+                ':booking_type'    => $bookingType,
+                ':hotel_id'        => $hotelId,
+                ':flight_id'       => $flightId,
+                ':package_id'      => $packageId,
+                ':booking_code'    => $bookingCode,
+                ':trip_start_date' => $tripStart ?: null,
+                ':trip_end_date'   => $tripEnd   ?: null,
+                ':adults'          => $adults,
+                ':children'        => $children,
+                ':infants'         => $infants,
+                ':currency'        => $currency,
+                ':amount_flight'   => $amountFlight,
+                ':amount_hotel'    => $amountHotel,
+                ':amount_package'  => $amountPackage,
+                ':amount_taxes'    => $amountTaxes,
+                ':discount_amount' => $discountAmount,
+                ':coupon_code'     => ($couponCode !== '' ? $couponCode : null),
+                ':total_amount'    => $amountTotal,
+                ':booking_status'  => $bookingStatus,
+            ]);
+
+            $bookingId = (int)$pdo->lastInsertId();
+        }
+
+        // =========================
+        // 2) PAYMENTS: ALWAYS INSERT (history)
+        // =========================
         $stmt = $pdo->prepare("
             INSERT INTO payments
             (
@@ -260,10 +397,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':amount_discount'   => $discountAmount,
             ':amount_total'      => $amountTotal,
             ':currency'          => $currency,
-            ':promo_code'        => $promoCode ?: null,
+            ':promo_code'        => ($promoCode !== '' ? $promoCode : null),
             ':card_brand'        => $cardBrand,
             ':card_last4'        => $cardLast4,
-            ':card_holder_name'  => $cardHolderName ?: null,
+            ':card_holder_name'  => ($cardHolderName !== '' ? $cardHolderName : null),
             ':exp_month'         => $expMonth,
             ':exp_year'          => $expYear,
             ':card_saved'        => $cardSaved,
@@ -279,14 +416,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'booking_code' => $bookingCode,
             'amount_total' => $amountTotal,
             'currency'     => $currency,
+            'booking_status' => $bookingStatus,
+            'payment_status' => $paymentStatus,
         ]);
-        } catch (Throwable $e) {
+    } catch (Throwable $e) {
         if (isset($pdo) && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
-
-        // ما نرجّع 500 عشان الجافاسكربت يقدر يقرأ الرسالة
-        // http_response_code(500);
 
         echo json_encode([
             'success' => false,
@@ -296,7 +432,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     exit; // مهم: ما نكمّل نرندر HTML
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -513,47 +648,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
               <!-- Card details -->
               <form id="paymentForm" novalidate>
-                <div class="row g-3">
-                  <div class="col-12">
-                    <label class="form-label">Card holder name</label>
-                    <input type="text" class="form-control" id="cardHolder" placeholder="As written on card" />
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label">Card number</label>
-                    <input type="text" class="form-control" id="cardNumber" placeholder="XXXX XXXX XXXX XXXX" />
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <label class="form-label">Expiry month</label>
-                    <input type="text" class="form-control" id="expMonth" placeholder="MM" />
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <label class="form-label">Expiry year</label>
-                    <input type="text" class="form-control" id="expYear" placeholder="YYYY" />
-                  </div>
-                  <div class="col-12 col-md-4">
-                    <label class="form-label">CVV</label>
-                    <input type="password" class="form-control" id="cvv" placeholder="123" />
-                  </div>
+                <!-- Card details wrapper -->
+                <div id="cardFields">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label">Card holder name</label>
+                      <input type="text" class="form-control" id="cardHolder" placeholder="As written on card" />
+                    </div>
 
+                    <div class="col-12">
+                      <label class="form-label">Card number</label>
+                      <input type="text" class="form-control" id="cardNumber" placeholder="XXXX XXXX XXXX XXXX" />
+                    </div>
+
+                    <div class="col-6 col-md-4">
+                      <label class="form-label">Expiry month</label>
+                      <input type="text" class="form-control" id="expMonth" placeholder="MM" />
+                    </div>
+
+                    <div class="col-6 col-md-4">
+                      <label class="form-label">Expiry year</label>
+                      <input type="text" class="form-control" id="expYear" placeholder="YYYY" />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                      <label class="form-label">CVV</label>
+                      <input type="password" class="form-control" id="cvv" placeholder="123" />
+                    </div>
+
+                    <div class="col-12" id="saveCardRow">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="saveCard" />
+                        <label class="form-check-label" for="saveCard">
+                          Save card details for future bookings
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Offline wrapper -->
+                <div id="offlineFields" hidden>
+                  <div class="alert alert-light border mb-3">
+                    <div class="fw-semibold mb-1">
+                      <i class="bi bi-info-circle me-1"></i> Offline reservation
+                    </div>
+                    <div class="small text-muted">
+                      We’ll reserve your booking now. You can pay later at the airport or travel office.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Promo code (يبقى دايمًا) -->
+                <div class="row g-3">
                   <div class="col-12">
                     <label class="form-label">Promo code</label>
                     <div class="input-group">
                       <input type="text" class="form-control" id="promoCode" placeholder="Optional" />
-                      <button class="btn btn-outline-secondary" type="button" id="btnApplyPromo">
-                        Apply
-                      </button>
+                      <button class="btn btn-outline-secondary" type="button" id="btnApplyPromo">Apply</button>
                     </div>
                     <div class="form-text" id="promoHelp">
                       If you have a Travelo promo code, enter it here.
-                    </div>
-                  </div>
-
-                  <div class="col-12">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="saveCard" />
-                      <label class="form-check-label" for="saveCard">
-                        Save card details for future bookings
-                      </label>
                     </div>
                   </div>
                 </div>
@@ -565,10 +720,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="bi bi-arrow-left"></i> Back
                   </button>
                   <button type="submit" class="btn btn-primary" id="btnPayNow">
-                    Pay now <span id="btnPayAmountLabel"></span>
+                    <span id="payBtnText">Pay now</span> <span id="btnPayAmountLabel"></span>
                   </button>
                 </div>
               </form>
+
             </div>
           </div>
 
@@ -613,7 +769,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
               <h2 class="mb-2">Booking confirmed</h2>
               <p class="mb-3">
-                Thank you, <span id="doneUserName">Traveler</span>.  
+                Thank you, <span id="doneUserName">Traveler</span>.
                 Your booking is now <strong>confirmed</strong>.
               </p>
 
@@ -633,7 +789,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
 
               <p class="small text-muted mb-4">
-                We’ve sent a copy of your ticket to <span id="doneUserEmail"></span>.  
+                We’ve sent a copy of your ticket to <span id="doneUserEmail"></span>.
                 You can print or download your ticket anytime.
               </p>
 
@@ -653,6 +809,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <!-- ===== Hidden meta form ===== -->
       <form id="bookingMeta" class="d-none">
         <input type="hidden" id="hfBookingType"   name="booking_type" />
+        <!-- ✅ NEW: booking_id (for resume) -->
+        <input type="hidden" id="hfBookingId" name="booking_id" />
 
         <input type="hidden" id="hfUserId"   name="user_id"
                value="<?php echo isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : ''; ?>">
@@ -694,9 +852,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       userName: <?php echo json_encode($_SESSION['user_name'] ?? ''); ?>,
       userEmail: <?php echo json_encode($_SESSION['user_email'] ?? ''); ?>
     };
+    // ✅ NEW: resume booking payload (null if not coming from myBooking)
+    window.TRAVELO.resumeBooking = <?php echo json_encode($resumeBooking); ?>;
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="./assets/js/booking.js"></script>
+  <script src="./assets/js/booking.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

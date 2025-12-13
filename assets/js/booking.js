@@ -2,36 +2,70 @@
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
 
-  // --------- Core booking params from URL ---------
-  const bookingType   = params.get("booking_type")   || "flight";
-  const bookingStatus = params.get("booking_status") || "pending";
+  // ================== Resume booking (from MyBooking) ==================
+  const resumeBooking = window.TRAVELO?.resumeBooking || null;
+  const isResume = !!(resumeBooking && resumeBooking.id);
 
-  const userName  = params.get("user_name")  || "Traveler";
-  const userEmail = params.get("user_email") || "";
-  const userId    = params.get("user_id")    || "";
+  // ---------- helpers ----------
+  const str = (v, fb = "") => (v === null || v === undefined ? fb : String(v));
+  const num = (v, fb = 0) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fb;
+  };
 
-  const flightId  = params.get("flight_id")  || "";
-  const hotelId   = params.get("hotel_id")   || "";
-  const packageId = params.get("package_id") || "";
+  // --------- Core booking params (URL OR resumeBooking) ---------
+  const bookingType = isResume
+    ? (resumeBooking.booking_type || "flight")
+    : (params.get("booking_type") || "flight");
 
-  const tripStart = params.get("trip_start_date") || "";
-  const tripEnd   = params.get("trip_end_date")   || tripStart;
+  const bookingStatus = isResume
+    ? (resumeBooking.booking_status || "pending")
+    : (params.get("booking_status") || "pending");
 
-  const travellersAdults   = params.get("travellers_adults")   || "1";
-  const travellersChildren = params.get("travellers_children") || "0";
-  const travellersInfants  = params.get("travellers_infants")  || "0";
+  // user info (prefer session/global)
+  const userName = window.TRAVELO?.userName
+    ? String(window.TRAVELO.userName || "Traveler")
+    : (params.get("user_name") || "Traveler");
 
-  const amountFlight   = Number(params.get("amount_flight")   || "0");
-  const amountHotel    = Number(params.get("amount_hotel")    || "0");
-  const amountPackage  = Number(params.get("amount_package")  || "0");
-  const amountTaxes    = Number(params.get("amount_taxes")    || "0");
-  const discountAmount = Number(params.get("discount_amount") || "0");
-  const currency       = params.get("currency") || "USD";
+  const userEmail = window.TRAVELO?.userEmail
+    ? String(window.TRAVELO.userEmail || "")
+    : (params.get("user_email") || "");
 
-  const subtotal    = amountFlight + amountHotel + amountPackage;
-  const totalAmount = subtotal + amountTaxes - discountAmount;
+  const userId = window.TRAVELO?.userId
+    ? String(window.TRAVELO.userId || "")
+    : (params.get("user_id") || "");
 
-  // --------- Flight display-only info ---------
+  // IDs
+  const flightId = isResume ? str(resumeBooking.flight_id, "") : (params.get("flight_id") || "");
+  const hotelId  = isResume ? str(resumeBooking.hotel_id, "")  : (params.get("hotel_id") || "");
+  const packageId= isResume ? str(resumeBooking.package_id, ""): (params.get("package_id") || "");
+
+  // dates
+  const tripStart = isResume ? str(resumeBooking.trip_start_date, "") : (params.get("trip_start_date") || "");
+  const tripEnd   = isResume ? str(resumeBooking.trip_end_date, tripStart) : (params.get("trip_end_date") || tripStart);
+
+  // travellers
+  const travellersAdults   = isResume ? str(resumeBooking.travellers_adults, "1")   : (params.get("travellers_adults") || "1");
+  const travellersChildren = isResume ? str(resumeBooking.travellers_children, "0") : (params.get("travellers_children") || "0");
+  const travellersInfants  = isResume ? str(resumeBooking.travellers_infants, "0")  : (params.get("travellers_infants") || "0");
+
+  // money
+  const currency = isResume ? str(resumeBooking.currency, "USD") : (params.get("currency") || "USD");
+
+  const amountFlight   = isResume ? num(resumeBooking.amount_flight, 0)   : num(params.get("amount_flight"), 0);
+  const amountHotel    = isResume ? num(resumeBooking.amount_hotel, 0)    : num(params.get("amount_hotel"), 0);
+  const amountPackage  = isResume ? num(resumeBooking.amount_package, 0)  : num(params.get("amount_package"), 0);
+  const amountTaxes    = isResume ? num(resumeBooking.amount_taxes, 0)    : num(params.get("amount_taxes"), 0);
+  const discountAmount = isResume ? num(resumeBooking.discount_amount, 0) : num(params.get("discount_amount"), 0);
+
+  const subtotal = amountFlight + amountHotel + amountPackage;
+
+  // total (prefer DB total if resume)
+  const totalAmount = isResume
+    ? num(resumeBooking.total_amount, subtotal + amountTaxes - discountAmount)
+    : (subtotal + amountTaxes - discountAmount);
+
+  // --------- Flight display-only info (URL only) ---------
   const fromCity      = params.get("from_city")          || "";
   const toCity        = params.get("to_city")            || "";
   const fromAirport   = params.get("from_airport_code")  || "";
@@ -41,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const airline       = params.get("airline")            || "";
   const flightNumber  = params.get("flight_number")      || "";
 
-  // --------- Hotel display-only info ---------
+  // --------- Hotel display-only info (URL only) ---------
   const hotelName      = params.get("hotel_name")      || "";
   const hotelLocation  = params.get("hotel_location")  || "";
   const hotelCityAlt   = params.get("hotel_city")      || "";
@@ -50,11 +84,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomType       = params.get("room_type")       || "";
   const boardType      = params.get("board_type")      || "";
 
-  // --------- Package display-only info ---------
-  const packageTitle   = params.get("package_title") || "";
-  const packageCity    = params.get("package_city")  || "";
+  // --------- Package display-only info (URL only) ---------
+  const packageTitle      = params.get("package_title") || "";
+  const packageCity       = params.get("package_city")  || "";
   const packageNightsStr  = params.get("pkg_nights")    || "";
-  const packageCombo   = params.get("pkg_combo")     || "";
+  const packageCombo      = params.get("pkg_combo")     || "";
 
   // --------- Generate booking code (front-end) ---------
   function generateBookingCode() {
@@ -65,7 +99,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `TRV-${y}${m}${d}-${rand}`;
   }
-  const bookingCode = params.get("booking_code") || generateBookingCode();
+
+  const bookingCode = isResume
+    ? (str(resumeBooking.booking_code, "") || generateBookingCode())
+    : (params.get("booking_code") || generateBookingCode());
 
   // ================== DOM refs ==================
   const headerUserName  = document.getElementById("headerUserName");
@@ -114,18 +151,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const doneTotalPaid   = document.getElementById("doneTotalPaid");
   const doneUserEmail   = document.getElementById("doneUserEmail");
 
+  // Done card dynamic labels
+  const doneTitleEl = document.querySelector(".done-card h2");
+  const doneDescEl  = document.querySelector(".done-card p");
+
   // Hidden meta form (for back-end)
   const metaForm = document.getElementById("bookingMeta");
 
   // ================== Helpers ==================
-  function formatMoney(num) {
-    const n = Number(num) || 0;
+  function formatMoney(numVal) {
+    const n = Number(numVal) || 0;
     return (currency === "USD" ? "$" : currency + " ") + n.toFixed(2);
   }
 
-  function cleanDate(str) {
-    if (!str) return "";
-    return str;
+  function cleanDate(strVal) {
+    if (!strVal) return "";
+    return strVal;
   }
 
   function ensureHidden(name, value) {
@@ -199,10 +240,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---- booking type specific ticket ----
   if (bookingType === "flight") {
     if (ticketTypeBadge) ticketTypeBadge.textContent = "Flight ticket";
-    if (ticketTitle)
-      ticketTitle.textContent = `${fromCity || "Your city"} → ${
-        toCity || "Destination"
-      }`;
+    if (ticketTitle) {
+      // لو Resume وما في مدن بالـ URL، اعرضها بشكل عام
+      ticketTitle.textContent = (fromCity || toCity)
+        ? `${fromCity || "Your city"} → ${toCity || "Destination"}`
+        : "Flight booking";
+    }
+
     if (ticketSubtitle) {
       ticketSubtitle.textContent =
         airline && flightNumber
@@ -211,13 +255,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (ticketRouteMain) {
-      const fromLabel = fromAirport
-        ? `${fromCity || "Origin"} (${fromAirport})`
-        : fromCity || "Origin";
-      const toLabel = toAirport
-        ? `${toCity || "Destination"} (${toAirport})`
-        : toCity || "Destination";
-      ticketRouteMain.textContent = `${fromLabel} → ${toLabel}`;
+      if (fromCity || toCity || fromAirport || toAirport) {
+        const fromLabel = fromAirport
+          ? `${fromCity || "Origin"} (${fromAirport})`
+          : fromCity || "Origin";
+        const toLabel = toAirport
+          ? `${toCity || "Destination"} (${toAirport})`
+          : toCity || "Destination";
+        ticketRouteMain.textContent = `${fromLabel} → ${toLabel}`;
+      } else {
+        ticketRouteMain.textContent = "Flight route";
+      }
     }
 
     if (ticketExtraRow) {
@@ -272,9 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (ticketSubtitle) {
       ticketSubtitle.textContent =
         packageCity || packageCombo
-          ? `${packageCity || ""} ${
-              packageCombo ? "· " + packageCombo : ""
-            }`
+          ? `${packageCity || ""}${packageCombo ? " · " + packageCombo : ""}`
           : "Review your package details.";
     }
 
@@ -307,28 +353,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---- fill hidden meta form ----
   if (metaForm) {
-    metaForm.querySelector("#hfBookingType").value = bookingType;
-    metaForm.querySelector("#hfUserId").value    = userId;
-    metaForm.querySelector("#hfUserName").value  = userName;
-    metaForm.querySelector("#hfUserEmail").value = userEmail;
+    // NOTE: هذه العناصر موجودة عندك بالـ HTML
+    metaForm.querySelector("#hfBookingType") && (metaForm.querySelector("#hfBookingType").value = bookingType);
+    metaForm.querySelector("#hfUserId")      && (metaForm.querySelector("#hfUserId").value = userId);
+    metaForm.querySelector("#hfUserName")    && (metaForm.querySelector("#hfUserName").value = userName);
+    metaForm.querySelector("#hfUserEmail")   && (metaForm.querySelector("#hfUserEmail").value = userEmail);
 
-    metaForm.querySelector("#hfFlightId").value  = flightId;
-    metaForm.querySelector("#hfHotelId").value   = hotelId;
-    metaForm.querySelector("#hfPackageId").value = packageId;
+    metaForm.querySelector("#hfFlightId")    && (metaForm.querySelector("#hfFlightId").value = flightId);
+    metaForm.querySelector("#hfHotelId")     && (metaForm.querySelector("#hfHotelId").value = hotelId);
+    metaForm.querySelector("#hfPackageId")   && (metaForm.querySelector("#hfPackageId").value = packageId);
 
-    metaForm.querySelector("#hfTripStart").value = tripStart;
-    metaForm.querySelector("#hfTripEnd").value   = tripEnd;
-    metaForm.querySelector("#hfAdults").value    = travellersAdults;
-    metaForm.querySelector("#hfChildren").value  = travellersChildren;
-    metaForm.querySelector("#hfInfants").value   = travellersInfants;
+    metaForm.querySelector("#hfTripStart")   && (metaForm.querySelector("#hfTripStart").value = tripStart);
+    metaForm.querySelector("#hfTripEnd")     && (metaForm.querySelector("#hfTripEnd").value = tripEnd);
+    metaForm.querySelector("#hfAdults")      && (metaForm.querySelector("#hfAdults").value = travellersAdults);
+    metaForm.querySelector("#hfChildren")    && (metaForm.querySelector("#hfChildren").value = travellersChildren);
+    metaForm.querySelector("#hfInfants")     && (metaForm.querySelector("#hfInfants").value = travellersInfants);
 
-    metaForm.querySelector("#hfAmountFlight").value   = amountFlight.toString();
-    metaForm.querySelector("#hfAmountHotel").value    = amountHotel.toString();
-    metaForm.querySelector("#hfAmountPackage").value  = amountPackage.toString();
-    metaForm.querySelector("#hfAmountTaxes").value    = amountTaxes.toString();
-    metaForm.querySelector("#hfDiscount").value       = discountAmount.toString();
-    metaForm.querySelector("#hfCurrency").value       = currency;
-    metaForm.querySelector("#hfTotalAmount").value    = totalAmount.toString();
+    metaForm.querySelector("#hfAmountFlight")  && (metaForm.querySelector("#hfAmountFlight").value = amountFlight.toString());
+    metaForm.querySelector("#hfAmountHotel")   && (metaForm.querySelector("#hfAmountHotel").value = amountHotel.toString());
+    metaForm.querySelector("#hfAmountPackage") && (metaForm.querySelector("#hfAmountPackage").value = amountPackage.toString());
+    metaForm.querySelector("#hfAmountTaxes")   && (metaForm.querySelector("#hfAmountTaxes").value = amountTaxes.toString());
+    metaForm.querySelector("#hfDiscount")      && (metaForm.querySelector("#hfDiscount").value = discountAmount.toString());
+    metaForm.querySelector("#hfCurrency")      && (metaForm.querySelector("#hfCurrency").value = currency);
+    metaForm.querySelector("#hfTotalAmount")   && (metaForm.querySelector("#hfTotalAmount").value = totalAmount.toString());
+
+    // ✅ NEW: booking_id (resume)
+    const hfBookingId = metaForm.querySelector("#hfBookingId");
+    if (hfBookingId) hfBookingId.value = isResume ? String(resumeBooking.id) : "";
 
     // ✅ booking code + stay nights
     const stayInput = metaForm.querySelector("#hfStayNights");
@@ -337,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const codeInput = metaForm.querySelector("#hfBookingCode");
     if (codeInput) codeInput.value = bookingCode;
 
-    // نضيف booking_status بس كـ hidden جديد
+    // booking_status hidden
     ensureHidden("booking_status", bookingStatus);
   }
 
@@ -351,58 +402,50 @@ document.addEventListener("DOMContentLoaded", () => {
   if (amountHotelValue)    amountHotelValue.textContent    = formatMoney(amountHotel);
   if (amountPackageValue)  amountPackageValue.textContent  = formatMoney(amountPackage);
   if (amountTaxesValue)    amountTaxesValue.textContent    = formatMoney(amountTaxes);
-  if (amountDiscountValue)
+  if (amountDiscountValue) {
     amountDiscountValue.textContent =
-      "-" + formatMoney(discountAmount).replace(
-        currency === "USD" ? "$" : currency + " ",
-        ""
-      );
+      "-" + formatMoney(discountAmount).replace(currency === "USD" ? "$" : currency + " ", "");
+  }
 
   if (summarySubtotal) summarySubtotal.textContent = formatMoney(subtotal);
   if (summaryTaxes)    summaryTaxes.textContent    = formatMoney(amountTaxes);
-  if (summaryDiscount)
+  if (summaryDiscount) {
     summaryDiscount.textContent =
-      "-" + formatMoney(discountAmount).replace(
-        currency === "USD" ? "$" : currency + " ",
-        ""
-      );
-  if (summaryDiscountRow)
-    summaryDiscountRow.style.display =
-      discountAmount > 0 ? "flex" : "none";
+      "-" + formatMoney(discountAmount).replace(currency === "USD" ? "$" : currency + " ", "");
+  }
+  if (summaryDiscountRow) {
+    summaryDiscountRow.style.display = discountAmount > 0 ? "flex" : "none";
+  }
   if (summaryTotal) summaryTotal.textContent = formatMoney(totalAmount);
-
+  
   if (btnPayAmountLabel) btnPayAmountLabel.textContent = `· ${formatMoney(totalAmount)}`;
 
   if (summaryTripLine) {
     if (bookingType === "flight") {
-      summaryTripLine.textContent = `${fromCity || "Origin"} → ${
-        toCity || "Destination"
-      } · ${travellersLabel}`;
+      summaryTripLine.textContent = (fromCity || toCity)
+        ? `${fromCity || "Origin"} → ${toCity || "Destination"} · ${travellersLabel}`
+        : `Flight · ${travellersLabel}`;
     } else if (bookingType === "hotel") {
-      summaryTripLine.textContent = `${hotelName || "Hotel"} · ${
-        hotelCity || hotelLocation || ""
-      } · ${travellersLabel}`;
+      summaryTripLine.textContent = `${hotelName || "Hotel"} · ${hotelCity || hotelLocation || ""} · ${travellersLabel}`;
     } else {
       summaryTripLine.textContent = `${packageTitle || "Package"} · ${travellersLabel}`;
     }
   }
 
-  // Done step static info
+  // Done step initial static info (will update after payment response)
   if (doneUserName)    doneUserName.textContent    = userName;
   if (doneBookingCode) doneBookingCode.textContent = bookingCode;
   if (doneUserEmail)   doneUserEmail.textContent   = userEmail;
   if (doneTotalPaid)   doneTotalPaid.textContent   = formatMoney(totalAmount);
   if (doneTripLine) {
     if (bookingType === "flight") {
-      doneTripLine.textContent = `${fromCity || "Origin"} → ${
-        toCity || "Destination"
-      }`;
+      doneTripLine.textContent = (fromCity || toCity)
+        ? `${fromCity || "Origin"} → ${toCity || "Destination"}`
+        : "Flight";
     } else if (bookingType === "hotel") {
-      doneTripLine.textContent =
-        hotelName || hotelCity || hotelLocation || "Hotel";
+      doneTripLine.textContent = hotelName || hotelCity || hotelLocation || "Hotel";
     } else {
-      doneTripLine.textContent =
-        packageTitle || packageCity || "Package";
+      doneTripLine.textContent = packageTitle || packageCity || "Package";
     }
   }
 
@@ -471,6 +514,47 @@ document.addEventListener("DOMContentLoaded", () => {
     return "visa";
   }
 
+  const cardFieldsWrap = document.getElementById("cardFields");
+  const offlineWrap    = document.getElementById("offlineFields");
+  const saveCardRow    = document.getElementById("saveCardRow");
+  const payBtnText     = document.getElementById("payBtnText");
+
+  const radios = Array.from(document.querySelectorAll('input[name="payment_method"]'));
+  const cardInputs = [cardHolderInput, cardNumberInput, expMonthInput, expYearInput, cvvInput].filter(Boolean);
+
+  function setCardRequired(isReq) {
+    cardInputs.forEach((el) => {
+      el.required = isReq;
+      el.disabled = !isReq;
+      if (!isReq) el.value = "";
+    });
+
+    if (saveCardInput) {
+      saveCardInput.checked = false;
+      saveCardInput.disabled = !isReq;
+    }
+
+    if (saveCardRow) saveCardRow.hidden = !isReq;
+  }
+
+  function applyPaymentUI() {
+    const method = document.querySelector('input[name="payment_method"]:checked')?.value || "visa";
+    const isOffline = method === "cashcard";
+
+    if (cardFieldsWrap) cardFieldsWrap.hidden = isOffline;
+    if (offlineWrap)    offlineWrap.hidden    = !isOffline;
+
+    setCardRequired(!isOffline);
+
+    if (payBtnText) payBtnText.textContent = isOffline ? "Reserve now" : "Pay now";
+    if (btnPayAmountLabel) btnPayAmountLabel.hidden = isOffline;
+
+    if (paymentError) paymentError.style.display = "none";
+  }
+
+  radios.forEach(r => r.addEventListener("change", applyPaymentUI));
+  applyPaymentUI();
+
   function showPaymentError(msg) {
     if (!paymentError) return;
     paymentError.textContent = msg;
@@ -489,11 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!cardHolderInput.value.trim()) {
           return showPaymentError("Please enter the card holder name.");
         }
-        if (
-          !/^\d{12,19}$/.test(
-            cardNumberInput.value.replace(/\s+/g, "")
-          )
-        ) {
+        if (!/^\d{12,19}$/.test(cardNumberInput.value.replace(/\s+/g, ""))) {
           return showPaymentError("Please enter a valid card number.");
         }
         if (!/^\d{2}$/.test(expMonthInput.value.trim())) {
@@ -518,25 +598,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // ✅ تأكيد booking_id لو Resume (حتى لو hidden مو موجود بالغلط)
+      if (isResume) formData.set("booking_id", String(resumeBooking.id));
+
+      // ✅ خلي حالة الحجز حسب طريقة الدفع
+      // كرت = confirmed ، Offline = pending
+      formData.set("booking_status", method === "cashcard" ? "pending" : "confirmed");
+
       // payment method
-      formData.append("payment_method", method);
+      formData.set("payment_method", method);
 
       // card data
       if (method !== "cashcard") {
         const rawNumber = cardNumberInput.value.replace(/\s+/g, "");
-        formData.append("card_holder_name", cardHolderInput.value.trim());
-        formData.append("card_number", rawNumber);
-        formData.append("exp_month", expMonthInput.value.trim());
-        formData.append("exp_year", expYearInput.value.trim());
-        formData.append("cvv", cvvInput.value.trim());
+        formData.set("card_holder_name", cardHolderInput.value.trim());
+        formData.set("card_number", rawNumber);
+        formData.set("exp_month", expMonthInput.value.trim());
+        formData.set("exp_year", expYearInput.value.trim());
+        formData.set("cvv", cvvInput.value.trim());
       }
 
       // promo code
       const promo = promoCodeInput.value.trim();
-      if (promo) formData.append("promo_code", promo);
+      if (promo) formData.set("promo_code", promo);
 
       // card_saved
-      formData.append("card_saved", saveCardInput.checked ? "1" : "0");
+      formData.set("card_saved", saveCardInput?.checked ? "1" : "0");
 
       try {
         const response = await fetch("./booking.php", {
@@ -553,16 +640,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!response.ok || !data) {
           console.error("Raw response:", response, data);
-          return showPaymentError(
-            `Server error (${response.status}). Please try again.`
-          );
+          return showPaymentError(`Server error (${response.status}). Please try again.`);
         }
 
         if (!data.success) {
           console.error("Payment error from server:", data.message);
-          return showPaymentError(
-            data.message || "Payment failed. Please try again."
-          );
+          return showPaymentError(data.message || "Payment failed. Please try again.");
+        }
+
+        // ✅ Update done card based on server status
+        const bStatus = (data.booking_status || "").toLowerCase();
+        if (doneBookingCode && data.booking_code) doneBookingCode.textContent = data.booking_code;
+        if (doneTotalPaid && data.amount_total != null) doneTotalPaid.textContent = formatMoney(data.amount_total);
+
+        if (doneTitleEl) {
+          doneTitleEl.textContent = bStatus === "confirmed" ? "Booking confirmed" : "Reservation created";
+        }
+
+        if (doneDescEl) {
+          if (bStatus === "confirmed") {
+            doneDescEl.innerHTML = `Thank you, <span id="doneUserName">${userName}</span>. Your booking is now <strong>confirmed</strong>.`;
+          } else {
+            doneDescEl.innerHTML = `Thank you, <span id="doneUserName">${userName}</span>. Your booking is now <strong>pending</strong>.`;
+          }
         }
 
         // ✅ success from back-end → go to confirmation step

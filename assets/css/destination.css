@@ -3,14 +3,8 @@
   background: #f4f6fb;
 }
 
-.destination-page .nav-links-ul li a.active-nav {
-  color: var(--pink) !important;
-  font-weight: 500;
-}
-.nav-links-ul{
-    font-weight: 500;
-    
-}
+
+
 
 :root {
   --pink: #F85E9F;
