@@ -1,0 +1,28 @@
+# Composer dependencies
+/vendor/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Cache / temp files
+cache/
+tmp/
+
+# PHPUnit
+.phpunit.result.cache
+
+# IDE / Editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# XAMPP / local config (optional)
+*.ini

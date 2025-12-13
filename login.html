@@ -36,7 +36,7 @@
           <h1>Welcome back</h1>
           <p class="subtitle">Sign in to Travelo</p>
 
-          <form id="loginForm" action="login.php" method="POST" novalidate>
+          <form id="loginForm" action="login.php"  method="POST" novalidate>
             <div class="field">
               <input class="input" name="login" id="email" type="text" placeholder=" " required autocomplete="username" inputmode="email">
               <label for="email">Email or Username</label>
@@ -52,16 +52,15 @@
 
             <div class="row small">
               <label class="remember"><input id="remember" type="checkbox"> Show Password</label>
-              <a class="help" href="#">Forgot password?</a>
+              <a class="help" id="forgotLink" href="#">Forgot password?</a>
             </div>
-
             <button class="btn" type="submit" id="submitBtn" disabled>LOGIN</button>
-
             <div class="or">OR</div>
             <div class="alt-actions">
-              <button type="button" class="ghost" id="helpCenter">Help Center</button>
-              <button type="button" class="ghost" id="backHome">Back to Homepage</button>
+              <button type="button" class="ghost" id="helpCenter">Help Center</button> 
+              <button type="button" class="ghost" id="backHome">Back to Homepage</button> 
             </div>
+
           </form>
         </div>
 
@@ -91,8 +90,7 @@
     </clipPath>
   </defs>
 </svg>
-
-<!-- ===== Forgot Password Modal ===== -->
+    <!-- ===== Forgot Password Modal ===== -->
   <div class="fp-overlay" id="fpOverlay" aria-hidden="true">
     <div class="fp-modal" role="dialog" aria-modal="true" aria-labelledby="fpTitle">
       <button class="fp-close" type="button" id="fpCloseBtn" aria-label="Close reset dialog">×</button>
@@ -115,6 +113,7 @@
               type="email"
               placeholder="you@example.com"
               autocomplete="email"
+              name="emailfp"
             />
             <div class="fp-error" id="fpEmailErr"></div>
 
@@ -169,6 +168,7 @@
               minlength="6"
               placeholder="Repeat new password"
             />
+            <label class="showp"><input id="showp" type="checkbox"> Show Password</label>
             <div class="fp-error" id="fpConfirmPassErr"></div>
 
             <div class="fp-actions">
@@ -195,6 +195,7 @@
     </div>
   </div>
   <!-- ================================ -->
+
 
   <script src="./assets/js/login.js"></script>
 </body>
