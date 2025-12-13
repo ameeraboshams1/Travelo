@@ -49,8 +49,7 @@ if (!password_verify($code, $user['reset_token_hash'])) {
 
 // hash new password
 $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
-
-// update user password and clear reset token
+// update user password and clear reset token 
 $sql = "UPDATE users SET password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL 
         WHERE id = ?";
 $stmt = $pdo->prepare($sql);
