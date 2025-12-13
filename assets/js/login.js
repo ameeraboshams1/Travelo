@@ -6,14 +6,13 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 // ================= FORM ELEMENTS =================
 const email = document.getElementById('email');
 const pass = document.getElementById('password');
-const showPass = document.getElementById('remember'); 
+const showPass = document.getElementById('remember'); //show password checkbox
 const form = document.getElementById('loginForm');
 const toast = document.getElementById('toast');
 const emailErr = document.getElementById('emailErr');
 const passErr = document.getElementById('passErr');
 const submitBtn = document.getElementById('submitBtn');
 const card = document.getElementById('card');
-//const capsNote = document.getElementById('capsNote');
 
 // ===== Forgot password elements =====
 const forgotLink = document.getElementById('forgotLink');
@@ -61,7 +60,7 @@ if (slidesNode && indicators) {
 imgs.forEach((_, i) => {
   const b = document.createElement('button');
   if (i === 0) b.classList.add('active');
-  b.addEventListener('click', () => show(i, true));
+  b.addEventListener('click', () => showSlide(i, true));
   indicators.appendChild(b);
 });
  dots = Array.from(indicators.querySelectorAll('button'));
@@ -74,7 +73,7 @@ function showSlide(n, manual) {
 }
 
 function nextSlide() { showSlide(current + 1, false); } 
-function startSlider() { if (REDUCED || hover || !visible) return; stopSlider(); timer = setInterval(next, 5200); }
+function startSlider() { if (REDUCED || hover || !visible) return; stopSlider(); timer = setInterval(nextSlide, 5200); }
 function stopSlider() { if (timer) { clearInterval(timer); timer = null; } }
 function restartSlider() { stopSlider(); startSlider(); }
     
@@ -92,8 +91,8 @@ slidesNode.addEventListener('touchmove', e => {
 slidesNode.addEventListener('touchend', () => { swipeStartX = null; startSlider(); }, { passive: true });
 document.addEventListener('visibilitychange', () => { visible = !document.hidden; visible ? startSlider() : stopSlider(); });
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') show(current - 1, true);
-  if (e.key === 'ArrowRight') show(current + 1, true);
+  if (e.key === 'ArrowLeft') showSlider(current - 1, true);
+  if (e.key === 'ArrowRight') showSlider(current + 1, true);
 });
 
   if (imgs.length > 0) {
@@ -192,17 +191,14 @@ pass.addEventListener('keyup', e => {
 });
 //showing password
 
-if (showPass) {
-  showPass.addEventListener('change', () => {
-    const isChecked = showPass.checked;
-    pass.type = isChecked ? 'text' : 'password';
-  });
-}
+showPass.addEventListener('change', () => {
+  pass.type = showPass.checked ? 'text' : 'password';
+});
 
 // Remember me///////////////////////
 if (localStorage.getItem('travelo_remember') === '1') {
   email.value = localStorage.getItem('travelo_email') || '';
-  remember.checked = true;
+  showPass.checked = true;
   validateEmail();
 }
 
@@ -588,7 +584,6 @@ fpResendBtn.addEventListener('click', async () => {
 if (showNewPass) {
   showNewPass.addEventListener('change', () => {
     const isChecked = showNewPass.checked;
-    //pass.type = isChecked ? 'text' : 'password';
      fpNewPass.type = isChecked ? 'text' : 'password';
      fpConfirmPass.type = isChecked ? 'text' : 'password'; 
   });
