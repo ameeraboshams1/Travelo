@@ -282,7 +282,8 @@ $userEmail = $_SESSION['user_email'] ?? '';
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <link href="./assets/css/home.css" rel="stylesheet">
-
+   <script src='https://cdn.jotfor.ms/agent/embedjs/019b189a507c7f0e98a0580ad136880f79ad/embed.js'>
+</script>
   <style>
     :root{
       --ink:#0f172a;

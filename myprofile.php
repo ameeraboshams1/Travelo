@@ -73,7 +73,8 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
 
   <link rel="stylesheet" href="./assets/css/home.css">
   <link rel="stylesheet" href="./assets/css/profile.css">
-
+    <script src='https://cdn.jotfor.ms/agent/embedjs/019b189a507c7f0e98a0580ad136880f79ad/embed.js'>
+</script>
   <!-- avatar letter small css (بدون صورة) -->
   <style>
     :root{
