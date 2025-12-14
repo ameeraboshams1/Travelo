@@ -1,12 +1,5 @@
 <?php
-session_start();
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require __DIR__ . '/phpmailer/src/Exception.php';
-require __DIR__ . '/phpmailer/src/PHPMailer.php';
-require __DIR__ . '/phpmailer/src/SMTP.php';
+header('Content-Type: application/json');
 
 $DB_HOST = 'localhost';
 $DB_USER = 'root';
@@ -15,65 +8,38 @@ $DB_NAME = 'travelo';
 
 $conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 if ($conn->connect_error) {
-    die('DB connection failed: ' . $conn->connect_error);
+  echo json_encode(['status' => 'db_error']);
+  exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
+$email = trim($_POST['email'] ?? '');
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['newsletter_status'] = 'invalid';
-        header('Location: index.php#newsletter');
-        exit;
-    }
-
-    // حفظ الإيميل في جدول المشتركين
-    $stmt = $conn->prepare('INSERT INTO newsletter_subscribers (email, source, status) VALUES (?, ?, ?)');
-    if ($stmt) {
-        $source = 'landing';
-        $status = 'active';
-        $stmt->bind_param('sss', $email, $source, $status);
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    // إرسال إيميل ترحيبي
-    $mail = new PHPMailer(true);
-
-    try {
-        $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'traveloa9@gmail.com';
-        $mail->Password   = 'ojxwfckrsuqnfaub';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
-
-        $mail->setFrom('traveloa9@gmail.com', 'Travelo');
-        $mail->addAddress($email);
-
-        $mail->isHTML(true);
-        $mail->Subject = 'Welcome to Travelo Newsletter';
-        $mail->Body    = '
-            <h2>Hi, traveler! ✈️</h2>
-            <p>Thank you for subscribing to <strong>Travelo</strong> newsletter.</p>
-            <p>You will start receiving our best offers and travel inspirations soon.</p>
-            <p style="margin-top:16px;">Love,<br>Travelo Team</p>
-        ';
-        $mail->AltBody = 'Thank you for subscribing to Travelo newsletter.';
-
-        $mail->send();
-        $_SESSION['newsletter_status'] = 'ok';
-    } catch (Exception $e) {
-        $_SESSION['newsletter_status'] = 'mail_error';
-        // لو حابة تشوفي الخطأ فعليًا، تقدري تفتحي هالسطر:
-        // error_log('Mailer Error: ' . $mail->ErrorInfo);
-    }
-
-    $conn->close();
-    header('Location: index.php#newsletter');
-    exit;
-} else {
-    header('Location: index.php');
-    exit;
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+  echo json_encode(['status' => 'invalid']);
+  exit;
 }
+
+$stmt = $conn->prepare('SELECT id FROM newsletter_subscribers WHERE email = ?');
+$stmt->bind_param('s', $email);
+$stmt->execute();
+$stmt->store_result();
+
+if ($stmt->num_rows > 0) {
+  echo json_encode(['status' => 'exists']);
+  exit;
+}
+$stmt->close();
+
+$stmt = $conn->prepare(
+  'INSERT INTO newsletter_subscribers (email, source, status) VALUES (?, ?, ?)'
+);
+$source = 'landing';
+$status = 'active';
+$stmt->bind_param('sss', $email, $source, $status);
+$stmt->execute();
+$stmt->close();
+
+echo json_encode(['status' => 'ok']);
+$conn->close();
+exit;           
+?>

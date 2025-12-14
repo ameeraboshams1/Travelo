@@ -839,7 +839,7 @@ $topDestinations = $stmtTop->fetchAll();
             </h2>
           </div>
           <div class="nk1-content">
-      <form class="nl-form" action="subscribe.php" method="post">
+      <form class="nl-form" id="newsletterForm" action="subscribe.php" method="post">
     <span class="nl-icon" aria-hidden="true">
          <svg viewBox="0 0 24 24">
                                     <path
@@ -847,7 +847,7 @@ $topDestinations = $stmtTop->fetchAll();
                                 </svg>
     </span>
     <input type="email" name="email" class="nl-input" placeholder="Your email" required>
-    <button type="submit" class="nl-btn">Subscribe</button>
+    <button type="submit" id="subscribeBtn" class="nl-btn">Subscribe</button>
 </form>
 
 
@@ -917,12 +917,6 @@ $topDestinations = $stmtTop->fetchAll();
       </div>
     </div>
   </div>
-
-
-
-
-
-
   <img class="effect1" src="./assets/images/hero-img/Ellipse 23.png">
   <img class="effect2" src="assets/images/hero-img/Ellipse 24.jpg">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
@@ -931,7 +925,95 @@ $topDestinations = $stmtTop->fetchAll();
  <script src='https://cdn.jotfor.ms/agent/embedjs/019b189a507c7f0e98a0580ad136880f79ad/embed.js'>
 </script>
   <script src="./assets/js/home.js"></script>
+  <!-- Toast -->
+<div id="toast" class="toast"></div>
+<style>
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;              
+  transform: translateX(-50%) translateY(20px); 
+  min-width: 260px;
+  max-width: 360px;
+  padding: 14px 18px;
+  background: #16a34a;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 10px 25px rgba(0,0,0,.15);
+  opacity: 0;
+  transition: all .3s ease;
+  z-index: 9999;
+}
 
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.error {
+  background: #ef4444;
+}
+
+</style>
+<script>
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toast');
+
+  toast.textContent = message;
+  toast.className = 'toast show';
+
+  if (type === 'error') toast.classList.add('error');
+  if (type === 'warn') toast.classList.add('warn');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2200);
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('newsletterForm');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault(); 
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch('subscribe.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      switch (data.status) {
+        case 'ok':
+          showToast('Subscribed successfully!', 'success');
+          form.reset();
+          break;
+
+        case 'exists':
+          showToast('This email is already registered ! ', 'error');
+          break;
+
+        case 'invalid':
+          showToast('Invalid email address ❌', 'error');
+          break;
+
+        default:
+          showToast('Something went wrong ⚠️', 'error');
+      }
+    } catch (err) {
+      showToast('Network error ⚠️', 'error');
+      console.error(err);
+    }
+  });
+});
+</script>
 </body>
-
 </html>
