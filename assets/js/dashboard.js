@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function toggleSidebar(e) {
   e && e.preventDefault();
-  document.getElementById('sidebar').classList.toggle('show');
+  document.getElementById('sidebar')?.classList.toggle('show');
 }
 
 const titleMap = {
@@ -52,7 +52,7 @@ const titleMap = {
 
 function showSection(page) {
   document.querySelectorAll('.section').forEach((s) => s.classList.remove('active'));
-  (document.getElementById(page) || document.getElementById('dashboard')).classList.add(
+  (document.getElementById(page) || document.getElementById('dashboard'))?.classList.add(
     'active'
   );
   const pt = document.getElementById('pageTitle');
@@ -86,7 +86,7 @@ function applySearch(val) {
   const visibleTable = Array.from(
     document.querySelectorAll('.section.active table.datatable')
   ).shift();
-  if (visibleTable && $(visibleTable).DataTable) {
+  if (visibleTable && typeof $ !== 'undefined' && $(visibleTable).DataTable) {
     $(visibleTable).DataTable().search(val).draw();
   }
 }
@@ -218,12 +218,98 @@ function applyDtDarkSkin() {
   }
 }
 
-// small helper to parse date safely
 function parseDateSafe(str) {
   if (!str) return null;
   const t = Date.parse(str);
   if (Number.isNaN(t)) return null;
   return new Date(t);
+}
+
+// ===================== Roundtrip + Duration Helpers (NEW) =====================
+
+function normTripType(t) {
+  const s = String(t || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_-]/g, '');
+  if (s === 'roundtrip' || s === 'round' || s === 'rt') return 'roundtrip';
+  if (s === 'oneway' || s === 'one') return 'oneway';
+  return s;
+}
+
+function makeDateTime(dateStr, timeStr) {
+  if (!dateStr) return null;
+  const d = String(dateStr).slice(0, 10);
+  const t =
+    timeStr && String(timeStr).trim() ? String(timeStr).trim().slice(0, 5) : '00:00';
+  const dt = new Date(`${d}T${t}:00`);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+function calcDurationDaysFromFlight(f) {
+  if (!f) return null;
+
+  const departDate = f.departure_date || f.depart_date || f.departDate || null;
+  const departTime = f.departure_time || f.depart_time || null;
+
+  const returnDate = f.return_date || f.returnDate || null;
+  const returnTime =
+    f.return_departure_time ||
+    f.return_time ||
+    f.return_depart_time ||
+    f.return_departure ||
+    null;
+
+  const a = makeDateTime(departDate, departTime);
+  const b = makeDateTime(returnDate, returnTime);
+
+  if (!a || !b) return null;
+  const diff = b.getTime() - a.getTime();
+  if (diff <= 0) return null;
+
+  const days = Math.ceil(diff / (24 * 60 * 60 * 1000));
+  return Math.max(1, days);
+}
+
+function buildHotelOptionsByDest(hotels, destId) {
+  const did = String(destId ?? '');
+  const opts = [{ value: '', label: '—' }];
+  (hotels || [])
+    .filter((h) => String(h.destination_id) === did)
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')))
+    .forEach((h) => {
+      opts.push({ value: h.id, label: h.name || `Hotel #${h.id}` });
+    });
+  return opts;
+}
+
+function buildRoundtripFlightOptionsByDest(flights, destId) {
+  const did = String(destId ?? '');
+  const opts = [{ value: '', label: '— (Round-trip only)' }];
+
+  (flights || [])
+    .filter((f) => String(f.destination_id) === did)
+    .filter((f) => normTripType(f.trip_type) === 'roundtrip')
+    .sort((a, b) => {
+      const da = String(a.depart_date || a.departure_date || '');
+      const db = String(b.depart_date || b.departure_date || '');
+      return da.localeCompare(db);
+    })
+    .forEach((f) => {
+      const num = f.flight_number ? `#${f.flight_number}` : `ID ${f.id}`;
+      const airline = f.airline_name ? `${f.airline_name} ` : '';
+      const from = f.origin_city || (f.origin_airport_code || '').toUpperCase() || '—';
+      const to = f.destination_city || (f.destination_airport_code || '').toUpperCase() || '—';
+      const dd = (f.depart_date || f.departure_date || '—').slice(0, 10);
+      const rd = (f.return_date || '—').slice(0, 10);
+      opts.push({
+        value: f.id,
+        label: `${airline}${num} · ${from} → ${to} · ${dd} ↩ ${rd}`
+      });
+    });
+
+  return opts;
 }
 
 // ===================== KPI (Dashboard Small Numbers) =====================
@@ -253,9 +339,7 @@ async function fillKpis() {
 
     if (el('kpiUsers')) el('kpiUsers').textContent = totalUsers.toLocaleString();
     if (el('kpiBookings')) el('kpiBookings').textContent = totalBookings.toLocaleString();
-    if (el('kpiRevenue')) {
-      el('kpiRevenue').textContent = '$' + totalRevenue.toLocaleString();
-    }
+    if (el('kpiRevenue')) el('kpiRevenue').textContent = '$' + totalRevenue.toLocaleString();
     if (el('kpiOTP')) el('kpiOTP').textContent = onTimePercent + '%';
   } catch (e) {
     console.error('KPI error', e);
@@ -287,7 +371,7 @@ function buildFlightsMap() {
     MAP = null;
   }
   const mapEl = document.getElementById('flightsMap');
-  if (!mapEl) return;
+  if (!mapEl || typeof L === 'undefined') return;
 
   MAP = L.map('flightsMap', { scrollWheelZoom: false, worldCopyJump: true }).setView(
     coords.AMM,
@@ -303,9 +387,7 @@ function buildFlightsMap() {
     { maxZoom: 20, attribution: '&copy; OpenStreetMap & Carto' }
   );
 
-  (document.documentElement.classList.contains('dark') ? BASE_DARK : BASE_LIGHT).addTo(
-    MAP
-  );
+  (document.documentElement.classList.contains('dark') ? BASE_DARK : BASE_LIGHT).addTo(MAP);
 
   const airportIcon = L.divIcon({
     className: '',
@@ -314,27 +396,20 @@ function buildFlightsMap() {
     iconAnchor: [9, 18]
   });
 
-  const markers = {};
   Object.entries(coords).forEach(([k, latlng]) => {
-    markers[k] = L.marker(latlng, { icon: airportIcon })
-      .addTo(MAP)
-      .bindPopup(`<b>${k}</b>`);
+    L.marker(latlng, { icon: airportIcon }).addTo(MAP).bindPopup(`<b>${k}</b>`);
   });
 
   const css = getComputedStyle(document.documentElement);
   const color =
-    (css.getPropertyValue('--route') ||
-      css.getPropertyValue('--p2') ||
-      '#8b5cf6').trim();
+    (css.getPropertyValue('--route') || css.getPropertyValue('--p2') || '#8b5cf6').trim();
 
   let routes = [];
   const flights = cache.flights || [];
   flights.forEach((f) => {
     const from = (f.origin_airport_code || '').toUpperCase();
     const to = (f.destination_airport_code || '').toUpperCase();
-    if (coords[from] && coords[to]) {
-      routes.push([from, to]);
-    }
+    if (coords[from] && coords[to]) routes.push([from, to]);
   });
 
   if (!routes.length) {
@@ -455,34 +530,29 @@ const initers = {
         console.error('dashboard data error:', e);
       }
 
-      // ---------- aggregations ----------
       const revenuePerMonth = Array(12).fill(0);
       payments.forEach((p) => {
         const d = parseDateSafe(p.created_at);
         if (!d) return;
-        const m = d.getMonth();
-        revenuePerMonth[m] += Number(p.amount_total || 0);
+        revenuePerMonth[d.getMonth()] += Number(p.amount_total || 0);
       });
 
       const bookingsPerMonth = Array(12).fill(0);
       bookings.forEach((b) => {
         const d = parseDateSafe(b.created_at) || parseDateSafe(b.trip_start_date);
         if (!d) return;
-        const m = d.getMonth();
-        bookingsPerMonth[m] += 1;
+        bookingsPerMonth[d.getMonth()] += 1;
       });
 
       const today = new Date();
 
-      // last 30 days revenue
       const labels30 = [];
       const revenueLast30 = [];
       for (let i = 29; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const key = d.toISOString().slice(0, 10);
-        const label = `${d.getMonth() + 1}/${d.getDate()}`;
-        labels30.push(label);
+        labels30.push(`${d.getMonth() + 1}/${d.getDate()}`);
         let sum = 0;
         payments.forEach((p) => {
           const k = (p.created_at || '').slice(0, 10);
@@ -491,15 +561,13 @@ const initers = {
         revenueLast30.push(sum);
       }
 
-      // last 14 days bookings
       const labels14 = [];
       const bookingsLast14 = [];
       for (let i = 13; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const key = d.toISOString().slice(0, 10);
-        const label = `${d.getMonth() + 1}/${d.getDate()}`;
-        labels14.push(label);
+        labels14.push(`${d.getMonth() + 1}/${d.getDate()}`);
         let cnt = 0;
         bookings.forEach((b) => {
           const k = (b.created_at || b.trip_start_date || '').slice(0, 10);
@@ -515,152 +583,63 @@ const initers = {
         else statusCounts[st]++;
       });
 
-      // ---------- charts ----------
-      if (document.getElementById('dashLine')) {
+      if (document.getElementById('dashLine') && typeof Chart !== 'undefined') {
         new Chart(document.getElementById('dashLine'), {
           type: 'line',
           data: {
-            labels: [
-              'Jan',
-              'Feb',
-              'Mar',
-              'Apr',
-              'May',
-              'Jun',
-              'Jul',
-              'Aug',
-              'Sep',
-              'Oct',
-              'Nov',
-              'Dec'
-            ],
+            labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
             datasets: [
-              {
-                label: 'Revenue',
-                data: revenuePerMonth,
-                tension: 0.35,
-                borderWidth: 2,
-                pointRadius: 3,
-                fill: false,
-                borderColor: p1
-              },
-              {
-                label: 'Bookings',
-                data: bookingsPerMonth,
-                yAxisID: 'y1',
-                tension: 0.4,
-                borderDash: [6, 6],
-                borderWidth: 2,
-                borderColor: pink1
-              }
+              { label: 'Revenue', data: revenuePerMonth, tension: 0.35, borderWidth: 2, pointRadius: 3, fill: false, borderColor: p1 },
+              { label: 'Bookings', data: bookingsPerMonth, yAxisID: 'y1', tension: 0.4, borderDash: [6, 6], borderWidth: 2, borderColor: pink1 }
             ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              y: {
-                beginAtZero: true,
-                grid: { color: getGridColor() },
-                title: { display: true, text: '$' }
-              },
-              y1: {
-                beginAtZero: true,
-                position: 'right',
-                grid: { display: false },
-                title: { display: true, text: 'count' }
-              }
+              y: { beginAtZero: true, grid: { color: getGridColor() }, title: { display: true, text: '$' } },
+              y1: { beginAtZero: true, position: 'right', grid: { display: false }, title: { display: true, text: 'count' } }
             }
           }
         });
       }
 
-      if (document.getElementById('dashDonut')) {
+      if (document.getElementById('dashDonut') && typeof Chart !== 'undefined') {
         new Chart(document.getElementById('dashDonut'), {
           type: 'doughnut',
           data: {
             labels: ['Confirmed', 'Pending', 'Cancelled'],
-            datasets: [
-              {
-                data: [
-                  statusCounts.confirmed,
-                  statusCounts.pending,
-                  statusCounts.cancelled
-                ],
-                backgroundColor: [p2, pink1, p4]
-              }
-            ]
+            datasets: [{ data: [statusCounts.confirmed, statusCounts.pending, statusCounts.cancelled], backgroundColor: [p2, pink1, p4] }]
           },
-          options: {
-            plugins: { legend: { position: 'bottom' } },
-            cutout: '58%',
-            maintainAspectRatio: false
-          }
+          options: { plugins: { legend: { position: 'bottom' } }, cutout: '58%', maintainAspectRatio: false }
         });
       }
 
-      if (document.getElementById('dashArea')) {
+      if (document.getElementById('dashArea') && typeof Chart !== 'undefined') {
         new Chart(document.getElementById('dashArea'), {
           type: 'line',
-          data: {
-            labels: labels30,
-            datasets: [
-              {
-                label: 'Revenue ($)',
-                data: revenueLast30,
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: 0,
-                fill: true,
-                borderColor: p2,
-                backgroundColor: resolveAlpha(p2, 0.15)
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } }
-          }
+          data: { labels: labels30, datasets: [{ label: 'Revenue ($)', data: revenueLast30, tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true, borderColor: p2, backgroundColor: resolveAlpha(p2, 0.15) }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } } }
         });
       }
 
-      if (document.getElementById('dashBarMini')) {
+      if (document.getElementById('dashBarMini') && typeof Chart !== 'undefined') {
         new Chart(document.getElementById('dashBarMini'), {
           type: 'bar',
-          data: {
-            labels: labels14,
-            datasets: [
-              {
-                label: 'Bookings',
-                data: bookingsLast14,
-                backgroundColor: pink2
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } }
-          }
+          data: { labels: labels14, datasets: [{ label: 'Bookings', data: bookingsLast14, backgroundColor: pink2 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: getGridColor() } } } }
         });
       }
 
-      // ---------- activity table ----------
       const tbody = document.querySelector('#dashTable tbody');
-      if (tbody) {
+      if (tbody && typeof $ !== 'undefined') {
         tbody.innerHTML = '';
         const rows = [];
 
         bookings.forEach((b) => {
           const u = users.find((u) => u.id === b.user_id);
           const uname =
-            (u &&
-              ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-                u.username ||
-                u.email)) ||
+            (u && ([u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || u.email)) ||
             `#${b.user_id}`;
 
           rows.push({
@@ -679,10 +658,7 @@ const initers = {
         payments.forEach((p) => {
           const u = users.find((u) => u.id === p.user_id);
           const uname =
-            (u &&
-              ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-                u.username ||
-                u.email)) ||
+            (u && ([u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || u.email)) ||
             (p.user_id ? `#${p.user_id}` : '—');
 
           rows.push({
@@ -790,9 +766,7 @@ const initers = {
       tbody.innerHTML = '';
       (data || []).forEach((a) => {
         const fullName =
-          a.display_name ||
-          [a.first_name, a.last_name].filter(Boolean).join(' ') ||
-          '—';
+          a.display_name || [a.first_name, a.last_name].filter(Boolean).join(' ') || '—';
         const avatar = a.avatar_url || 'https://i.pravatar.cc/120?img=3';
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -839,9 +813,7 @@ const initers = {
       (data || []).forEach((d) => {
         const imgHtml = d.image_url
           ? `<img src="${d.image_url}" alt="${d.name || ''}" class="thumb">`
-          : `<div class="thumb d-flex align-items-center justify-content-center border bg-light text-muted">
-             N/A
-           </div>`;
+          : `<div class="thumb d-flex align-items-center justify-content-center border bg-light text-muted">N/A</div>`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -981,38 +953,25 @@ const initers = {
       const donutData =
         totalForDonut > 0 ? [onTimeCount, delayedCount, cancelledCount] : [68, 22, 10];
 
-      if (document.getElementById('flightsDonut')) {
+      if (document.getElementById('flightsDonut') && typeof Chart !== 'undefined') {
         new Chart(document.getElementById('flightsDonut'), {
           type: 'doughnut',
           data: {
             labels: ['On-Time', 'Delayed', 'Cancelled'],
-            datasets: [
-              {
-                data: donutData,
-                backgroundColor: [p1, p3, p5]
-              }
-            ]
+            datasets: [{ data: donutData, backgroundColor: [p1, p3, p5] }]
           },
-          options: {
-            plugins: { legend: { position: 'bottom' } },
-            cutout: '58%',
-            maintainAspectRatio: false
-          }
+          options: { plugins: { legend: { position: 'bottom' } }, cutout: '58%', maintainAspectRatio: false }
         });
       }
 
       const airlineStats = {};
-
       flightBookings.forEach((b) => {
         const fl = flights.find((f) => String(f.id) === String(b.flight_id));
         if (!fl || !fl.airline_name) return;
         const name = fl.airline_name;
-
         if (!airlineStats[name]) airlineStats[name] = { total: 0, onTime: 0 };
         airlineStats[name].total++;
-        if ((b.booking_status || '').toLowerCase() === 'confirmed') {
-          airlineStats[name].onTime++;
-        }
+        if ((b.booking_status || '').toLowerCase() === 'confirmed') airlineStats[name].onTime++;
       });
 
       let labels = Object.keys(airlineStats);
@@ -1026,68 +985,66 @@ const initers = {
         otpValues = [92, 86, 88, 83];
       }
 
-      if (document.getElementById('flightsBar')) {
+      if (document.getElementById('flightsBar') && typeof Chart !== 'undefined') {
         new Chart(document.getElementById('flightsBar'), {
           type: 'bar',
-          data: {
-            labels,
-            datasets: [{ label: 'OTP %', data: otpValues, backgroundColor: p3 }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-                grid: { color: getGridColor() }
-              }
-            }
-          }
+          data: { labels, datasets: [{ label: 'OTP %', data: otpValues, backgroundColor: p3 }] },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, grid: { color: getGridColor() } } } }
         });
       }
     };
   })(),
 
   // ---------- Hotels ----------
-  hotels: (function () {
-    let done = false;
-    return async function () {
-      if (done) return;
-      done = true;
+ // ---------- Hotels ----------
+hotels: (function () {
+  let done = false;
+  return async function () {
+    if (done) return;
+    done = true;
 
-      const tbody = document.querySelector('#hotelsTable tbody');
-      if (!tbody) return;
+    const tbody = document.querySelector('#hotelsTable tbody');
+    if (!tbody) return;
 
-      let hotels = [];
-      let dests = cache.destinations;
+    let hotels = [];
+    let dests = cache.destinations;
 
+    try {
+      hotels = await apiList('hotels');
+    } catch (e) {
+      console.error('hotels API error:', e);
+      hotels = [];
+    }
+
+    if (!dests || !dests.length) {
       try {
-        hotels = await apiList('hotels');
+        dests = await apiList('destinations');
       } catch (e) {
-        console.error('hotels API error:', e);
-        hotels = [];
+        console.error('destinations API error (for hotels):', e);
+        dests = [];
       }
+    }
 
-      if (!dests || !dests.length) {
-        try {
-          dests = await apiList('destinations');
-        } catch (e) {
-          console.error('destinations API error (for hotels):', e);
-          dests = [];
-        }
-      }
+    tbody.innerHTML = '';
 
-      tbody.innerHTML = '';
-      (hotels || []).forEach((h) => {
-        const dest = dests.find((d) => d.id === h.destination_id);
-        const destName = dest ? dest.name : '—';
-        const city = dest ? dest.city : '—';
-        const country = dest ? dest.country : '—';
+    (hotels || []).forEach((h) => {
+      const dest = (dests || []).find((d) => String(d.id) === String(h.destination_id));
+      const destName = dest ? dest.name : '—';
+      const city = dest ? dest.city : (h.city || '—');
+      const country = dest ? dest.country : (h.country || '—');
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-        <td>${h.id}</td>
+      const imgSrc =
+        h.image_url ||
+        h.main_image ||
+        h.cover_image ||
+        'https://picsum.photos/seed/hotel/80/60';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <img src="${imgSrc}" alt="${h.name || ''}"
+               style="width:60px;height:45px;object-fit:cover;border-radius:6px;">
+        </td>
         <td>${h.name || '—'}</td>
         <td>${destName}</td>
         <td>${city}</td>
@@ -1098,122 +1055,165 @@ const initers = {
         <td>${h.currency || 'USD'}</td>
         <td>${h.is_active ? 'Yes' : 'No'}</td>
         <td>${h.created_at || '—'}</td>
-        <td>${actions({ edit: true, del: true }, h.id, 'hotels')}</td>`;
-        tbody.appendChild(tr);
-      });
+        <td>${actions({ edit: true, del: true }, h.id, 'hotels')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    if (typeof $ !== 'undefined' && $.fn && $.fn.DataTable) {
+      if ($.fn.DataTable.isDataTable('#hotelsTable')) {
+        $('#hotelsTable').DataTable().destroy();
+      }
 
       $('#hotelsTable').DataTable({
         pageLength: 7,
         order: [[1, 'asc']],
         columnDefs: [{ targets: [11], orderable: false }]
       });
+
       applyDtDarkSkin();
+    }
 
-      const cityStats = {};
-      (hotels || []).forEach((h) => {
-        const dest = dests.find((d) => d.id === h.destination_id);
-        const city = dest ? dest.city : 'Other';
-        const r = parseFloat(h.rating) || 0;
-        if (!cityStats[city]) cityStats[city] = { sumRating: 0, count: 0 };
-        cityStats[city].sumRating += r;
-        cityStats[city].count += 1;
+    // ====== Charts ======
+    const cityStats = {};
+    (hotels || []).forEach((h) => {
+      const dest = (dests || []).find((d) => String(d.id) === String(h.destination_id));
+      const c = dest ? dest.city : 'Other';
+      const r = parseFloat(h.rating) || 0;
+
+      if (!cityStats[c]) cityStats[c] = { sumRating: 0, count: 0 };
+      cityStats[c].sumRating += r;
+      cityStats[c].count += 1;
+    });
+
+    let occLabels = [];
+    let occValues = [];
+
+    const cityNames = Object.keys(cityStats);
+    if (cityNames.length > 0) {
+      cityNames.forEach((c) => {
+        const { sumRating, count } = cityStats[c];
+        const avgRating = count ? sumRating / count : 0;
+        const occ = Math.round((avgRating / 5) * 100);
+        occLabels.push(c);
+        occValues.push(occ);
       });
+    } else {
+      occLabels = ['Amman', 'Istanbul', 'Dubai', 'Cairo'];
+      occValues = [78, 84, 88, 69];
+    }
 
-      let occLabels = [];
-      let occValues = [];
+    const starBuckets = { 5: 0, 4: 0, 3: 0, 2: 0 };
+    (hotels || []).forEach((h) => {
+      const r = parseFloat(h.rating);
+      if (!r) return;
+      if (r >= 4.5) starBuckets[5] += 1;
+      else if (r >= 3.5) starBuckets[4] += 1;
+      else if (r >= 2.5) starBuckets[3] += 1;
+      else starBuckets[2] += 1;
+    });
 
-      const cityNames = Object.keys(cityStats);
-      if (cityNames.length > 0) {
-        cityNames.forEach((c) => {
-          const { sumRating, count } = cityStats[c];
-          const avgRating = count ? sumRating / count : 0;
-          const occ = Math.round((avgRating / 5) * 100);
-          occLabels.push(c);
-          occValues.push(occ);
-        });
-      } else {
-        occLabels = ['Amman', 'Istanbul', 'Dubai', 'Cairo'];
-        occValues = [78, 84, 88, 69];
-      }
+    let starData = [starBuckets[5], starBuckets[4], starBuckets[3], starBuckets[2]];
+    const totalStars = starData.reduce((s, x) => s + x, 0);
+    if (!totalStars) starData = [25, 45, 22, 8];
 
-      const starBuckets = { 5: 0, 4: 0, 3: 0, 2: 0 };
-      (hotels || []).forEach((h) => {
-        const r = parseFloat(h.rating);
-        if (!r) return;
-        if (r >= 4.5) starBuckets[5] += 1;
-        else if (r >= 3.5) starBuckets[4] += 1;
-        else if (r >= 2.5) starBuckets[3] += 1;
-        else starBuckets[2] += 1;
-      });
+    const css = getComputedStyle(document.documentElement);
+    const p1 = css.getPropertyValue('--p1').trim();
+    const pink1 =
+      (css.getPropertyValue('--pink1') || css.getPropertyValue('--p3')).trim();
 
-      let starData = [starBuckets[5], starBuckets[4], starBuckets[3], starBuckets[2]];
-      const totalStars = starData.reduce((s, x) => s + x, 0);
-      if (!totalStars) starData = [25, 45, 22, 8];
-
-      const css = getComputedStyle(document.documentElement);
-      const p1 = css.getPropertyValue('--p1').trim();
-      const pink1 =
-        (css.getPropertyValue('--pink1') || css.getPropertyValue('--p3')).trim();
-
-      if (document.getElementById('hotelsLine')) {
-        new Chart(document.getElementById('hotelsLine'), {
-          type: 'line',
-          data: {
-            labels: occLabels,
-            datasets: [
-              {
-                label: 'Occupancy %',
-                data: occValues,
-                tension: 0.35,
-                borderWidth: 2,
-                pointRadius: 3,
-                borderColor: p1
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-                grid: { color: getGridColor() }
-              }
+    if (document.getElementById('hotelsLine')) {
+      new Chart(document.getElementById('hotelsLine'), {
+        type: 'line',
+        data: {
+          labels: occLabels,
+          datasets: [
+            {
+              label: 'Occupancy %',
+              data: occValues,
+              tension: 0.35,
+              borderWidth: 2,
+              pointRadius: 3,
+              borderColor: p1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              grid: { color: getGridColor() }
             }
           }
-        });
-      }
+        }
+      });
+    }
 
-      if (document.getElementById('hotelsPie')) {
-        new Chart(document.getElementById('hotelsPie'), {
-          type: 'pie',
-          data: {
-            labels: ['★5', '★4', '★3', '★2'],
-            datasets: [
-              {
-                data: starData,
-                backgroundColor: [
-                  p1,
-                  pink1,
-                  resolveAlpha(p1, 0.35),
-                  resolveAlpha(pink1, 0.35)
-                ]
-              }
-            ]
-          },
-          options: {
-            plugins: { legend: { position: 'bottom' } },
-            maintainAspectRatio: false
-          }
-        });
-      }
-    };
-  })(),
+    if (document.getElementById('hotelsPie')) {
+      new Chart(document.getElementById('hotelsPie'), {
+        type: 'pie',
+        data: {
+          labels: ['★5', '★4', '★3', '★2'],
+          datasets: [
+            {
+              data: starData,
+              backgroundColor: [
+                p1,
+                pink1,
+                resolveAlpha(p1, 0.35),
+                resolveAlpha(pink1, 0.35)
+              ]
+            }
+          ]
+        },
+        options: {
+          plugins: { legend: { position: 'bottom' } },
+          maintainAspectRatio: false
+        }
+      });
+    }
+  };
+})(),
 
-  // ---------- Packages ----------
+  // ---------- Packages (FIXED: HOTEL + FLIGHT columns + auto duration) ----------
   packages: (function () {
     let done = false;
+
+    const durFixQueue = [];
+    let durFixRunning = false;
+    const durFixDone = new Set();
+
+    async function runDurFixQueue() {
+      if (durFixRunning) return;
+      durFixRunning = true;
+      while (durFixQueue.length) {
+        const item = durFixQueue.shift();
+        if (!item) continue;
+        const key = String(item.id);
+        if (durFixDone.has(key)) continue;
+
+        try {
+          await apiUpdate('packages', item.id, { duration_days: item.days });
+          durFixDone.add(key);
+          localStorage.setItem(`pkgDurFix_v1_${key}`, '1');
+        } catch (e) {
+          console.warn('package duration auto-fix failed', item.id, e);
+        }
+      }
+      durFixRunning = false;
+    }
+
+    function queueDurationFix(id, days) {
+      if (!USE_API) return;
+      const key = String(id);
+      if (durFixDone.has(key)) return;
+      if (localStorage.getItem(`pkgDurFix_v1_${key}`) === '1') return;
+      durFixQueue.push({ id, days });
+    }
+
     return async function () {
       if (done) return;
       done = true;
@@ -1223,6 +1223,8 @@ const initers = {
 
       let packages = [];
       let dests = cache.destinations;
+      let hotels = cache.hotels;
+      let flights = cache.flights;
 
       try {
         packages = await apiList('packages');
@@ -1240,12 +1242,50 @@ const initers = {
         }
       }
 
+      if (!hotels || !hotels.length) {
+        try {
+          hotels = await apiList('hotels');
+        } catch (e) {
+          console.error('hotels API error (for packages):', e);
+          hotels = [];
+        }
+      }
+
+      if (!flights || !flights.length) {
+        try {
+          flights = await apiList('flights');
+        } catch (e) {
+          console.error('flights API error (for packages):', e);
+          flights = [];
+        }
+      }
+
       tbody.innerHTML = '';
+
       (packages || []).forEach((p) => {
-        const dest = dests.find((d) => d.id === p.destination_id);
+        const dest = dests.find((d) => String(d.id) === String(p.destination_id));
         const destName = dest ? dest.name : p.location || '—';
 
+        const h = (hotels || []).find((x) => String(x.id) === String(p.hotel_id));
+        const hotelName = h ? (h.name || `Hotel #${h.id}`) : '—';
+
+        const f = (flights || []).find((x) => String(x.id) === String(p.flight_id));
+        const flightLabel = f
+          ? `${(f.airline_name || '').trim()} ${f.flight_number ? '#' + f.flight_number : 'ID ' + f.id}`.trim()
+          : '—';
+
         const imgSrc = p.image_url || 'https://picsum.photos/seed/package/80/60';
+
+        // Auto duration from flight go+return time
+        const computedDays = f ? calcDurationDaysFromFlight(f) : null;
+        const showDays =
+          computedDays != null ? computedDays : (p.duration_days != null ? p.duration_days : 0);
+
+        // Update old DB duration if needed (only when we can compute)
+        if (computedDays != null) {
+          const cur = Number(p.duration_days || 0);
+          if (cur !== Number(computedDays)) queueDurationFix(p.id, computedDays);
+        }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1254,9 +1294,11 @@ const initers = {
         </td>
         <td>${p.title || '—'}</td>
         <td>${destName}</td>
-        <td>${p.from_city || 'Amman'}</td>
+        <td>${hotelName}</td>
+        <td>${flightLabel}</td>
+        <td>${p.from_city || '—'}</td>
         <td>${p.location || '—'}</td>
-        <td>${p.duration_days || 0}</td>
+        <td>${showDays || 0}</td>
         <td>$${Number(p.price_usd || 0).toFixed(2)}</td>
         <td>${p.rating || '—'}</td>
         <td>${p.category || '—'}</td>
@@ -1267,10 +1309,14 @@ const initers = {
         tbody.appendChild(tr);
       });
 
+      // Run DB fixes (once)
+      runDurFixQueue();
+
+      // DataTables (15 columns: last index = 14)
       $('#packagesTable').DataTable({
         pageLength: 7,
-        order: [[1, 'asc']],
-        columnDefs: [{ targets: [12], orderable: false }]
+        order: [[13, 'desc']],
+        columnDefs: [{ targets: [14], orderable: false }]
       });
       applyDtDarkSkin();
     };
@@ -1309,10 +1355,7 @@ const initers = {
       (bookings || []).forEach((b) => {
         const u = users.find((u) => u.id === b.user_id);
         const uname =
-          (u &&
-            ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-              u.username ||
-              u.email)) ||
+          (u && ([u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || u.email)) ||
           `#${b.user_id}`;
 
         const tr = document.createElement('tr');
@@ -1342,60 +1385,31 @@ const initers = {
       const p1 = css.getPropertyValue('--p1').trim();
       const p3 = css.getPropertyValue('--p3').trim();
 
-      if (document.getElementById('bookingsTypeChart')) {
-        const typeCounts = {
-          flight: 0,
-          hotel: 0,
-          package: 0,
-          bundle: 0,
-          other: 0
-        };
-
+      if (document.getElementById('bookingsTypeChart') && typeof Chart !== 'undefined') {
+        const typeCounts = { flight: 0, hotel: 0, package: 0, bundle: 0, other: 0 };
         (bookings || []).forEach((b) => {
           const t = (b.booking_type || 'other').toLowerCase();
           if (typeCounts.hasOwnProperty(t)) typeCounts[t]++;
           else typeCounts.other++;
         });
 
-        const labels = ['Flight', 'Hotel', 'Package', 'Bundle', 'Other'];
-        const dataVals = [
-          typeCounts.flight,
-          typeCounts.hotel,
-          typeCounts.package,
-          typeCounts.bundle,
-          typeCounts.other
-        ];
-
         new Chart(document.getElementById('bookingsTypeChart'), {
           type: 'doughnut',
           data: {
-            labels,
-            datasets: [
-              {
-                data: dataVals,
-                backgroundColor: [
-                  p1,
-                  p3,
-                  resolveAlpha(p1, 0.6),
-                  resolveAlpha(p3, 0.6),
-                  '#d6ccff'
-                ]
-              }
-            ]
+            labels: ['Flight', 'Hotel', 'Package', 'Bundle', 'Other'],
+            datasets: [{
+              data: [typeCounts.flight, typeCounts.hotel, typeCounts.package, typeCounts.bundle, typeCounts.other],
+              backgroundColor: [p1, p3, resolveAlpha(p1, 0.6), resolveAlpha(p3, 0.6), '#d6ccff']
+            }]
           },
-          options: {
-            plugins: { legend: { position: 'bottom' } },
-            cutout: '58%',
-            maintainAspectRatio: false
-          }
+          options: { plugins: { legend: { position: 'bottom' } }, cutout: '58%', maintainAspectRatio: false }
         });
       }
 
-      if (document.getElementById('bookingsDailyChart')) {
+      if (document.getElementById('bookingsDailyChart') && typeof Chart !== 'undefined') {
         const today = new Date();
         const labels = [];
         const counts = [];
-
         for (let i = 6; i >= 0; i--) {
           const d = new Date(today);
           d.setDate(d.getDate() - i);
@@ -1412,33 +1426,8 @@ const initers = {
 
         new Chart(document.getElementById('bookingsDailyChart'), {
           type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Bookings',
-                data: counts,
-                tension: 0.35,
-                borderWidth: 2,
-                pointRadius: 3,
-                fill: true,
-                borderColor: p1,
-                backgroundColor: resolveAlpha(p1, 0.18)
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: { color: getGridColor() }
-              },
-              x: { grid: { display: false } }
-            }
-          }
+          data: { labels, datasets: [{ label: 'Bookings', data: counts, tension: 0.35, borderWidth: 2, pointRadius: 3, fill: true, borderColor: p1, backgroundColor: resolveAlpha(p1, 0.18) }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: getGridColor() } }, x: { grid: { display: false } } } }
         });
       }
     };
@@ -1477,10 +1466,7 @@ const initers = {
       (payments || []).forEach((p) => {
         const u = users.find((u) => u.id === p.user_id);
         const uname =
-          (u &&
-            ([u.first_name, u.last_name].filter(Boolean).join(' ') ||
-              u.username ||
-              u.email)) ||
+          (u && ([u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || u.email)) ||
           (p.user_id ? `#${p.user_id}` : '—');
 
         const tr = document.createElement('tr');
@@ -1508,14 +1494,8 @@ const initers = {
       const p1 = css.getPropertyValue('--p1').trim();
       const p3 = css.getPropertyValue('--p3').trim();
 
-      if (document.getElementById('payDoughnut')) {
-        const methodCounts = {
-          visa: 0,
-          mastercard: 0,
-          cashcard: 0,
-          other: 0
-        };
-
+      if (document.getElementById('payDoughnut') && typeof Chart !== 'undefined') {
+        const methodCounts = { visa: 0, mastercard: 0, cashcard: 0, other: 0 };
         (payments || []).forEach((p) => {
           const m = (p.payment_method || p.card_brand || '').toLowerCase();
           if (m.includes('visa')) methodCounts.visa++;
@@ -1524,34 +1504,17 @@ const initers = {
           else methodCounts.other++;
         });
 
-        const labels = ['Visa', 'Mastercard', 'Cashcard', 'Other'];
-        const dataVals = [
-          methodCounts.visa,
-          methodCounts.mastercard,
-          methodCounts.cashcard,
-          methodCounts.other
-        ];
-
         new Chart(document.getElementById('payDoughnut'), {
           type: 'doughnut',
           data: {
-            labels,
-            datasets: [
-              {
-                data: dataVals,
-                backgroundColor: [p1, p3, resolveAlpha(p1, 0.45), '#d6ccff']
-              }
-            ]
+            labels: ['Visa', 'Mastercard', 'Cashcard', 'Other'],
+            datasets: [{ data: [methodCounts.visa, methodCounts.mastercard, methodCounts.cashcard, methodCounts.other], backgroundColor: [p1, p3, resolveAlpha(p1, 0.45), '#d6ccff'] }]
           },
-          options: {
-            plugins: { legend: { position: 'bottom' } },
-            cutout: '58%',
-            maintainAspectRatio: false
-          }
+          options: { plugins: { legend: { position: 'bottom' } }, cutout: '58%', maintainAspectRatio: false }
         });
       }
 
-      if (document.getElementById('payLine')) {
+      if (document.getElementById('payLine') && typeof Chart !== 'undefined') {
         const today = new Date();
         const dayKeys = [];
         const labels = [];
@@ -1571,39 +1534,13 @@ const initers = {
           if (!dateSrc) return;
           const day = String(dateSrc).slice(0, 10);
           const idx = dayKeys.indexOf(day);
-          if (idx !== -1) {
-            sums[idx] += Number(p.amount_total || p.amount || 0);
-          }
+          if (idx !== -1) sums[idx] += Number(p.amount_total || p.amount || 0);
         });
 
         new Chart(document.getElementById('payLine'), {
           type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Payments',
-                data: sums,
-                tension: 0.35,
-                borderWidth: 2,
-                pointRadius: 3,
-                borderColor: p1,
-                fill: true,
-                backgroundColor: resolveAlpha(p1, 0.18)
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: { color: getGridColor() }
-              },
-              x: { grid: { display: false } }
-            }
-          }
+          data: { labels, datasets: [{ label: 'Payments', data: sums, tension: 0.35, borderWidth: 2, pointRadius: 3, borderColor: p1, fill: true, backgroundColor: resolveAlpha(p1, 0.18) }] },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: getGridColor() } }, x: { grid: { display: false } } } }
         });
       }
     };
@@ -1637,7 +1574,6 @@ async function getDestinationOptions() {
   }));
 }
 
-// Helpers for HTML fields
 function fieldText(label, name, type = 'text', value = '', extraAttrs = '') {
   return `
   <div class="col-md-6">
@@ -1677,9 +1613,7 @@ function fieldSelect(label, name, options, selectedValue) {
 function fieldCheckbox(label, name, checked) {
   return `
   <div class="col-md-4 form-check mt-4">
-    <input class="form-check-input" type="checkbox" id="${name}" name="${name}" ${
-    checked ? 'checked' : ''
-  }>
+    <input class="form-check-input" type="checkbox" id="${name}" name="${name}" ${checked ? 'checked' : ''}>
     <label class="form-check-label" for="${name}">${label}</label>
   </div>`;
 }
@@ -1690,21 +1624,14 @@ async function buildForm(entity, mode, data) {
   CURRENT_ID = data?.id || null;
 
   let body = '<div class="row g-3">';
-  if (CURRENT_ID) {
-    body += `<input type="hidden" name="id" value="${CURRENT_ID}">`;
-  }
+  if (CURRENT_ID) body += `<input type="hidden" name="id" value="${CURRENT_ID}">`;
 
   if (entity === 'admins') {
     body += fieldText('First Name', 'first_name', 'text', data?.first_name);
     body += fieldText('Last Name', 'last_name', 'text', data?.last_name);
     body += fieldText('Display Name', 'display_name', 'text', data?.display_name);
     body += fieldText('Email', 'email', 'email', data?.email);
-    body += fieldText(
-      'Password (hash or plain to hash later)',
-      'password_hash',
-      'text',
-      ''
-    );
+    body += fieldText('Password (hash or plain to hash later)', 'password_hash', 'text', '');
     body += fieldText('Avatar URL', 'avatar_url', 'url', data?.avatar_url);
     body += fieldCheckbox('Is Super Admin', 'is_super', data?.is_super);
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
@@ -1714,12 +1641,7 @@ async function buildForm(entity, mode, data) {
     body += fieldText('Username', 'username', 'text', data?.username);
     body += fieldText('Email', 'email', 'email', data?.email);
     body += fieldText('Birth Date', 'birth_date', 'date', data?.birth_date);
-    body += fieldText(
-      'Password (hash or plain to hash later)',
-      'password_hash',
-      'text',
-      ''
-    );
+    body += fieldText('Password (hash or plain to hash later)', 'password_hash', 'text', '');
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
   } else if (entity === 'destinations') {
     body += fieldText('Name', 'name', 'text', data?.name);
@@ -1747,46 +1669,24 @@ async function buildForm(entity, mode, data) {
     const destOptions = await getDestinationOptions();
     body += fieldSelect('Destination', 'destination_id', destOptions, data?.destination_id);
     body += fieldText('Name', 'name', 'text', data?.name);
-    body += fieldText(
-      'Location Text (e.g., near center)',
-      'location_text',
-      'text',
-      data?.location_text
-    );
+    body += fieldText('Location Text (e.g., near center)', 'location_text', 'text', data?.location_text);
     body += fieldText('Rating (e.g., 4.5)', 'rating', 'number', data?.rating);
     body += fieldText('Reviews Count', 'reviews_count', 'number', data?.reviews_count);
-    body += fieldText(
-      'Price per Night (USD)',
-      'price_per_night',
-      'number',
-      data?.price_per_night
-    );
+    body += fieldText('Price per Night (USD)', 'price_per_night', 'number', data?.price_per_night);
     body += fieldText('Currency', 'currency', 'text', data?.currency || 'USD');
     body += fieldText('Discount %', 'discount_percent', 'number', data?.discount_percent);
     body += fieldTextarea('Description', 'description', data?.description);
     body += fieldCheckbox('Parking', 'has_parking', data?.has_parking);
-    body += fieldCheckbox(
-      'Attached Bathroom',
-      'has_attached_bathroom',
-      data?.has_attached_bathroom
-    );
+    body += fieldCheckbox('Attached Bathroom', 'has_attached_bathroom', data?.has_attached_bathroom);
     body += fieldCheckbox('CCTV', 'has_cctv', data?.has_cctv);
     body += fieldCheckbox('WiFi', 'has_wifi', data?.has_wifi);
     body += fieldCheckbox('Sea View', 'has_sea_view', data?.has_sea_view);
     body += fieldCheckbox('City View', 'has_city_view', data?.has_city_view);
-    body += fieldCheckbox(
-      'Free Breakfast',
-      'has_free_breakfast',
-      data?.has_free_breakfast
-    );
+    body += fieldCheckbox('Free Breakfast', 'has_free_breakfast', data?.has_free_breakfast);
     body += fieldCheckbox('Pay at Hotel', 'pay_at_hotel', data?.pay_at_hotel);
     body += fieldCheckbox('Couple Friendly', 'couple_friendly', data?.couple_friendly);
     body += fieldCheckbox('Pet Friendly', 'pet_friendly', data?.pet_friendly);
-    body += fieldCheckbox(
-      'Airport Shuttle',
-      'airport_shuttle',
-      data?.airport_shuttle
-    );
+    body += fieldCheckbox('Airport Shuttle', 'airport_shuttle', data?.airport_shuttle);
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
   } else if (entity === 'flights') {
     const destOptions = await getDestinationOptions();
@@ -1804,49 +1704,18 @@ async function buildForm(entity, mode, data) {
       data?.trip_type
     );
     body += fieldText('Origin City', 'origin_city', 'text', data?.origin_city);
-    body += fieldText(
-      'Origin Airport Code',
-      'origin_airport_code',
-      'text',
-      data?.origin_airport_code
-    );
+    body += fieldText('Origin Airport Code', 'origin_airport_code', 'text', data?.origin_airport_code);
 
-    body += fieldText(
-      'Destination City',
-      'destination_city',
-      'text',
-      data?.destination_city,
-      'readonly'
-    );
+    body += fieldText('Destination City', 'destination_city', 'text', data?.destination_city, 'readonly');
 
-    body += fieldText(
-      'Destination Airport Code',
-      'destination_airport_code',
-      'text',
-      data?.destination_airport_code
-    );
+    body += fieldText('Destination Airport Code', 'destination_airport_code', 'text', data?.destination_airport_code);
     body += fieldText('Depart Date', 'depart_date', 'date', data?.depart_date);
     body += fieldText('Return Date (optional)', 'return_date', 'date', data?.return_date);
     body += fieldText('Departure Time', 'departure_time', 'time', data?.departure_time);
     body += fieldText('Arrival Time', 'arrival_time', 'time', data?.arrival_time);
-    body += fieldText(
-      'Return Departure Time',
-      'return_departure_time',
-      'time',
-      data?.return_departure_time
-    );
-    body += fieldText(
-      'Return Arrival Time',
-      'return_arrival_time',
-      'time',
-      data?.return_arrival_time
-    );
-    body += fieldText(
-      'Duration (hours)',
-      'duration_hours',
-      'number',
-      data?.duration_hours
-    );
+    body += fieldText('Return Departure Time', 'return_departure_time', 'time', data?.return_departure_time);
+    body += fieldText('Return Arrival Time', 'return_arrival_time', 'time', data?.return_arrival_time);
+    body += fieldText('Duration (hours)', 'duration_hours', 'number', data?.duration_hours);
     body += fieldText('Stops Count', 'stops_count', 'number', data?.stops_count);
     body += fieldText('Fare Subtitle', 'fare_subtitle', 'text', data?.fare_subtitle);
     body += fieldTextarea('Extras (JSON/Text)', 'extras', data?.extras);
@@ -1854,15 +1723,40 @@ async function buildForm(entity, mode, data) {
     body += fieldText('Currency', 'currency', 'text', data?.currency || 'USD');
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
   } else if (entity === 'packages') {
+    // NEW: destination -> filter hotels + roundtrip flights, duration auto from flight
     const destOptions = await getDestinationOptions();
-    body += fieldSelect('Destination', 'destination_id', destOptions, data?.destination_id);
+
+    let hotelsAll = cache.hotels;
+    let flightsAll = cache.flights;
+
+    if (!hotelsAll || !hotelsAll.length) {
+      try { hotelsAll = await apiList('hotels'); } catch { hotelsAll = []; }
+    }
+    if (!flightsAll || !flightsAll.length) {
+      try { flightsAll = await apiList('flights'); } catch { flightsAll = []; }
+    }
+
+    const selectedDest = data?.destination_id ?? (destOptions[0]?.value ?? '');
+
+    body += fieldSelect('Destination', 'destination_id', destOptions, selectedDest);
+
+    // filtered options
+    const hotelOpts = buildHotelOptionsByDest(hotelsAll, selectedDest);
+    const flightOpts = buildRoundtripFlightOptionsByDest(flightsAll, selectedDest);
+
+    body += fieldSelect('Hotel', 'hotel_id', hotelOpts, data?.hotel_id);
+    body += fieldSelect('Flight (Round-trip only)', 'flight_id', flightOpts, data?.flight_id);
+
     body += fieldText('Title', 'title', 'text', data?.title);
     body += fieldText('Location Text', 'location', 'text', data?.location);
     body += fieldText('From City', 'from_city', 'text', data?.from_city);
     body += fieldText('Image URL', 'image_url', 'url', data?.image_url);
     body += fieldText('Badge Type', 'badge_type', 'text', data?.badge_type);
     body += fieldText('Price (USD)', 'price_usd', 'number', data?.price_usd);
-    body += fieldText('Duration (days)', 'duration_days', 'number', data?.duration_days);
+
+    // Auto duration (readonly)
+    body += fieldText('Duration (Days) (auto from flight)', 'duration_days', 'number', data?.duration_days, 'readonly');
+
     body += fieldText('Rating', 'rating', 'number', data?.rating);
     body += fieldText('Reviews Count', 'reviews_count', 'number', data?.reviews_count);
     body += fieldSelect(
@@ -1882,6 +1776,10 @@ async function buildForm(entity, mode, data) {
     );
     body += fieldCheckbox('Featured', 'is_featured', data?.is_featured);
     body += fieldCheckbox('Is Active', 'is_active', data?.is_active ?? 1);
+
+    // store lists for listeners after render
+    buildForm.__pkgHotelsAll = hotelsAll;
+    buildForm.__pkgFlightsAll = flightsAll;
   } else if (entity === 'bookings') {
     const userOptions =
       (cache.users || []).map((u) => ({
@@ -1906,47 +1804,17 @@ async function buildForm(entity, mode, data) {
     );
     body += fieldText('Package ID (optional)', 'package_id', 'number', data?.package_id);
     body += fieldText('Booking Code', 'booking_code', 'text', data?.booking_code);
-    body += fieldText(
-      'Trip Start Date',
-      'trip_start_date',
-      'date',
-      data?.trip_start_date
-    );
+    body += fieldText('Trip Start Date', 'trip_start_date', 'date', data?.trip_start_date);
     body += fieldText('Trip End Date', 'trip_end_date', 'date', data?.trip_end_date);
-    body += fieldText(
-      'Adults',
-      'travellers_adults',
-      'number',
-      data?.travellers_adults || 1
-    );
-    body += fieldText(
-      'Children',
-      'travellers_children',
-      'number',
-      data?.travellers_children || 0
-    );
-    body += fieldText(
-      'Infants',
-      'travellers_infants',
-      'number',
-      data?.travellers_infants || 0
-    );
+    body += fieldText('Adults', 'travellers_adults', 'number', data?.travellers_adults || 1);
+    body += fieldText('Children', 'travellers_children', 'number', data?.travellers_children || 0);
+    body += fieldText('Infants', 'travellers_infants', 'number', data?.travellers_infants || 0);
     body += fieldText('Currency', 'currency', 'text', data?.currency || 'USD');
     body += fieldText('Amount Flight', 'amount_flight', 'number', data?.amount_flight);
     body += fieldText('Amount Hotel', 'amount_hotel', 'number', data?.amount_hotel);
-    body += fieldText(
-      'Amount Package',
-      'amount_package',
-      'number',
-      data?.amount_package
-    );
+    body += fieldText('Amount Package', 'amount_package', 'number', data?.amount_package);
     body += fieldText('Taxes', 'amount_taxes', 'number', data?.amount_taxes);
-    body += fieldText(
-      'Discount Amount',
-      'discount_amount',
-      'number',
-      data?.discount_amount
-    );
+    body += fieldText('Discount Amount', 'discount_amount', 'number', data?.discount_amount);
     body += fieldText('Coupon Code', 'coupon_code', 'text', data?.coupon_code);
     body += fieldText('Total Amount', 'total_amount', 'number', data?.total_amount);
     body += fieldSelect(
@@ -1973,19 +1841,9 @@ async function buildForm(entity, mode, data) {
       ],
       data?.payment_method
     );
-    body += fieldText(
-      'Amount Subtotal',
-      'amount_subtotal',
-      'number',
-      data?.amount_subtotal
-    );
+    body += fieldText('Amount Subtotal', 'amount_subtotal', 'number', data?.amount_subtotal);
     body += fieldText('Amount Tax', 'amount_tax', 'number', data?.amount_tax);
-    body += fieldText(
-      'Amount Discount',
-      'amount_discount',
-      'number',
-      data?.amount_discount
-    );
+    body += fieldText('Amount Discount', 'amount_discount', 'number', data?.amount_discount);
     body += fieldText('Amount Total', 'amount_total', 'number', data?.amount_total);
     body += fieldText('Currency', 'currency', 'text', data?.currency || 'USD');
     body += fieldText('Promo Code', 'promo_code', 'text', data?.promo_code);
@@ -2001,12 +1859,7 @@ async function buildForm(entity, mode, data) {
       data?.card_brand
     );
     body += fieldText('Card Last4', 'card_last4', 'text', data?.card_last4);
-    body += fieldText(
-      'Card Holder Name',
-      'card_holder_name',
-      'text',
-      data?.card_holder_name
-    );
+    body += fieldText('Card Holder Name', 'card_holder_name', 'text', data?.card_holder_name);
     body += fieldText('Exp Month', 'exp_month', 'number', data?.exp_month);
     body += fieldText('Exp Year', 'exp_year', 'number', data?.exp_year);
     body += fieldCheckbox('Save Card', 'card_saved', data?.card_saved);
@@ -2021,43 +1874,91 @@ async function buildForm(entity, mode, data) {
       ],
       data?.status
     );
-    body += fieldText(
-      'Gateway Reference',
-      'gateway_reference',
-      'text',
-      data?.gateway_reference
-    );
+    body += fieldText('Gateway Reference', 'gateway_reference', 'text', data?.gateway_reference);
   }
 
   body += '</div>';
 
   document.getElementById('formModalTitle').textContent =
-    (mode === 'add' ? 'Add ' : 'Edit ') +
-    entity.charAt(0).toUpperCase() +
-    entity.slice(1);
+    (mode === 'add' ? 'Add ' : 'Edit ') + entity.charAt(0).toUpperCase() + entity.slice(1);
 
   const modalBody = document.getElementById('formModalBody');
   modalBody.innerHTML = body;
 
+  // Special behaviors
   if (entity === 'flights') {
     const destSelect = document.getElementById('destination_id');
     const destCityInput = document.getElementById('destination_city');
-
     if (destSelect && destCityInput) {
       const syncCity = () => {
         const opt = destSelect.options[destSelect.selectedIndex];
         const city = opt && opt.dataset.city ? opt.dataset.city : '';
         destCityInput.value = city;
       };
-
       syncCity();
       destSelect.addEventListener('change', syncCity);
     }
   }
 
-  document.getElementById('formSubmitBtn').textContent =
-    mode === 'add' ? 'Create' : 'Save';
+  // NEW: packages form filters + auto duration
+  if (entity === 'packages') {
+    const hotelsAll = buildForm.__pkgHotelsAll || [];
+    const flightsAll = buildForm.__pkgFlightsAll || [];
 
+    const destSelect = document.getElementById('destination_id');
+    const hotelSelect = document.getElementById('hotel_id');
+    const flightSelect = document.getElementById('flight_id');
+    const durationInput = document.getElementById('duration_days');
+
+    const renderOptions = (destId) => {
+      if (hotelSelect) {
+        const opts = buildHotelOptionsByDest(hotelsAll, destId);
+        const cur = hotelSelect.value;
+        hotelSelect.innerHTML = opts
+          .map((o) => `<option value="${o.value}">${o.label}</option>`)
+          .join('');
+        if (opts.some((o) => String(o.value) === String(cur))) hotelSelect.value = cur;
+      }
+
+      if (flightSelect) {
+        const opts = buildRoundtripFlightOptionsByDest(flightsAll, destId);
+        const cur = flightSelect.value;
+        flightSelect.innerHTML = opts
+          .map((o) => `<option value="${o.value}">${o.label}</option>`)
+          .join('');
+        if (opts.some((o) => String(o.value) === String(cur))) flightSelect.value = cur;
+        else flightSelect.value = '';
+      }
+    };
+
+    const autofillDuration = () => {
+      if (!durationInput) return;
+      const fid = flightSelect?.value;
+      if (!fid) {
+        durationInput.value = durationInput.value || '';
+        return;
+      }
+      const f = flightsAll.find((x) => String(x.id) === String(fid));
+      const days = calcDurationDaysFromFlight(f);
+      if (days != null) durationInput.value = String(days);
+    };
+
+    // initial
+    const did = destSelect?.value ?? '';
+    renderOptions(did);
+    autofillDuration();
+
+    destSelect?.addEventListener('change', () => {
+      renderOptions(destSelect.value);
+      autofillDuration();
+    });
+
+    flightSelect?.addEventListener('change', () => {
+      autofillDuration();
+    });
+  }
+
+  document.getElementById('formSubmitBtn').textContent = mode === 'add' ? 'Create' : 'Save';
   formModal.show();
 }
 
@@ -2082,11 +1983,8 @@ document.addEventListener('click', async (e) => {
     e.preventDefault();
     let data = [];
     try {
-      if (!cache[entity] || !cache[entity].length) {
-        data = await apiList(entity);
-      } else {
-        data = cache[entity];
-      }
+      if (!cache[entity] || !cache[entity].length) data = await apiList(entity);
+      else data = cache[entity];
     } catch (err) {
       console.error('fetch single entity for edit error', err);
       data = [];
@@ -2104,6 +2002,7 @@ document.addEventListener('click', async (e) => {
         : action === 'cancel'
         ? 'Cancel this booking?'
         : 'Refund this payment?';
+
     document.getElementById('confirmModalBody').textContent = label;
     document.getElementById('confirmYes').onclick = async () => {
       confirmModal.hide();
@@ -2132,18 +2031,9 @@ const BOOL_FIELDS = {
   users: ['is_active'],
   destinations: ['is_top', 'is_active'],
   hotels: [
-    'has_parking',
-    'has_attached_bathroom',
-    'has_cctv',
-    'has_wifi',
-    'has_sea_view',
-    'has_city_view',
-    'has_free_breakfast',
-    'pay_at_hotel',
-    'couple_friendly',
-    'pet_friendly',
-    'airport_shuttle',
-    'is_active'
+    'has_parking','has_attached_bathroom','has_cctv','has_wifi','has_sea_view',
+    'has_city_view','has_free_breakfast','pay_at_hotel','couple_friendly','pet_friendly',
+    'airport_shuttle','is_active'
   ],
   flights: ['is_active'],
   packages: ['is_featured', 'is_active'],
@@ -2157,14 +2047,8 @@ const INT_FIELDS = {
   destinations: [],
   hotels: ['reviews_count', 'discount_percent', 'destination_id'],
   flights: ['destination_id', 'stops_count'],
-  packages: ['destination_id', 'duration_days', 'reviews_count'],
-  bookings: [
-    'user_id',
-    'package_id',
-    'travellers_adults',
-    'travellers_children',
-    'travellers_infants'
-  ],
+  packages: ['destination_id', 'duration_days', 'reviews_count', 'hotel_id', 'flight_id'],
+  bookings: ['user_id','package_id','travellers_adults','travellers_children','travellers_infants'],
   payments: ['booking_id', 'user_id', 'exp_month', 'exp_year']
 };
 
@@ -2175,14 +2059,7 @@ const FLOAT_FIELDS = {
   hotels: ['rating', 'price_per_night'],
   flights: ['duration_hours', 'base_price'],
   packages: ['price_usd', 'rating'],
-  bookings: [
-    'amount_flight',
-    'amount_hotel',
-    'amount_package',
-    'amount_taxes',
-    'discount_amount',
-    'total_amount'
-  ],
+  bookings: ['amount_flight','amount_hotel','amount_package','amount_taxes','discount_amount','total_amount'],
   payments: ['amount_subtotal', 'amount_tax', 'amount_discount', 'amount_total']
 };
 

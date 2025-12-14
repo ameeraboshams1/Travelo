@@ -6,7 +6,12 @@ $action = $_GET['action'] ?? 'list';
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($action === 'list') {
-    $stmt = $pdo->query('SELECT id, title, destination_id, hotel_id, flight_id, location, from_city, image_url, badge_type, price_usd, duration_days, rating, reviews_count, category, is_featured, is_active, created_at FROM packages ORDER BY created_at DESC');
+    $stmt = $pdo->query('
+        SELECT id, title, destination_id, hotel_id, flight_id, location, from_city, image_url, badge_type,
+               price_usd, duration_days, rating, reviews_count, category, is_featured, is_active, created_at
+        FROM packages
+        ORDER BY created_at DESC
+    ');
     echo json_encode($stmt->fetchAll());
     exit;
 }
@@ -19,6 +24,9 @@ if ($method !== 'POST') {
 
 if ($action === 'create') {
     $destination_id = $_POST['destination_id'] ?? null;
+    $hotel_id = $_POST['hotel_id'] ?? null;
+    $flight_id = $_POST['flight_id'] ?? null;
+
     $title = $_POST['title'] ?? '';
     $location = $_POST['location'] ?? '';
     $from_city = $_POST['from_city'] ?? '';
@@ -32,10 +40,20 @@ if ($action === 'create') {
     $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
     $is_active = !empty($_POST['is_active']) ? 1 : 0;
 
-    $stmt = $pdo->prepare('INSERT INTO packages (title, destination_id, location, from_city, image_url, badge_type, price_usd, duration_days, rating, reviews_count, category, is_featured, is_active) VALUES (:title, :dest, :loc, :fromc, :img, :badge, :price, :days, :rating, :reviews, :cat, :feat, :active)');
+    $stmt = $pdo->prepare('
+        INSERT INTO packages
+          (title, destination_id, hotel_id, flight_id, location, from_city, image_url, badge_type,
+           price_usd, duration_days, rating, reviews_count, category, is_featured, is_active)
+        VALUES
+          (:title, :dest, :hotel, :flight, :loc, :fromc, :img, :badge,
+           :price, :days, :rating, :reviews, :cat, :feat, :active)
+    ');
+
     $stmt->execute([
         'title' => $title,
         'dest' => $destination_id ?: null,
+        'hotel' => ($hotel_id === '' ? null : $hotel_id),
+        'flight' => ($flight_id === '' ? null : $flight_id),
         'loc' => $location,
         'fromc' => $from_city,
         'img' => $image_url,
@@ -48,6 +66,7 @@ if ($action === 'create') {
         'feat' => $is_featured,
         'active' => $is_active
     ]);
+
     echo json_encode(['id' => $pdo->lastInsertId()]);
     exit;
 }
@@ -63,12 +82,21 @@ if ($action === 'update') {
     $fields = [];
     $params = ['id' => $id];
 
-    foreach (['title','destination_id','location','from_city','image_url','badge_type','price_usd','duration_days','rating','reviews_count','category'] as $f) {
+    foreach ([
+        'title','destination_id','hotel_id','flight_id','location','from_city',
+        'image_url','badge_type','price_usd','duration_days','rating','reviews_count','category'
+    ] as $f) {
         if (array_key_exists($f, $_POST)) {
             $fields[] = "$f = :$f";
-            $params[$f] = $_POST[$f];
+            // خلي '' يصير NULL لـ hotel_id/flight_id
+            if (($f === 'hotel_id' || $f === 'flight_id') && $_POST[$f] === '') {
+                $params[$f] = null;
+            } else {
+                $params[$f] = $_POST[$f];
+            }
         }
     }
+
     if (array_key_exists('is_featured', $_POST)) {
         $fields[] = 'is_featured = :is_featured';
         $params['is_featured'] = !empty($_POST['is_featured']) ? 1 : 0;

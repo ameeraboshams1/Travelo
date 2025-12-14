@@ -12,24 +12,17 @@ class TourPage {
       maxPrice: null,
       categories: new Set(),
       durations: new Set(),
-      minRating: 0, // 3 / 4 / 5 stars
+      minRating: 0,
       sortBy: "featured",
     };
 
-    // thresholds لتفسير 5 / 4 / 3 ستارز
-    this.ratingThresholds = {
-      5: 4.5,
-      4: 4.0,
-      3: 3.0,
-    };
-
+    this.ratingThresholds = { 5: 4.5, 4: 4.0, 3: 3.0 };
     this.bookingBaseUrl = "booking.php";
 
     const qs = new URLSearchParams(window.location.search);
     this.destinationFilterId = qs.get("destination_id")
-  ? String(qs.get("destination_id"))
-  : null;
-
+      ? String(qs.get("destination_id"))
+      : null;
 
     this.cacheElements();
     this.buildToursData();
@@ -40,18 +33,13 @@ class TourPage {
     this.setupScrollAnimations();
     this.initDetailsModal();
 
-    // نخفي السبنر بعد تحميل الصفحة
-    if (this.spinner) {
-      this.spinner.style.display = "none";
-    }
+    if (this.spinner) this.spinner.style.display = "none";
   }
 
   // ================= CACHE DOM =================
   cacheElements() {
-    // Spinner
     this.spinner = document.getElementById("spinner");
 
-    // HERO
     this.heroForm = document.getElementById("heroSearch");
     this.heroInputs = this.heroForm
       ? this.heroForm.querySelectorAll(".form-input, .form-select")
@@ -63,103 +51,71 @@ class TourPage {
       ? this.heroForm.querySelector('input[type="date"]')
       : null;
 
-    // Sidebar search
     this.sidebarSearchInput = document.getElementById("sidebarSearch");
 
-    // Price filter
     this.priceSlider = document.getElementById("priceSlider");
     this.priceRangeText = document.getElementById("priceRangeText");
     this.priceApplyBtn = document.getElementById("applyPrice");
 
-    // Sections
     this.categoriesSection = document.getElementById("categoriesList");
     this.durationSection = document.getElementById("durationList");
     this.ratingSection = document.getElementById("ratingList");
 
     this.categoryCheckboxes = this.categoriesSection
-      ? Array.from(
-          this.categoriesSection.querySelectorAll('input[type="checkbox"]')
-        )
+      ? Array.from(this.categoriesSection.querySelectorAll('input[type="checkbox"]'))
       : [];
 
     this.durationCheckboxes = this.durationSection
-      ? Array.from(
-          this.durationSection.querySelectorAll('input[type="checkbox"]')
-        )
+      ? Array.from(this.durationSection.querySelectorAll('input[type="checkbox"]'))
       : [];
 
     this.ratingCheckboxes = this.ratingSection
-      ? Array.from(
-          this.ratingSection.querySelectorAll('input[type="checkbox"]')
-        )
+      ? Array.from(this.ratingSection.querySelectorAll('input[type="checkbox"]'))
       : [];
 
-    // Tours grid
     this.tourGrid = document.getElementById("tourGrid");
     this.tourCards = this.tourGrid
       ? Array.from(this.tourGrid.querySelectorAll(".tour-card"))
       : [];
 
-    // BOOK NOW buttons على الكروت
     this.bookButtons = this.tourGrid
       ? Array.from(this.tourGrid.querySelectorAll(".book-package-btn"))
       : [];
 
-    // Top bar
     this.tourCountSpan = document.getElementById("tourCount");
     this.sortSelect = document.getElementById("sortSelect");
 
-    // Pagination
     this.paginationContainer = document.querySelector(".pagination");
 
-    // Toast
-    this.toastEl = document.createElement("div");
-    this.toastEl.style.cssText =
-      "position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(8px);background:#b049f1;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,0.2);opacity:0;pointer-events:none;transition:opacity 0.25s,transform 0.25s;z-index:9999;";
-    document.body.appendChild(this.toastEl);
+    this.toastEl = document.getElementById("toast");
+    if (!this.toastEl) {
+      this.toastEl = document.createElement("div");
+      this.toastEl.id = "toast";
+      this.toastEl.className = "toast";
+      document.body.appendChild(this.toastEl);
+    }
 
-    // Ripple داخل زر السيرتش (لو مش موجود)
     if (this.heroButton && !this.heroButton.querySelector(".btn-ripple")) {
       const ripple = document.createElement("span");
       ripple.className = "btn-ripple";
-      Object.assign(ripple.style, {
-        position: "absolute",
-        borderRadius: "50%",
-        transform: "scale(0)",
-        width: "160px",
-        height: "160px",
-        background:
-          "radial-gradient(circle, rgba(255,255,255,0.5), transparent)",
-        opacity: "0",
-        pointerEvents: "none",
-        left: "0",
-        top: "0",
-      });
       this.heroButton.style.position = "relative";
       this.heroButton.appendChild(ripple);
       this.rippleEl = ripple;
+    } else {
+      this.rippleEl = this.heroButton ? this.heroButton.querySelector(".btn-ripple") : null;
     }
   }
 
   // ================= BUILD DATA =================
   buildToursData() {
     this.tours = this.tourCards.map((card, index) => {
-      const title =
-        card.querySelector(".tour-title")?.textContent.trim() || "";
-      const location =
-        card.querySelector(".tour-location")?.textContent.trim() || "";
+      const title = card.querySelector(".tour-title")?.textContent.trim() || "";
+      const location = card.querySelector(".tour-location")?.textContent.trim() || "";
 
       const price = parseFloat(card.dataset.price || "0") || 0;
       const rating = parseFloat(card.dataset.rating || "0") || 0;
       const duration = parseInt(card.dataset.duration || "0", 10) || 0;
       const category = (card.dataset.category || "adventure").toLowerCase();
-
-      // bucket للمدة
-      let durationBucket = "week";
-      if (duration <= 1) durationBucket = "day";
-      else if (duration <= 3) durationBucket = "weekend";
-      else if (duration <= 7) durationBucket = "week";
-      else durationBucket = "extended";
 
       // reviews من النص داخل الكارد
       const ratingSpan = card.querySelector(".tour-meta-left span:first-child");
@@ -169,6 +125,45 @@ class TourPage {
         const match = txt.match(/\((\d+)\)/);
         if (match) reviews = parseInt(match[1], 10) || 0;
       }
+
+      // duration bucket
+      let durationBucket = "week";
+      if (duration <= 1) durationBucket = "day";
+      else if (duration <= 3) durationBucket = "weekend";
+      else if (duration <= 7) durationBucket = "week";
+      else durationBucket = "extended";
+
+      // hotel + dashboard flags (from hotels table)
+      const hotel = {
+        name: (card.dataset.hotelName || "").trim(),
+        rating: (card.dataset.hotelRating || "").trim(),
+        reviews: (card.dataset.hotelReviews || "").trim(),
+        priceNight: (card.dataset.hotelPriceNight || "").trim(),
+        currency: (card.dataset.hotelCurrency || "USD").trim(),
+        flags: {
+          has_wifi: +card.dataset.hasWifi === 1,
+          has_free_breakfast: +card.dataset.hasFreeBreakfast === 1,
+          has_parking: +card.dataset.hasParking === 1,
+          has_city_view: +card.dataset.hasCityView === 1,
+          has_sea_view: +card.dataset.hasSeaView === 1,
+          airport_shuttle: +card.dataset.airportShuttle === 1,
+          has_attached_bathroom: +card.dataset.hasAttachedBathroom === 1,
+          has_cctv: +card.dataset.hasCctv === 1,
+          pay_at_hotel: +card.dataset.payAtHotel === 1,
+          couple_friendly: +card.dataset.coupleFriendly === 1,
+          pet_friendly: +card.dataset.petFriendly === 1,
+        },
+      };
+
+      // flight details (if exists)
+      const flight = {
+        airline: (card.dataset.flightAirline || "").trim(),
+        no: (card.dataset.flightNo || "").trim(),
+        from: (card.dataset.flightFrom || "").trim(),
+        to: (card.dataset.flightTo || "").trim(),
+        departAt: (card.dataset.flightDepart || "").trim(),
+        arriveAt: (card.dataset.flightArrive || "").trim(),
+      };
 
       return {
         element: card,
@@ -182,6 +177,8 @@ class TourPage {
           durationBucket,
           category,
           reviews,
+          hotel,
+          flight,
         },
       };
     });
@@ -195,7 +192,6 @@ class TourPage {
     if (!this.priceSlider || !this.maxTourPrice) return;
 
     const maxVal = Math.ceil(this.maxTourPrice / 50) * 50;
-
     this.priceSlider.min = "0";
     this.priceSlider.max = String(maxVal);
     this.priceSlider.value = String(maxVal);
@@ -205,7 +201,6 @@ class TourPage {
     if (this.priceRangeText) {
       this.priceRangeText.textContent = `Selected range: $0 - $${maxVal}`;
     }
-
     this.updatePriceSliderBackground();
   }
 
@@ -215,16 +210,14 @@ class TourPage {
     const max = parseFloat(this.priceSlider.max);
     const val = parseFloat(this.priceSlider.value);
     if (max === min) return;
-
     const percent = ((val - min) / (max - min)) * 100;
     this.priceSlider.style.background = `linear-gradient(to right, #b049f1 0%, #b049f1 ${percent}%, #e8dcff ${percent}%, #e8dcff 100%)`;
   }
 
-  // ================= COUNTS (أرقام الفلاتر) =================
+  // ================= COUNTS =================
   updateSidebarCounts() {
     if (!this.tours.length) return;
 
-    // ---- Categories ----
     const catCounts = {};
     this.categoryCheckboxes.forEach((cb) => {
       const key = cb.dataset.categories;
@@ -233,30 +226,18 @@ class TourPage {
 
     this.tours.forEach((t) => {
       const cat = t.data.category;
-      if (catCounts[cat] !== undefined) {
-        catCounts[cat]++;
-      }
-      if (catCounts["all"] !== undefined) {
-        catCounts["all"]++;
-      }
+      if (catCounts[cat] !== undefined) catCounts[cat]++;
+      if (catCounts["all"] !== undefined) catCounts["all"]++;
     });
 
     this.categoryCheckboxes.forEach((cb) => {
       const key = cb.dataset.categories;
-      const label = cb.closest("label");
-      const span = label?.querySelector(".count");
+      const span = cb.closest("label")?.querySelector(".count");
       if (!span || !key) return;
       span.textContent = catCounts[key] !== undefined ? catCounts[key] : 0;
     });
 
-    // ---- Duration ----
-    const durCounts = {
-      day: 0,
-      weekend: 0,
-      week: 0,
-      extended: 0,
-    };
-
+    const durCounts = { day: 0, weekend: 0, week: 0, extended: 0 };
     this.tours.forEach((t) => {
       const bucket = t.data.durationBucket;
       if (durCounts[bucket] !== undefined) durCounts[bucket]++;
@@ -264,16 +245,11 @@ class TourPage {
 
     this.durationCheckboxes.forEach((cb) => {
       const key = cb.dataset.duration;
-      const label = cb.closest("label");
-      const span = label?.querySelector(".count");
-      if (span && durCounts[key] !== undefined) {
-        span.textContent = durCounts[key];
-      }
+      const span = cb.closest("label")?.querySelector(".count");
+      if (span && durCounts[key] !== undefined) span.textContent = durCounts[key];
     });
 
-    // ---- Ratings ----
     const ratingCounts = { 5: 0, 4: 0, 3: 0 };
-
     this.tours.forEach((t) => {
       const r = t.data.rating || 0;
       Object.entries(this.ratingThresholds).forEach(([k, threshold]) => {
@@ -283,52 +259,34 @@ class TourPage {
 
     this.ratingCheckboxes.forEach((cb) => {
       const key = parseInt(cb.dataset.rating || "0", 10);
-      const label = cb.closest("label");
-      const span = label?.querySelector(".count");
-      if (span && ratingCounts[key] !== undefined) {
-        span.textContent = ratingCounts[key];
-      }
+      const span = cb.closest("label")?.querySelector(".count");
+      if (span && ratingCounts[key] !== undefined) span.textContent = ratingCounts[key];
     });
   }
 
   // ================= EVENTS =================
   bindEvents() {
-    // hero focus / blur + min date + ripple + submit
     if (this.heroForm && this.heroInputs.length > 0) {
       this.heroInputs.forEach((input) => {
-        input.addEventListener("focus", () => {
-          this.heroForm.classList.add("is-active");
-        });
+        input.addEventListener("focus", () => this.heroForm.classList.add("is-active"));
         input.addEventListener("blur", () => {
-          const stillFocused = Array.from(this.heroInputs).some(
-            (el) => el === document.activeElement
-          );
-          if (!stillFocused) {
-            this.heroForm.classList.remove("is-active");
-          }
+          const stillFocused = Array.from(this.heroInputs).some((el) => el === document.activeElement);
+          if (!stillFocused) this.heroForm.classList.remove("is-active");
         });
       });
 
-      // min date اليوم
       if (this.heroDateInput) {
         const today = new Date().toISOString().split("T")[0];
         this.heroDateInput.min = today;
       }
 
-      // ripple
       if (this.heroButton && this.rippleEl) {
-        this.heroButton.addEventListener("click", (e) =>
-          this.createButtonRipple(e)
-        );
+        this.heroButton.addEventListener("click", (e) => this.createButtonRipple(e));
       }
 
-      // submit hero
-      this.heroForm.addEventListener("submit", (e) =>
-        this.handleHeroSearchSubmit(e)
-      );
+      this.heroForm.addEventListener("submit", (e) => this.handleHeroSearchSubmit(e));
     }
 
-    // search في السايد بار
     if (this.sidebarSearchInput) {
       this.sidebarSearchInput.addEventListener("input", (e) => {
         this.filters.search = e.target.value.trim().toLowerCase();
@@ -336,14 +294,11 @@ class TourPage {
       });
     }
 
-    // price slider
     if (this.priceSlider) {
       this.priceSlider.addEventListener("input", (e) => {
         const val = parseFloat(e.target.value);
         this.filters.maxPrice = val;
-        if (this.priceRangeText) {
-          this.priceRangeText.textContent = `Selected range: $0 - $${val}`;
-        }
+        if (this.priceRangeText) this.priceRangeText.textContent = `Selected range: $0 - $${val}`;
         this.updatePriceSliderBackground();
       });
     }
@@ -355,28 +310,24 @@ class TourPage {
       });
     }
 
-    // categories
     if (this.categoryCheckboxes.length > 0) {
-      this.categoryCheckboxes.forEach((cb) => {
-        cb.addEventListener("change", (e) => this.handleCategoryChange(e));
-      });
+      this.categoryCheckboxes.forEach((cb) =>
+        cb.addEventListener("change", (e) => this.handleCategoryChange(e))
+      );
     }
 
-    // duration
     if (this.durationCheckboxes.length > 0) {
-      this.durationCheckboxes.forEach((cb) => {
-        cb.addEventListener("change", () => this.handleDurationChange());
-      });
+      this.durationCheckboxes.forEach((cb) =>
+        cb.addEventListener("change", () => this.handleDurationChange())
+      );
     }
 
-    // ratings
     if (this.ratingCheckboxes.length > 0) {
-      this.ratingCheckboxes.forEach((cb) => {
-        cb.addEventListener("change", () => this.handleRatingChange());
-      });
+      this.ratingCheckboxes.forEach((cb) =>
+        cb.addEventListener("change", () => this.handleRatingChange())
+      );
     }
 
-    // sort select
     if (this.sortSelect) {
       this.sortSelect.addEventListener("change", (e) => {
         const val = e.target.value;
@@ -389,7 +340,6 @@ class TourPage {
       });
     }
 
-    // pagination
     if (this.paginationContainer) {
       this.paginationContainer.addEventListener("click", (e) => {
         const btn = e.target.closest(".page-link");
@@ -419,7 +369,7 @@ class TourPage {
       });
     }
 
-    // Toggle wishlist heart
+    // wishlist heart
     if (this.tourGrid) {
       this.tourGrid.addEventListener("click", (e) => {
         const heartIcon = e.target.closest(".tour-heart i");
@@ -429,7 +379,7 @@ class TourPage {
       });
     }
 
-    // BOOK NOW من الكارد
+    // BOOK NOW
     if (this.bookButtons && this.bookButtons.length) {
       this.bookButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -441,16 +391,13 @@ class TourPage {
     }
   }
 
-  // ======== HANDLERS للفلاتر ========
+  // ======== FILTER HANDLERS ========
   handleCategoryChange(event) {
     this.filters.categories.clear();
 
-    const allCb = this.categoryCheckboxes.find(
-      (cb) => cb.dataset.categories === "all"
-    );
+    const allCb = this.categoryCheckboxes.find((cb) => cb.dataset.categories === "all");
 
-    // لو المستخدم لمس "All Tours"
-    if (event && event.target && event.target.dataset.categories === "all") {
+    if (event?.target?.dataset?.categories === "all") {
       if (allCb) allCb.checked = true;
       this.categoryCheckboxes.forEach((cb) => {
         if (cb !== allCb) cb.checked = false;
@@ -461,7 +408,6 @@ class TourPage {
     }
 
     let anySpecificChecked = false;
-
     this.categoryCheckboxes.forEach((cb) => {
       const val = cb.dataset.categories;
       if (val === "all") return;
@@ -508,11 +454,11 @@ class TourPage {
 
     let result = [...this.tours];
 
-    // ✅ destination_id filter (جاي من destination modal)
+    // destination_id filter
     if (this.destinationFilterId) {
       result = result.filter((t) => {
-      const cardDestId = String(t.element.dataset.destinationId || "");
-      return cardDestId === this.destinationFilterId;
+        const cardDestId = String(t.element.dataset.destinationId || "");
+        return cardDestId === this.destinationFilterId;
       });
     }
 
@@ -527,28 +473,24 @@ class TourPage {
       result = result.filter((t) => {
         const title = t.data.title.toLowerCase();
         const loc = t.data.location.toLowerCase();
-        return title.includes(q) || loc.includes(q);
+        const hotelName = (t.data.hotel?.name || "").toLowerCase();
+        return title.includes(q) || loc.includes(q) || hotelName.includes(q);
       });
     }
 
     // categories
     if (this.filters.categories.size > 0) {
-      result = result.filter((t) =>
-        this.filters.categories.has(t.data.category)
-      );
+      result = result.filter((t) => this.filters.categories.has(t.data.category));
     }
 
     // durations
     if (this.filters.durations.size > 0) {
-      result = result.filter((t) =>
-        this.filters.durations.has(t.data.durationBucket)
-      );
+      result = result.filter((t) => this.filters.durations.has(t.data.durationBucket));
     }
 
     // ratings
     if (this.filters.minRating > 0) {
-      const threshold =
-        this.ratingThresholds[this.filters.minRating] || this.filters.minRating;
+      const threshold = this.ratingThresholds[this.filters.minRating] || this.filters.minRating;
       result = result.filter((t) => t.data.rating >= threshold);
     }
 
@@ -557,15 +499,12 @@ class TourPage {
       case "price-asc":
         result.sort((a, b) => a.data.price - b.data.price);
         break;
-
       case "price-desc":
         result.sort((a, b) => b.data.price - a.data.price);
         break;
-
       case "rating":
         result.sort((a, b) => b.data.rating - a.data.rating);
         break;
-
       case "popular":
         result.sort(
           (a, b) =>
@@ -574,7 +513,6 @@ class TourPage {
             a.originalIndex - b.originalIndex
         );
         break;
-
       case "featured":
       default:
         result.sort((a, b) => a.originalIndex - b.originalIndex);
@@ -582,14 +520,9 @@ class TourPage {
     }
 
     this.filteredTours = result;
-    this.totalPages = Math.max(
-      1,
-      Math.ceil(this.filteredTours.length / this.perPage)
-    );
+    this.totalPages = Math.max(1, Math.ceil(this.filteredTours.length / this.perPage));
 
-    if (resetPage || this.currentPage > this.totalPages) {
-      this.currentPage = 1;
-    }
+    if (resetPage || this.currentPage > this.totalPages) this.currentPage = 1;
 
     this.updateToursCount();
     this.renderTours();
@@ -618,16 +551,11 @@ class TourPage {
         <p style="margin:0 0 16px;font-size:14px;opacity:0.8;">Try adjusting your filters or search query.</p>
       `;
       this.tourGrid.appendChild(div);
-
-      if (this.paginationContainer) {
-        this.paginationContainer.style.display = "none";
-      }
+      if (this.paginationContainer) this.paginationContainer.style.display = "none";
       return;
     }
 
-    if (this.paginationContainer) {
-      this.paginationContainer.style.display = "flex";
-    }
+    if (this.paginationContainer) this.paginationContainer.style.display = "flex";
 
     const start = (this.currentPage - 1) * this.perPage;
     const end = start + this.perPage;
@@ -656,7 +584,6 @@ class TourPage {
       return;
     }
 
-    // prev
     const prev = document.createElement("div");
     prev.className = "page-link";
     prev.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
@@ -664,7 +591,6 @@ class TourPage {
     if (this.currentPage === 1) prev.classList.add("disabled");
     this.paginationContainer.appendChild(prev);
 
-    // pages
     for (let p = 1; p <= this.totalPages; p++) {
       const pageEl = document.createElement("div");
       pageEl.className = "page-link";
@@ -675,7 +601,6 @@ class TourPage {
       this.paginationContainer.appendChild(pageEl);
     }
 
-    // next
     const next = document.createElement("div");
     next.className = "page-link";
     next.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
@@ -689,22 +614,16 @@ class TourPage {
     e.preventDefault();
     if (!this.heroForm) return;
 
-    const destination =
-      this.heroForm.querySelector('input[name="destination"]')?.value || "";
+    const destination = this.heroForm.querySelector('input[name="destination"]')?.value || "";
     const selects = this.heroForm.querySelectorAll(".form-select");
     const typeValue = selects[0]?.value || "";
     const guests = selects[1]?.value || "";
     const dateVal = this.heroForm.querySelector('input[type="date"]')?.value;
 
-    // اربط السيرتش اللي فوق مع السيرتش الجانبي
     this.filters.search = destination.trim().toLowerCase();
-    if (this.sidebarSearchInput) {
-      this.sidebarSearchInput.value = destination;
-    }
+    if (this.sidebarSearchInput) this.sidebarSearchInput.value = destination;
 
-    // طبّق الفلتر حسب النوع
     this.applyHeroTypeToCategories(typeValue);
-
     this.applyFilters(true);
 
     const info = [];
@@ -713,19 +632,15 @@ class TourPage {
     if (dateVal) info.push(`Date: ${dateVal}`);
     if (guests) info.push(`Guests: ${guests}`);
 
-    this.showToast(
-      info.length ? `Search applied — ${info.join(" • ")}` : "Showing all tours"
-    );
+    this.showToast(info.length ? `Search applied — ${info.join(" • ")}` : "Showing all tours");
   }
 
   applyHeroTypeToCategories(typeValue) {
     if (!this.categoryCheckboxes.length) return;
-    const normalized = (typeValue || "").toLowerCase();
-    const allCb = this.categoryCheckboxes.find(
-      (cb) => cb.dataset.categories === "all"
-    );
 
-    // reset
+    const normalized = (typeValue || "").toLowerCase();
+    const allCb = this.categoryCheckboxes.find((cb) => cb.dataset.categories === "all");
+
     this.filters.categories.clear();
     this.categoryCheckboxes.forEach((cb) => (cb.checked = false));
 
@@ -735,30 +650,22 @@ class TourPage {
     }
 
     this.categoryCheckboxes.forEach((cb) => {
-      const val = cb.dataset.categories || "";
-      const simple = val.toLowerCase();
+      const val = (cb.dataset.categories || "").toLowerCase();
       let shouldCheck = false;
 
-      if (normalized === "adventure" && simple.includes("adventure"))
-        shouldCheck = true;
-      else if (normalized === "relax" && simple.includes("beach"))
-        shouldCheck = true; // تقريباً رحلات استرخاء
-      else if (normalized === "city" && simple.includes("city"))
-        shouldCheck = true;
-      else if (normalized === "cultural" && simple.includes("museum"))
-        shouldCheck = true;
+      if (normalized === "adventure" && val.includes("adventure")) shouldCheck = true;
+      else if (normalized === "relax" && val.includes("beach")) shouldCheck = true;
+      else if (normalized === "city" && val.includes("city")) shouldCheck = true;
+      else if (normalized === "cultural" && val.includes("museum")) shouldCheck = true;
 
       if (shouldCheck) {
         cb.checked = true;
-        this.filters.categories.add(val);
+        this.filters.categories.add(cb.dataset.categories);
       }
     });
 
-    if (!this.filters.categories.size && allCb) {
-      allCb.checked = true;
-    } else if (allCb) {
-      allCb.checked = false;
-    }
+    if (!this.filters.categories.size && allCb) allCb.checked = true;
+    else if (allCb) allCb.checked = false;
   }
 
   // ================= BUTTON RIPPLE =================
@@ -779,8 +686,7 @@ class TourPage {
     this.rippleEl.style.transition = "none";
 
     requestAnimationFrame(() => {
-      this.rippleEl.style.transition =
-        "transform 0.6s ease-out, opacity 0.6s ease-out";
+      this.rippleEl.style.transition = "transform 0.6s ease-out, opacity 0.6s ease-out";
       this.rippleEl.style.transform = "scale(3)";
       this.rippleEl.style.opacity = "0";
     });
@@ -789,9 +695,7 @@ class TourPage {
   // ================= SCROLL ANIMATIONS =================
   setupScrollAnimations() {
     if (!("IntersectionObserver" in window)) {
-      document
-        .querySelectorAll("[data-animate]")
-        .forEach((el) => el.classList.add("is-visible"));
+      document.querySelectorAll("[data-animate]").forEach((el) => el.classList.add("is-visible"));
       return;
     }
 
@@ -804,11 +708,7 @@ class TourPage {
           }
         });
       },
-      {
-        root: null,
-        threshold: 0.1,
-        rootMargin: "0px 0px -50px 0px",
-      }
+      { root: null, threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
     );
 
     document.querySelectorAll("[data-animate]").forEach((el, idx) => {
@@ -821,13 +721,11 @@ class TourPage {
   showToast(message) {
     if (!this.toastEl) return;
     this.toastEl.textContent = message;
-    this.toastEl.style.opacity = "1";
-    this.toastEl.style.transform = "translateX(-50%) translateY(0)";
+    this.toastEl.classList.add("show");
     clearTimeout(this.toastTimeout);
     this.toastTimeout = setTimeout(() => {
-      this.toastEl.style.opacity = "0";
-      this.toastEl.style.transform = "translateX(-50%) translateY(8px)";
-    }, 2500);
+      this.toastEl.classList.remove("show");
+    }, 2400);
   }
 
   // ================= BOOKING HELPERS =================
@@ -841,21 +739,26 @@ class TourPage {
     const combo = card.dataset.combo || "";
     const currency = card.dataset.currency || "USD";
 
+    // hotel
+    const hotelName = (card.dataset.hotelName || "").trim();
+
+    // flight
+    const flightAirline = (card.dataset.flightAirline || "").trim();
+    const flightNo = (card.dataset.flightNo || "").trim();
+    const flightFrom = (card.dataset.flightFrom || "").trim();
+    const flightTo = (card.dataset.flightTo || "").trim();
+    const flightDepartAt = (card.dataset.flightDepart || "").trim();
+    const flightArriveAt = (card.dataset.flightArrive || "").trim();
+
     const baseTotal = parseFloat(card.dataset.price || "0") || 0;
     const taxes = +(baseTotal * 0.15).toFixed(2);
 
     const isLoggedIn = window.TRAVELO && window.TRAVELO.isLoggedIn;
-    const userId =
-      window.TRAVELO && window.TRAVELO.userId ? window.TRAVELO.userId : "";
-    const userName =
-      window.TRAVELO && window.TRAVELO.userName ? window.TRAVELO.userName : "";
-    const userEmail =
-      window.TRAVELO && window.TRAVELO.userEmail
-        ? window.TRAVELO.userEmail
-        : "";
+    const userId = window.TRAVELO?.userId || "";
+    const userName = window.TRAVELO?.userName || "";
+    const userEmail = window.TRAVELO?.userEmail || "";
 
     const params = new URLSearchParams();
-
     params.set("booking_type", "package");
     params.set("booking_status", "pending");
 
@@ -865,12 +768,28 @@ class TourPage {
     if (combo) params.set("pkg_combo", combo);
     params.set("pkg_nights", nights.toString());
 
+    // pricing
     params.set("amount_flight", "0");
     params.set("amount_hotel", "0");
     params.set("amount_package", baseTotal.toFixed(2));
     params.set("amount_taxes", taxes.toFixed(2));
     params.set("discount_amount", "0");
     params.set("currency", currency);
+
+    // ✅ pass hotel name
+    if (hotelName) params.set("hotel_name", hotelName);
+
+    // ✅ pass flight details
+    if (flightAirline) params.set("flight_airline", flightAirline);
+    if (flightNo) params.set("flight_no", flightNo);
+    if (flightFrom) params.set("flight_from", flightFrom);
+    if (flightTo) params.set("flight_to", flightTo);
+    if (flightDepartAt) params.set("flight_depart_at", flightDepartAt);
+    if (flightArriveAt) params.set("flight_arrive_at", flightArriveAt);
+
+    // ✅ also set trip dates from flight if available
+    if (flightDepartAt) params.set("trip_start_date", flightDepartAt);
+    if (flightArriveAt) params.set("trip_end_date", flightArriveAt);
 
     if (isLoggedIn && userId) params.set("user_id", userId);
     if (isLoggedIn && userName) params.set("user_name", userName);
@@ -885,10 +804,8 @@ class TourPage {
     const isLoggedIn = window.TRAVELO && window.TRAVELO.isLoggedIn;
     if (!isLoggedIn) {
       const loginBtn = document.getElementById("btnLogin");
-      if (loginBtn) {
-        loginBtn.click();
-        return;
-      }
+      if (loginBtn) loginBtn.click();
+      return;
     }
 
     const qs = this.buildPackageBookingParams(card);
@@ -896,39 +813,74 @@ class TourPage {
     window.location.href = `${this.bookingBaseUrl}?${qs}`;
   }
 
-  // ================= MODAL (VIEW DETAILS) =================
+  // ================= MODAL =================
   initDetailsModal() {
     document.addEventListener("click", (e) => {
       const btn = e.target.closest(".view-details");
       if (!btn) return;
-
       const card = btn.closest(".tour-card");
       if (!card) return;
-
       this.openTourModal(card);
     });
   }
 
-  openTourModal(card) {
-    const titleEl = card.querySelector(".tour-title");
-    const locationEl = card.querySelector(".tour-location");
-    const ratingEl = card.querySelector(".tour-meta-left span:first-child");
-    const daysEl = card.querySelector(".tour-meta-left span:last-child");
-    const priceEl = card.querySelector(".tour-price");
-    const imgEl = card.querySelector(".tour-card-image img");
-    const badgeEl = card.querySelector(".tour-badge");
+  formatDT(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 
-    const title = titleEl ? titleEl.textContent.trim() : "Tour Package";
-    const location = locationEl
-      ? locationEl.textContent.trim()
-      : "Destination";
-    const ratingText = ratingEl ? ratingEl.textContent.trim() : "4.8 (100)";
-    const daysText = daysEl ? daysEl.textContent.trim() : "5 Days";
-    const priceText = priceEl
-      ? priceEl.textContent.replace("$", "").trim()
-      : "500";
-    const imageSrc = imgEl ? imgEl.src : "";
-    const badgeText = badgeEl ? badgeEl.textContent.trim() : "Featured";
+  buildAmenitiesHTML(flags) {
+    const items = [
+      { key: "has_wifi", icon: "fa-wifi", label: "Wi-Fi" },
+      { key: "has_free_breakfast", icon: "fa-mug-saucer", label: "Free Breakfast" },
+      { key: "has_parking", icon: "fa-square-parking", label: "Parking" },
+      { key: "airport_shuttle", icon: "fa-van-shuttle", label: "Airport Shuttle" },
+      { key: "has_sea_view", icon: "fa-water", label: "Sea View" },
+      { key: "has_city_view", icon: "fa-city", label: "City View" },
+      { key: "has_attached_bathroom", icon: "fa-bath", label: "Private Bathroom" },
+      { key: "has_cctv", icon: "fa-video", label: "CCTV" },
+      { key: "pay_at_hotel", icon: "fa-money-bill-wave", label: "Pay at Hotel" },
+      { key: "couple_friendly", icon: "fa-heart", label: "Couple Friendly" },
+      { key: "pet_friendly", icon: "fa-paw", label: "Pet Friendly" },
+    ];
+
+    const enabled = items.filter((it) => flags?.[it.key]);
+    if (!enabled.length) {
+      return `<div class="pkg-empty-note">No amenity data.</div>`;
+    }
+
+    return `
+      <div class="pkg-amenities">
+        ${enabled
+          .map(
+            (it) => `
+          <div class="pkg-amenity">
+            <i class="fa-solid ${it.icon}"></i>
+            <span>${it.label}</span>
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  openTourModal(card) {
+    const title = card.querySelector(".tour-title")?.textContent.trim() || "Tour Package";
+    const location = card.querySelector(".tour-location")?.textContent.trim() || "Destination";
+    const ratingText = card.querySelector(".tour-meta-left span:first-child")?.textContent.trim() || "4.8 (120)";
+    const daysText = card.querySelector(".tour-meta-left span:last-child")?.textContent.trim() || "5 Days";
+    const priceText = card.querySelector(".tour-price")?.textContent.replace("$", "").trim() || "500";
+    const imageSrc = card.querySelector(".tour-card-image img")?.src || "";
+    const badgeText = card.querySelector(".tour-badge")?.textContent.trim() || "Featured";
 
     const ratingMatch = ratingText.match(/([\d.]+)/);
     const reviewsMatch = ratingText.match(/\((\d+)\)/);
@@ -937,6 +889,81 @@ class TourPage {
     const rating = ratingMatch ? ratingMatch[1] : "4.8";
     const reviews = reviewsMatch ? reviewsMatch[1] : "120";
     const days = daysMatch ? daysMatch[1] : "5";
+
+    // hotel
+    const hotelName = (card.dataset.hotelName || "").trim();
+    const hotelRating = (card.dataset.hotelRating || "").trim();
+    const hotelReviews = (card.dataset.hotelReviews || "").trim();
+    const hotelPriceNight = (card.dataset.hotelPriceNight || "").trim();
+    const hotelCurrency = (card.dataset.hotelCurrency || "USD").trim();
+
+    const flags = {
+      has_wifi: +card.dataset.hasWifi === 1,
+      has_free_breakfast: +card.dataset.hasFreeBreakfast === 1,
+      has_parking: +card.dataset.hasParking === 1,
+      has_city_view: +card.dataset.hasCityView === 1,
+      has_sea_view: +card.dataset.hasSeaView === 1,
+      airport_shuttle: +card.dataset.airportShuttle === 1,
+      has_attached_bathroom: +card.dataset.hasAttachedBathroom === 1,
+      has_cctv: +card.dataset.hasCctv === 1,
+      pay_at_hotel: +card.dataset.payAtHotel === 1,
+      couple_friendly: +card.dataset.coupleFriendly === 1,
+      pet_friendly: +card.dataset.petFriendly === 1,
+    };
+
+    // flight
+    const flightAirline = (card.dataset.flightAirline || "").trim();
+    const flightNo = (card.dataset.flightNo || "").trim();
+    const flightFrom = (card.dataset.flightFrom || "").trim();
+    const flightTo = (card.dataset.flightTo || "").trim();
+    const flightDepartAt = (card.dataset.flightDepart || "").trim();
+    const flightArriveAt = (card.dataset.flightArrive || "").trim();
+
+    const hasFlight = !!(flightAirline || flightNo || flightFrom || flightTo || flightDepartAt || flightArriveAt);
+    const hasHotel = !!hotelName;
+
+    const flightBlock = hasFlight
+      ? `
+        <div class="pkg-block">
+          <div class="pkg-block-title"><i class="fa-solid fa-plane"></i> Flight details</div>
+          <div class="pkg-kv">
+            <div><span>Airline</span><b>${flightAirline || "-"}</b></div>
+            <div><span>Flight No</span><b>${flightNo || "-"}</b></div>
+            <div><span>From</span><b>${flightFrom || "-"}</b></div>
+            <div><span>To</span><b>${flightTo || "-"}</b></div>
+            <div><span>Departure</span><b>${this.formatDT(flightDepartAt) || "-"}</b></div>
+            <div><span>Arrival</span><b>${this.formatDT(flightArriveAt) || "-"}</b></div>
+          </div>
+        </div>
+      `
+      : `
+        <div class="pkg-block">
+          <div class="pkg-block-title"><i class="fa-solid fa-plane"></i> Flight details</div>
+          <div class="pkg-empty-note">No flight data linked to this package.</div>
+        </div>
+      `;
+
+    const hotelBlock = hasHotel
+      ? `
+        <div class="pkg-block">
+          <div class="pkg-block-title"><i class="fa-solid fa-hotel"></i> Hotel</div>
+          <div class="pkg-hotel-head">
+            <div class="pkg-hotel-name">${hotelName}</div>
+            <div class="pkg-hotel-sub">
+              ${hotelRating ? `<span><i class="fa-solid fa-star"></i> ${hotelRating}</span>` : ""}
+              ${hotelReviews ? `<span>(${hotelReviews} reviews)</span>` : ""}
+              ${hotelPriceNight ? `<span class="pkg-hotel-price">${hotelCurrency} ${hotelPriceNight} / night</span>` : ""}
+            </div>
+          </div>
+          ${this.buildAmenitiesHTML(flags)}
+        </div>
+      `
+      : `
+        <div class="pkg-block">
+          <div class="pkg-block-title"><i class="fa-solid fa-hotel"></i> Hotel</div>
+          <div class="pkg-empty-note">No hotel linked to this package.</div>
+        </div>
+      `;
 
     const modal = document.createElement("div");
     modal.className = "tour-modal";
@@ -950,81 +977,81 @@ class TourPage {
               <i class="fa-solid fa-suitcase-rolling"></i>
               <span>${badgeText}</span>
             </div>
-            <button class="tour-modal-close">&times;</button>
+            <button class="tour-modal-close" aria-label="Close">&times;</button>
           </div>
+
           <div class="tour-modal-main">
             <div class="tour-modal-location">${location}</div>
             <h2 class="tour-modal-title">${title}</h2>
+
             <div class="tour-modal-meta">
               <span><i class="fa-solid fa-star"></i>${rating} (${reviews} reviews)</span>
               <span><i class="fa-regular fa-clock"></i>${days} Days</span>
-              <span><i class="fa-solid fa-earth-europe"></i>Multi-activity tour</span>
+              <span><i class="fa-solid fa-tag"></i>Package Deal</span>
             </div>
 
-            <div>
-              <div class="tour-modal-section-title">Overview</div>
+            ${flightBlock}
+            ${hotelBlock}
+
+            <div class="pkg-block">
+              <div class="pkg-block-title"><i class="fa-solid fa-circle-info"></i> Overview</div>
               <p class="tour-modal-text">
-                Enjoy a complete travel experience that combines comfortable flights, handpicked hotels,
-                and immersive guided tours. This package is designed to balance sightseeing, culture,
-                and free time so you can explore ${location} at your own pace.
+                This package combines travel essentials in one smooth plan. You’ll enjoy flexible sightseeing,
+                curated stays, and a balanced itinerary so you can explore <b>${location}</b> at your own pace.
               </p>
             </div>
 
-            <div>
-              <div class="tour-modal-section-title">What's included</div>
+            <div class="pkg-block">
+              <div class="pkg-block-title"><i class="fa-solid fa-check"></i> What's included</div>
               <div class="tour-included-list">
-                <div class="tour-included-item">
-                  <i class="fa-solid fa-plane-departure"></i>
-                  <span>Round-trip flights</span>
-                </div>
-                <div class="tour-included-item">
-                  <i class="fa-solid fa-hotel"></i>
-                  <span>Hotel accommodation</span>
-                </div>
-                <div class="tour-included-item">
-                  <i class="fa-solid fa-bus"></i>
-                  <span>Airport transfers</span>
-                </div>
-                <div class="tour-included-item">
-                  <i class="fa-solid fa-person-hiking"></i>
-                  <span>City tours & activities</span>
-                </div>
-                <div class="tour-included-item">
-                  <i class="fa-solid fa-utensils"></i>
-                  <span>Daily breakfast</span>
-                </div>
-                <div class="tour-included-item">
-                  <i class="fa-solid fa-user-tie"></i>
-                  <span>Professional tour guide</span>
-                </div>
+                ${hasFlight ? `
+                  <div class="tour-included-item"><i class="fa-solid fa-plane-departure"></i><span>Round-trip flights</span></div>
+                ` : `
+                  <div class="tour-included-item"><i class="fa-solid fa-route"></i><span>Transport guidance</span></div>
+                `}
+                ${hasHotel ? `
+                  <div class="tour-included-item"><i class="fa-solid fa-hotel"></i><span>Hotel accommodation</span></div>
+                ` : `
+                  <div class="tour-included-item"><i class="fa-solid fa-bed"></i><span>Stay recommendations</span></div>
+                `}
+                <div class="tour-included-item"><i class="fa-solid fa-bus"></i><span>Airport transfers</span></div>
+                <div class="tour-included-item"><i class="fa-solid fa-person-hiking"></i><span>City tours & activities</span></div>
+                <div class="tour-included-item"><i class="fa-solid fa-utensils"></i><span>Daily breakfast (if available)</span></div>
+                <div class="tour-included-item"><i class="fa-solid fa-user-tie"></i><span>Professional tour guide</span></div>
               </div>
             </div>
 
-            <div>
-              <div class="tour-modal-section-title">Itinerary snapshot</div>
+            <div class="pkg-block">
+              <div class="pkg-block-title"><i class="fa-solid fa-calendar-days"></i> Itinerary snapshot</div>
               <div class="tour-itinerary">
                 <div class="tour-itinerary-item">
                   <div class="tour-itinerary-day">Day 1</div>
                   <div class="tour-itinerary-text">
-                    Arrival in ${location}, hotel check-in and free time to explore the local area.
+                    ${hasFlight && flightDepartAt
+                      ? `Flight departure: <b>${this.formatDT(flightDepartAt)}</b>.`
+                      : `Arrival in ${location}.`}
+                    Hotel check-in and free time to explore.
                   </div>
                 </div>
                 <div class="tour-itinerary-item">
                   <div class="tour-itinerary-day">Day 2</div>
                   <div class="tour-itinerary-text">
-                    Guided city tour covering top landmarks, hidden gems, and cultural highlights.
+                    Guided city tour covering landmarks, hidden gems, and cultural highlights.
                   </div>
                 </div>
                 <div class="tour-itinerary-item">
                   <div class="tour-itinerary-day">Day 3</div>
                   <div class="tour-itinerary-text">
-                    Optional excursions, free shopping time, or relaxing at your hotel.
+                    Optional excursions, shopping time, or relax at your hotel.
                   </div>
                 </div>
                 <div class="tour-itinerary-item">
                   <div class="tour-itinerary-day">Day ${days}</div>
                   <div class="tour-itinerary-text">
-                    Final moments in ${location}, transfer to the airport and flight back home.
+                    Final moments in ${location}.
+                    ${hasFlight && flightArriveAt
+                      ? `Return flight around <b>${this.formatDT(flightArriveAt)}</b>.`
+                      : `Transfer to the airport and head back home.`}
                   </div>
                 </div>
               </div>
@@ -1051,12 +1078,12 @@ class TourPage {
               <div class="tour-side-meta-value">${days} days</div>
             </div>
             <div class="tour-side-meta-item">
-              <div class="tour-side-meta-label">Rating</div>
-              <div class="tour-side-meta-value">${rating} / 5</div>
+              <div class="tour-side-meta-label">Hotel</div>
+              <div class="tour-side-meta-value">${hotelName || "-"}</div>
             </div>
             <div class="tour-side-meta-item">
-              <div class="tour-side-meta-label">Reviews</div>
-              <div class="tour-side-meta-value">${reviews}+ travellers</div>
+              <div class="tour-side-meta-label">Flight</div>
+              <div class="tour-side-meta-value">${flightAirline ? `${flightAirline}${flightNo ? ` · ${flightNo}` : ""}` : "-"}</div>
             </div>
           </div>
 
@@ -1082,23 +1109,19 @@ class TourPage {
       modal.remove();
     };
 
-    modal.querySelector(".tour-modal-close").addEventListener("click", close);
-    modal.querySelector(".tour-modal-overlay").addEventListener("click", close);
+    modal.querySelector(".tour-modal-close")?.addEventListener("click", close);
+    modal.querySelector(".tour-modal-overlay")?.addEventListener("click", close);
     modal.addEventListener("click", (ev) => {
       if (ev.target === modal) close();
     });
 
-    const bookBtn = modal.querySelector(".tour-btn-primary");
-    const inquireBtn = modal.querySelector(".tour-btn-secondary");
-
-    bookBtn.addEventListener("click", () => {
+    modal.querySelector(".tour-btn-primary")?.addEventListener("click", () => {
       this.goToPackageBooking(card);
       close();
     });
 
-    inquireBtn.addEventListener("click", () => {
+    modal.querySelector(".tour-btn-secondary")?.addEventListener("click", () => {
       alert("Inquiry form can be opened here 💬");
-      close();
     });
   }
 }

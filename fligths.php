@@ -310,7 +310,6 @@ function formatDateLabel($dateStr)
                 <span class="user-text">
                   Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
                 </span>
-            
               </button>
 
               <div class="user-menu" id="userMenu">
@@ -418,6 +417,21 @@ function formatDateLabel($dateStr)
   data-trip="<?= htmlspecialchars($tripType) ?>"
   data-dep-date-label="<?= htmlspecialchars($depDateLbl) ?>"
   data-ret-date-label="<?= htmlspecialchars($retDateLbl) ?>"
+
+  data-depart-date="<?= htmlspecialchars($flight['departure_date'] ?? '') ?>"
+  data-return-date="<?= htmlspecialchars($flight['return_date'] ?? '') ?>"
+
+  data-airline-name="<?= htmlspecialchars($flight['airline_name'] ?? '') ?>"
+  data-flight-number="<?= htmlspecialchars($flight['flight_number'] ?? '') ?>"
+
+  data-from-airport-code="<?= htmlspecialchars($flight['origin_airport_code'] ?? '') ?>"
+  data-to-airport-code="<?= htmlspecialchars($flight['destination_airport_code'] ?? '') ?>"
+
+  data-departure-time="<?= htmlspecialchars(substr($flight['departure_time'] ?? '', 0, 5)) ?>"
+  data-arrival-time="<?= htmlspecialchars(substr($flight['arrival_time'] ?? '', 0, 5)) ?>"
+
+  data-origin-city="<?= htmlspecialchars($flight['origin_city'] ?? '') ?>"
+  data-dest-city="<?= htmlspecialchars($destCity ?? '') ?>"
 >
 
                 <div class="ticket-inner">
@@ -704,6 +718,6 @@ function formatDateLabel($dateStr)
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="./assets/js/home.js"></script>
   <script src="./assets/js/fligth.js"></script>
-  
+
 </body>
 </html>

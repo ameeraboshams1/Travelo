@@ -1,12 +1,11 @@
 <?php
-
 require_once __DIR__ . '/db.php';
 session_start();
 
 try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // نجيب كل الفنادق مع معلومات الديستنيشن وصورة أساسية
+    // نجيب كل الفنادق مع معلومات الديستنيشن + صورة أساسية + كل الصور (pipe separated)
     $stmt = $pdo->query("
         SELECT
             h.*,
@@ -22,7 +21,12 @@ try {
                     LIMIT 1
                 ),
                 d.image_url
-            ) AS primary_image
+            ) AS primary_image,
+            (
+                SELECT GROUP_CONCAT(hi.image_url ORDER BY hi.is_primary DESC, hi.sort_order ASC, hi.id ASC SEPARATOR '|')
+                FROM hotel_images hi
+                WHERE hi.hotel_id = h.id
+            ) AS images_list
         FROM hotels h
         JOIN destinations d ON d.id = h.destination_id
         WHERE h.is_active = 1
@@ -149,9 +153,7 @@ try {
     }
 
     @keyframes shimmer {
-      100% {
-        transform: translateX(100%);
-      }
+      100% { transform: translateX(100%); }
     }
 
     .user-text {
@@ -195,10 +197,7 @@ try {
     }
 
     @keyframes menuFadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .user-menu::before {
@@ -257,20 +256,11 @@ try {
       margin: 6px 16px;
     }
 
-    .user-menu.show {
-      display: block;
-    }
-
-    .user-menu.show ~ .nav-button .user-toggle {
-      box-shadow:
-        0 8px 24px rgba(15, 23, 42, 0.12),
-        0 0 0 1px rgba(124, 58, 237, 0.1) inset;
-      background: rgba(255, 255, 255, 1);
-    }
+    .user-menu.show { display: block; }
   </style>
 
   <script>
-    // نرسل معلومات اليوزر للـ JS عشان نبعتهم لـ booking.html
+    // نرسل معلومات اليوزر للـ JS عشان نبعتهم لـ booking.php
     window.TRAVELO = window.TRAVELO || {};
     window.TRAVELO.isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
     <?php if (isset($_SESSION['user_id'])): ?>
@@ -313,7 +303,6 @@ try {
                         <span class="user-text">
                           Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
                         </span>
-                        
                       </button>
 
                       <div class="user-menu" id="userMenu">
@@ -348,22 +337,12 @@ try {
         <div class="banner-overlay"></div>
 
         <div class="stars">
-          <div class="star"></div>
-          <div class="star"></div>
-          <div class="star"></div>
-          <div class="star"></div>
-          <div class="star"></div>
-          <div class="star"></div>
-          <div class="star"></div>
-          <div class="star"></div>
+          <div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div>
+          <div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div>
         </div>
 
         <div class="floating-dots">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
         </div>
 
         <div class="container">
@@ -384,9 +363,7 @@ try {
             </p>
 
             <div class="scroll-indicator">
-              <div class="mouse">
-                <div class="wheel"></div>
-              </div>
+              <div class="mouse"><div class="wheel"></div></div>
               <span class="scroll-text">Scroll to discover</span>
             </div>
           </div>
@@ -420,9 +397,7 @@ try {
           <!-- HOTELS LIST -->
           <div class="hotels-list">
             <?php if (isset($dbError)): ?>
-              <div class="db-error">
-                <p>Could not load hotels right now.</p>
-              </div>
+              <div class="db-error"><p>Could not load hotels right now.</p></div>
             <?php elseif (!$hotels): ?>
               <p>No hotels available at the moment.</p>
             <?php else: ?>
@@ -431,7 +406,33 @@ try {
               foreach ($hotels as $hotel):
                   $index++;
 
-                  $primaryImage = $hotel['primary_image'] ?: $hotel['destination_city'];
+                  // ====== BUILD IMAGES LIST (from hotel_images) ======
+                  $imagesRaw = $hotel['images_list'] ?? '';
+                  $imagesArr = array_values(array_filter(array_map('trim', explode('|', $imagesRaw))));
+
+                  if (!$imagesArr && !empty($hotel['primary_image'])) {
+                      $imagesArr = [trim($hotel['primary_image'])];
+                  }
+
+                  // فلترة قيم غلط (زي أرقام)
+                  $imagesArr = array_values(array_filter($imagesArr, function($u){
+                      if ($u === '' || $u === null) return false;
+                      $uu = trim((string)$u);
+                      if ($uu === '' || strtolower($uu) === 'null' || strtolower($uu) === 'none') return false;
+                      if (ctype_digit($uu)) return false;
+                      return true;
+                  }));
+
+                  // إزالة التكرار
+                  $imagesArr = array_values(array_unique($imagesArr));
+
+                  $primaryImage = $imagesArr[0] ?? '';
+                  if ($primaryImage === '') {
+                      $primaryImage = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80";
+                      $imagesArr = [$primaryImage];
+                  }
+
+                  $imagesAttr = implode('|', $imagesArr);
 
                   $amenities = [];
                   if ($hotel['has_parking'])            $amenities[] = 'Parking';
@@ -455,7 +456,6 @@ try {
                   $reviews    = (int)$hotel['reviews_count'];
 
                   $cityCountry = trim($hotel['destination_city'] . ', ' . $hotel['destination_country']);
-                  $imagesAttr  = $primaryImage;
               ?>
               <article
                 class="hotel-card"
@@ -486,12 +486,8 @@ try {
                 <div class="hotel-main-col">
                   <div class="hotel-top-row">
                     <div class="hotel-text-block">
-                      <h3 class="hotel-name">
-                        <?= htmlspecialchars($hotel['name']) ?>
-                      </h3>
-                      <p class="hotel-location">
-                        <?= htmlspecialchars($hotel['location_text']) ?>
-                      </p>
+                      <h3 class="hotel-name"><?= htmlspecialchars($hotel['name']) ?></h3>
+                      <p class="hotel-location"><?= htmlspecialchars($hotel['location_text']) ?></p>
 
                       <div class="hotel-amenities">
                         <?php foreach ($displayAmenities as $amenity): ?>
@@ -510,9 +506,7 @@ try {
                     <div class="hotel-side-top">
                       <button class="map-view">MAP VIEW</button>
                       <div class="rating-chip">
-                        <span class="rating-score">
-                          <?= htmlspecialchars(number_format($rating, 1)) ?>
-                        </span>
+                        <span class="rating-score"><?= htmlspecialchars(number_format($rating, 1)) ?></span>
                         <span class="rating-star">★</span>
                       </div>
                     </div>
@@ -523,9 +517,7 @@ try {
                       <?php if ($discount > 0): ?>
                         <span class="price-off"><?= $discount ?>% off</span>
                       <?php endif; ?>
-                      <span class="price-value">
-                        $<?= number_format($price, 2) ?>
-                      </span>
+                      <span class="price-value">$<?= number_format($price, 2) ?></span>
                     </div>
 
                     <div class="hotel-actions">
@@ -541,9 +533,7 @@ try {
 
           <!-- FILTERS PANEL -->
           <aside class="filters-panel">
-            <div class="filters-header">
-              <h3>Filters</h3>
-            </div>
+            <div class="filters-header"><h3>Filters</h3></div>
 
             <section class="filter-block">
               <div class="filter-row">
@@ -553,9 +543,7 @@ try {
                 </span>
               </div>
 
-              <div class="price-chart">
-                <div class="chart-wave"></div>
-              </div>
+              <div class="price-chart"><div class="chart-wave"></div></div>
 
               <div class="price-slider">
                 <div class="slider-track">
@@ -584,9 +572,7 @@ try {
             </section>
 
             <section class="filter-block">
-              <div class="filter-row">
-                <span class="filter-label">Category</span>
-              </div>
+              <div class="filter-row"><span class="filter-label">Category</span></div>
               <div class="filter-select">
                 <div class="select-display">
                   <span>5 Star</span>
@@ -596,9 +582,7 @@ try {
             </section>
 
             <section class="filter-block">
-              <div class="filter-row">
-                <span class="filter-label">Popular Filters</span>
-              </div>
+              <div class="filter-row"><span class="filter-label">Popular Filters</span></div>
 
               <div class="filters-checkboxes">
                 <label class="filter-checkbox">
@@ -616,8 +600,7 @@ try {
               </div>
 
               <button class="more-filters" id="moreFiltersBtn">
-                More
-                <span class="icon-placeholder tiny"></span>
+                More <span class="icon-placeholder tiny"></span>
               </button>
 
               <div class="filters-extra" id="filtersExtra">
@@ -666,9 +649,7 @@ try {
             <header class="modal-header-top">
               <div>
                 <h2 id="modalHotelName">Hotel name</h2>
-                <p class="modal-location" id="modalHotelLocation">
-                  Location text
-                </p>
+                <p class="modal-location" id="modalHotelLocation">Location text</p>
               </div>
             </header>
 
@@ -677,37 +658,27 @@ try {
                 <span class="score" id="modalHotelRating">4.5</span>
                 <span class="label">Excellent</span>
               </div>
-              <span class="modal-rating-reviews" id="modalHotelReviews">
-                0 reviews
-              </span>
+              <span class="modal-rating-reviews" id="modalHotelReviews">0 reviews</span>
             </div>
 
             <div class="modal-score-bars">
               <div class="score-row">
                 <span>Location</span>
-                <div class="score-bar">
-                  <span class="fill" id="scoreLocation"></span>
-                </div>
+                <div class="score-bar"><span class="fill" id="scoreLocation"></span></div>
               </div>
               <div class="score-row">
                 <span>Service</span>
-                <div class="score-bar">
-                  <span class="fill" id="scoreService"></span>
-                </div>
+                <div class="score-bar"><span class="fill" id="scoreService"></span></div>
               </div>
               <div class="score-row">
                 <span>Value</span>
-                <div class="score-bar">
-                  <span class="fill" id="scoreValue"></span>
-                </div>
+                <div class="score-bar"><span class="fill" id="scoreValue"></span></div>
               </div>
             </div>
 
             <section class="modal-about-block">
               <h4>About</h4>
-              <p id="modalHotelAbout">
-                Description will appear here.
-              </p>
+              <p id="modalHotelAbout">Description will appear here.</p>
             </section>
 
             <section class="modal-services-block">
@@ -737,57 +708,36 @@ try {
                   justify-content:space-between;
                   gap:12px;">
               <div style="display:flex;flex-direction:column;gap:2px;">
-                <span style="font-size:13px;font-weight:600;color:#111827;">
-                  Nights
-                </span>
-                <span style="font-size:11px;color:#6b7280;">
-                  Choose how many nights you want to stay
-                </span>
+                <span style="font-size:13px;font-weight:600;color:#111827;">Nights</span>
+                <span style="font-size:11px;color:#6b7280;">Choose how many nights you want to stay</span>
               </div>
 
               <div style="display:flex;align-items:center;gap:8px;">
-                <button
-                  type="button"
-                  id="modalNightsMinus"
-                  style="
+                <button type="button" id="modalNightsMinus" style="
                     width:30px;height:30px;
                     border-radius:999px;
                     border:1px solid #e5e7eb;
                     background:#ffffff;
                     cursor:pointer;
                     font-size:18px;
-                    line-height:1;
-                  ">
-                  -
-                </button>
+                    line-height:1;">-</button>
 
-                <span id="modalNightsValue"
-                      style="min-width:24px;text-align:center;font-weight:600;font-size:14px;">
-                  1
-                </span>
+                <span id="modalNightsValue" style="min-width:24px;text-align:center;font-weight:600;font-size:14px;">1</span>
 
-                <button
-                  type="button"
-                  id="modalNightsPlus"
-                  style="
+                <button type="button" id="modalNightsPlus" style="
                     width:30px;height:30px;
                     border-radius:999px;
                     border:1px solid #e5e7eb;
                     background:#ffffff;
                     cursor:pointer;
                     font-size:18px;
-                    line-height:1;
-                  ">
-                  +
-                </button>
+                    line-height:1;">+</button>
               </div>
             </div>
 
             <div class="modal-actions">
               <button class="modal-book-btn" id="modalBookBtn">Book Now</button>
-              <button class="modal-secondary-btn" id="modalCloseSecondary">
-                Close
-              </button>
+              <button class="modal-secondary-btn" id="modalCloseSecondary">Close</button>
             </div>
           </div>
         </div>
@@ -858,6 +808,5 @@ try {
 
     <script src="./assets/js/home.js"></script>
     <script src="./assets/js/hotel.js"></script>
-  
 </body>
 </html>

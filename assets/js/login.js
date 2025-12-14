@@ -238,7 +238,7 @@ form.addEventListener('submit', async e => {
       card.style.boxShadow = '0 36px 80px rgba(135,43,255,.16)';
         setTimeout(() => {
         if (result.role === 'admin') {
-          window.location.href = 'dashboard.html';
+          window.location.href = 'dashboard.php';
         } else {
           window.location.href = 'index.php';
         }

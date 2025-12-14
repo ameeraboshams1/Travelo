@@ -81,7 +81,8 @@ function nightsBetween($start, $end) {
   try {
     $d1 = new DateTime($start);
     $d2 = new DateTime($end);
-    return max(1, (int)$d1->diff($d2)->days);
+    $days = (int)$d1->diff($d2)->days;
+    return max(1, $days);
   } catch (Throwable $e) {
     return 0;
   }
@@ -132,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("UPDATE bookings SET booking_status='cancelled' WHERE id=? AND user_id=?")
                 ->execute([$bookingId, $userId]);
 
-            // if there is a pending payment, mark it failed (because no 'cancelled' in enum)
+            // if there is a pending payment, mark it failed
             if ($pay && $payStatus === 'pending') {
               $pdo->prepare("UPDATE payments SET status='failed' WHERE id=? AND user_id=?")
                   ->execute([(int)$pay['id'], $userId]);
@@ -172,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->rollBack();
             $flash = ['type'=>'warn','msg'=>'Only cancelled bookings can be restored.'];
           } else {
-            // if last payment is success => don't allow restore (paid order)
+            // if last payment is success => don't allow restore
             if ($pay && $payStatus === 'success') {
               $pdo->rollBack();
               $flash = ['type'=>'warn','msg'=>'Cannot restore because there is a successful payment for this booking.'];
@@ -180,7 +181,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               $pdo->prepare("UPDATE bookings SET booking_status='pending' WHERE id=? AND user_id=?")
                   ->execute([$bookingId, $userId]);
 
-              // الأفضل ما نغيّر payments (خليها تاريخ)، ولما يدفع مرة ثانية اعملي payment جديد
               $pdo->commit();
               $flash = ['type'=>'ok','msg'=>'Booking restored to pending.'];
             }
@@ -281,7 +281,8 @@ $userEmail = $_SESSION['user_email'] ?? '';
 
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
- <link href="./assets/css/home.css" rel="stylesheet">
+  <link href="./assets/css/home.css" rel="stylesheet">
+
   <style>
     :root{
       --ink:#0f172a;
@@ -308,227 +309,78 @@ $userEmail = $_SESSION['user_email'] ?? '';
     a{color:inherit;text-decoration:none}
     .container{width:min(1180px, 92%); margin:0 auto}
 
-    
-    .nav-user {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 100;
-}
+    /* ====== (تركنا nav-user CSS تبعك زي ما هو) ====== */
+    .nav-user { position: relative; display: flex; align-items: center; gap: 8px; z-index: 100; }
+    .nav-button .user-toggle {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 5px 16px 5px 8px; border-radius: 999px; border: none; outline: none;
+      background: rgba(255, 255, 255, 0.92); cursor: pointer;
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px; font-weight: 600; color: #0f172a;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+      backdrop-filter: blur(12px) saturate(180%);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative; overflow: hidden;
+    }
+    .nav-button .user-toggle::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    }
+    .nav-button .user-toggle:hover {
+      transform: translateY(-1.5px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+      background: rgba(255, 255, 255, 0.98);
+    }
+    .nav-button .user-toggle:active { transform: translateY(0); transition-duration: 0.1s; }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px;
+      box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+      position: relative; overflow: hidden; transition: transform 0.3s ease;
+    }
+    .user-avatar::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: translateX(-100%);
+    }
+    .nav-button .user-toggle:hover .user-avatar { transform: scale(1.05) rotate(5deg); }
+    .nav-button .user-toggle:hover .user-avatar::after { animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+    .user-text { white-space: nowrap; color: #0f172a; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; position: relative; }
+    .user-menu {
+      position: absolute; right: 0; top: calc(100% + 8px);
+      min-width: 200px; background: rgba(255, 255, 255, 0.98);
+      border-radius: 16px; padding: 8px 0; display: none;
+      z-index: 1000;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      backdrop-filter: blur(20px);
+      opacity: 0; transform: translateY(-10px);
+      animation: menuFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      overflow: hidden;
+    }
+    @keyframes menuFadeIn { to { opacity: 1; transform: translateY(0); } }
+    .user-menu::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+    }
+    .user-menu a, .user-menu form button {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; text-align: left; padding: 10px 18px;
+      font-size: 14px; font-weight: 500;
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      background: transparent; border: none; cursor: pointer;
+      color: #475569; transition: all 0.2s ease; position: relative;
+    }
+    .user-menu hr {
+      border: none; height: 1px;
+      background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+      margin: 6px 16px;
+    }
+    .user-menu.show { display: block; }
 
-/* الزر الرئيسي - نسخة أكثر أناقة */
-.nav-button .user-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 16px 5px 8px;
-  border-radius: 999px;
-  border: none;
-  outline: none;
-  background: rgba(255, 255, 255, 0.92);
-  cursor: pointer;
-  font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0f172a;
-  box-shadow: 
-    0 4px 12px rgba(15, 23, 42, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.3) inset;
-  backdrop-filter: blur(12px) saturate(180%);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-/* تأثير توهج خفيف عند التحويم */
-.nav-button .user-toggle::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-}
-
-.nav-button .user-toggle:hover {
-  transform: translateY(-1.5px);
-  box-shadow: 
-    0 12px 28px rgba(15, 23, 42, 0.14),
-    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
-  background: rgba(255, 255, 255, 0.98);
-}
-
-.nav-button .user-toggle:active {
-  transform: translateY(0);
-  transition-duration: 0.1s;
-}
-
-/* الأفاتار الدائري - تصميم متطور */
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-}
-
-.user-avatar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: translateX(-100%);
-}
-
-.nav-button .user-toggle:hover .user-avatar {
-  transform: scale(1.05) rotate(5deg);
-}
-
-.nav-button .user-toggle:hover .user-avatar::after {
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* النص */
-.user-text {
-  white-space: nowrap;
-  color: #0f172a;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: -0.01em;
-  position: relative;
-}
-
-/* السهم */
-.user-toggle i {
-  font-size: 12px;
-  color: #94a3b8;
-  transition: transform 0.3s ease;
-  margin-left: 2px;
-}
-
-.user-toggle.show-menu i {
-  transform: rotate(180deg);
-}
-
-/* القائمة المنسدلة - نسخة أكثر تطوراً */
-.user-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  min-width: 200px;
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 16px;
-  padding: 8px 0;
-  display: none;
-  z-index: 1000;
-  box-shadow: 
-    0 20px 60px rgba(15, 23, 42, 0.18),
-    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-  backdrop-filter: blur(20px);
-  opacity: 0;
-  transform: translateY(-10px);
-  animation: menuFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  overflow: hidden;
-}
-
-@keyframes menuFadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* حدود ناعمة للقائمة */
-.user-menu::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
-}
-
-.user-menu a,
-.user-menu form button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  text-align: left;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #475569;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-/* أيقونات داخل القائمة */
-.user-menu a i,
-.user-menu form button i {
-  width: 18px;
-  color: #94a3b8;
-  font-size: 15px;
-}
-
-.user-menu a:hover,
-.user-menu form button:hover {
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.08), transparent);
-  color: #7c3aed;
-  padding-left: 22px;
-}
-
-.user-menu a:hover i,
-.user-menu form button:hover i {
-  color: #7c3aed;
-  transform: scale(1.1);
-}
-
-/* فاصل أنيق بين العناصر */
-.user-menu hr {
-  border: none;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
-  margin: 6px 16px;
-}
-
-.user-menu.show {
-  display: block;
-}
-
-/* تأثير عند فتح القائمة */
-.user-menu.show ~ .nav-button .user-toggle {
-  box-shadow: 
-    0 8px 24px rgba(15, 23, 42, 0.12),
-    0 0 0 1px rgba(124, 58, 237, 0.1) inset;
-  background: rgba(255, 255, 255, 1);
-}
-
+    /* ===== Page ===== */
     .page-head{padding:26px 0 14px;}
     .head-row{display:flex; align-items:flex-end; justify-content:space-between; gap:18px; flex-wrap:wrap;}
     .title h1{margin:0; font-size:28px; letter-spacing:-.02em}
@@ -644,10 +496,15 @@ $userEmail = $_SESSION['user_email'] ?? '';
     .t-sub{margin:0 0 10px; color:var(--muted); font-weight:700}
 
     .divider{border-top:1px dashed rgba(148,163,184,.55); margin:12px 0;}
-    .meta{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px;}
-    @media (max-width: 720px){ .meta{grid-template-columns:1fr} }
+
+    /* ✅ أهم تعديل: meta صار 4 أعمدة */
+    .meta{display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px;}
+    @media (max-width: 980px){ .meta{grid-template-columns: repeat(2, minmax(0,1fr));} }
+    @media (max-width: 720px){ .meta{grid-template-columns: 1fr;} }
+
     .kv small{display:block; color:#94a3b8; font-weight:900; letter-spacing:.12em; text-transform:uppercase; margin-bottom:6px;}
     .kv div{font-weight:900; color:#0b1220;}
+
     .note{margin-top:12px; color:#64748b; font-weight:700; font-size:12.5px;}
     .total-mini{margin-top:10px; display:flex; justify-content:space-between; align-items:flex-end; gap:10px;}
     .total-mini small{color:#94a3b8; font-weight:900; letter-spacing:.12em; text-transform:uppercase}
@@ -747,46 +604,41 @@ $userEmail = $_SESSION['user_email'] ?? '';
             <li><a href="./hotel.php">Hotels</a></li>
             <li><a href="./packages.php">Packages</a></li>
             <li><a href="./destination.php">Destinations</a></li>
-
           </ul>
         </div>
 
-<div class="nav-button">
-  <?php if (isset($_SESSION['user_id'])): ?>
-    <!-- ====== Logged-in state ====== -->
-    <div class="nav-user">
-      <button type="button" class="user-toggle" id="userMenuToggle">
-        <span class="user-avatar">
-          <?php
-            $name = $_SESSION['user_name'] ?? 'U';
-            echo strtoupper(mb_substr($name, 0, 1));
-          ?>
-        </span>
-        <span class="user-text">
-          Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
-        </span>
-        
-      </button>
+        <div class="nav-button">
+          <?php if (isset($_SESSION['user_id'])): ?>
+            <div class="nav-user">
+              <button type="button" class="user-toggle" id="userMenuToggle">
+                <span class="user-avatar">
+                  <?php
+                    $name = $_SESSION['user_name'] ?? 'U';
+                    echo strtoupper(mb_substr($name, 0, 1));
+                  ?>
+                </span>
+                <span class="user-text">
+                  Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
+                </span>
+              </button>
 
-      <div class="user-menu" id="userMenu">
-        <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-          <a href="admin-dashboard.php">Admin dashboard</a>
-        <?php else: ?>
-          <a href="./myBooking.php">My bookings</a>
-        <?php endif; ?>
+              <div class="user-menu" id="userMenu">
+                <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                  <a href="admin-dashboard.php">Admin dashboard</a>
+                <?php else: ?>
+                  <a href="./myBooking.php">My bookings</a>
+                <?php endif; ?>
 
-        <form action="logout.php" method="post">
-          <button type="submit">Log out</button>
-        </form>
-      </div>
-    </div>
-  <?php else: ?>
-    <!-- ====== Guest state ====== -->
-    <button id="btnLogin" type="button" class="sign_in">Login</button>
-    <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
-  <?php endif; ?>
-</div>
-
+                <form action="logout.php" method="post">
+                  <button type="submit">Log out</button>
+                </form>
+              </div>
+            </div>
+          <?php else: ?>
+            <button id="btnLogin" type="button" class="sign_in">Login</button>
+            <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
+          <?php endif; ?>
+        </div>
 
         <button class="menu-toggle" aria-label="Open menu"><span></span></button>
       </nav>
@@ -831,6 +683,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 <div class="kv"><small>Tip</small><div>Go to Packages / Flights / Hotels</div></div>
                 <div class="kv"><small>Then</small><div>Click “Book now”</div></div>
                 <div class="kv"><small>After</small><div>Come back here ✨</div></div>
+                <div class="kv"><small>Enjoy</small><div>Travelo 💜</div></div>
               </div>
             </div>
             <div class="pricebox">
@@ -857,40 +710,38 @@ $userEmail = $_SESSION['user_email'] ?? '';
               (int)($b['travellers_infants'] ?? 0)
             );
 
+            // amounts (✅ dynamic breakdown)
+            $af = (float)($b['amount_flight'] ?? 0);
+            $ah = (float)($b['amount_hotel'] ?? 0);
+            $ap = (float)($b['amount_package'] ?? 0);
+            $tax = (float)($b['amount_taxes'] ?? 0);
+            $disc = (float)($b['discount_amount'] ?? 0);
+            $total = (float)($b['total_amount'] ?? 0);
+
             // dates from bookings first, else fallback by joins
             $start = $b['trip_start_date'] ?? null;
             $end   = $b['trip_end_date'] ?? null;
 
-            // price main line
-            $mainAmount =
-              ($type === 'flight')  ? (float)($b['amount_flight'] ?? 0) :
-              (($type === 'hotel')  ? (float)($b['amount_hotel'] ?? 0) :
-                                      (float)($b['amount_package'] ?? 0));
-
-            // build title/sub/meta per type (ticket style)
+            // build title/sub/meta per type (ticket style) - ✅ now 4 metas
             $title = 'Booking';
             $sub   = '';
-            $meta1Label = 'From';
-            $meta1Val   = '—';
-            $meta2Label = 'To';
-            $meta2Val   = '—';
-            $meta3Label = 'Travellers';
-            $meta3Val   = $travTxt;
+
+            $m1L = '—'; $m1V = '—';
+            $m2L = '—'; $m2V = '—';
+            $m3L = '—'; $m3V = '—';
+            $m4L = 'Dates'; $m4V = '—';
 
             if ($type === 'flight') {
-              // fallback dates from flight table
               if (!$start && !empty($b['f_departure_date'])) $start = $b['f_departure_date'];
               if (!$end   && !empty($b['f_return_date']))   $end   = $b['f_return_date'];
 
               $title = trim(($b['f_origin_city'] ?? 'Origin') . " → " . ($b['f_dest_city'] ?? 'Destination'));
               $sub   = trim(($b['f_airline_name'] ?? 'Airline') . (empty($b['f_flight_number']) ? '' : ' · ' . $b['f_flight_number']));
 
-              $meta1Label = 'Departure';
-              $meta1Val   = trim(($b['f_departure_time'] ?? '—'));
-              $meta2Label = 'Arrival';
-              $meta2Val   = trim(($b['f_arrival_time'] ?? '—'));
-              $meta3Label = 'Route';
-              $meta3Val   = trim(
+              $m1L = 'Departure'; $m1V = trim(($b['f_departure_time'] ?? '—'));
+              $m2L = 'Arrival';   $m2V = trim(($b['f_arrival_time'] ?? '—'));
+              $m3L = 'Route';
+              $m3V = trim(
                 ($b['f_origin_city'] ?? '') . " (" . ($b['f_origin_code'] ?? '') . ") → " .
                 ($b['f_dest_city'] ?? '')   . " (" . ($b['f_dest_code'] ?? '') . ")"
               );
@@ -901,44 +752,49 @@ $userEmail = $_SESSION['user_email'] ?? '';
 
               $nights = nightsBetween($start, $end);
 
-              $meta1Label = 'Nights';
-              $meta1Val   = $nights ? ($nights . ' night(s)') : '—';
-              $meta2Label = 'Rating';
-              $meta2Val   = isset($b['h_rating'])
-                ? (string)$b['h_rating'] . " (" . (int)($b['h_reviews'] ?? 0) . ")"
-                : '—';
-              $meta3Label = 'Guests';
-              $meta3Val   = $travTxt;
+              $m1L = 'Check-in';  $m1V = $start ? fmtDate($start) : '—';
+              $m2L = 'Check-out'; $m2V = $end ? fmtDate($end) : '—';
+              $m3L = 'Nights';    $m3V = $nights ? ($nights . ' night(s)') : '—';
+              $m4L = 'Guests';    $m4V = $travTxt;
 
             } else {
-              // package
+              // package: show included flight + included hotel (✅)
               if (!$start && !empty($b['pf_departure_date'])) $start = $b['pf_departure_date'];
               if (!$end   && !empty($b['pf_return_date']))   $end   = $b['pf_return_date'];
 
               $title = $b['p_title'] ? $b['p_title'] : ("Package #" . (int)($b['package_id'] ?? 0));
-              $sub   = trim(
-                ($b['p_location'] ?? '') .
-                (empty($b['p_badge']) ? '' : ' · ' . $b['p_badge']) .
-                ' · ' . $travTxt
+
+              $incFlight = trim(
+                ($b['pf_airline_name'] ?? '') .
+                (!empty($b['pf_flight_number']) ? (' · ' . $b['pf_flight_number']) : '')
               );
+              $incHotel = trim(($b['ph_name'] ?? ''));
 
-              $meta1Label = 'From';
-              $meta1Val   = $b['p_from_city'] ?? '—';
-              $meta2Label = 'Duration';
-              $meta2Val   = !empty($b['p_days']) ? ((int)$b['p_days'] . ' days') : '—';
+              $subParts = [];
+              if (!empty($b['p_location'])) $subParts[] = $b['p_location'];
+              if (!empty($b['p_badge']))    $subParts[] = $b['p_badge'];
+              $subParts[] = $travTxt;
+              $sub = implode(' · ', array_filter($subParts));
 
-              if (!empty($b['pf_departure_time']) || !empty($b['pf_arrival_time'])) {
-                $meta3Label = 'Flight time';
-                $meta3Val   = trim(($b['pf_departure_time'] ?? '') . " → " . ($b['pf_arrival_time'] ?? ''));
-              } else {
-                $meta3Label = 'Travellers';
-                $meta3Val   = $travTxt;
-              }
+              $m1L = 'From';     $m1V = $b['p_from_city'] ?? '—';
+              $m2L = 'Duration'; $m2V = !empty($b['p_days']) ? ((int)$b['p_days'] . ' days') : '—';
+
+              $m3L = 'Flight';
+              $m3V = $incFlight ?: (trim(($b['pf_departure_time'] ?? '') . ' → ' . ($b['pf_arrival_time'] ?? '')) ?: '—');
+
+              $m4L = 'Hotel';
+              $m4V = $incHotel ?: '—';
             }
 
             $dateLine = ($start || $end)
               ? trim((fmtDate($start) ?: '') . (($start || $end) ? ' — ' : '') . (fmtDate($end) ?: ''))
               : 'Flexible dates';
+
+            // always keep dates in m4 if not used (flight/hotel/package)
+            if ($type === 'flight') { $m4L = 'Dates'; $m4V = $dateLine; }
+            if ($type === 'package') { $m4L = 'Hotel'; $m4V = $m4V ?: '—'; }
+            if ($type === 'hotel') { /* m4 already guests */ }
+
           ?>
 
           <div class="ticket booking-item"
@@ -968,16 +824,20 @@ $userEmail = $_SESSION['user_email'] ?? '';
 
                 <div class="meta">
                   <div class="kv">
-                    <small><?= h($meta1Label) ?></small>
-                    <div><?= h($meta1Val) ?></div>
+                    <small><?= h($m1L) ?></small>
+                    <div><?= h($m1V) ?></div>
                   </div>
                   <div class="kv">
-                    <small><?= h($meta2Label) ?></small>
-                    <div><?= h($meta2Val) ?></div>
+                    <small><?= h($m2L) ?></small>
+                    <div><?= h($m2V) ?></div>
                   </div>
                   <div class="kv">
-                    <small><?= h($type === 'flight' ? 'Dates' : 'Trip dates') ?></small>
-                    <div><?= h($dateLine) ?></div>
+                    <small><?= h($m3L) ?></small>
+                    <div><?= h($m3V) ?></div>
+                  </div>
+                  <div class="kv">
+                    <small><?= h($type === 'hotel' ? 'Trip dates' : $m4L) ?></small>
+                    <div><?= h($type === 'hotel' ? $dateLine : $m4V) ?></div>
                   </div>
                 </div>
 
@@ -987,7 +847,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
 
                 <div class="total-mini">
                   <div><small>Total amount</small></div>
-                  <b><?= money($b['total_amount'] ?? 0, $cur) ?></b>
+                  <b><?= money($total, $cur) ?></b>
                 </div>
               </div>
 
@@ -995,24 +855,33 @@ $userEmail = $_SESSION['user_email'] ?? '';
               <div class="pricebox">
                 <h3>Price breakdown</h3>
 
-                <div class="rowp">
-                  <span><?= $type === 'flight' ? 'Flights' : ($type === 'hotel' ? 'Hotels' : 'Packages') ?></span>
-                  <span><?= money($mainAmount, $cur) ?></span>
-                </div>
+                <?php if ($af > 0): ?>
+                  <div class="rowp"><span>Flights</span><span><?= money($af, $cur) ?></span></div>
+                <?php endif; ?>
+
+                <?php if ($ah > 0): ?>
+                  <div class="rowp"><span>Hotels</span><span><?= money($ah, $cur) ?></span></div>
+                <?php endif; ?>
+
+                <?php if ($ap > 0): ?>
+                  <div class="rowp"><span>Packages</span><span><?= money($ap, $cur) ?></span></div>
+                <?php endif; ?>
 
                 <div class="rowp">
                   <span>Taxes & fees</span>
-                  <span><?= money($b['amount_taxes'] ?? 0, $cur) ?></span>
+                  <span><?= money($tax, $cur) ?></span>
                 </div>
 
-                <div class="rowp">
-                  <span>Discount</span>
-                  <span>-<?= money($b['discount_amount'] ?? 0, $cur) ?></span>
-                </div>
+                <?php if ($disc > 0): ?>
+                  <div class="rowp">
+                    <span>Discount</span>
+                    <span>-<?= money($disc, $cur) ?></span>
+                  </div>
+                <?php endif; ?>
 
                 <div class="rowp total">
                   <span>Total</span>
-                  <span><?= money($b['total_amount'] ?? 0, $cur) ?></span>
+                  <span><?= money($total, $cur) ?></span>
                 </div>
 
                 <p class="pb-note">
@@ -1042,53 +911,51 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 <?php endif; ?>
               </div>
 
-            <div class="btns">
-  <button class="btn btn-ghost js-toggle-details" type="button" data-target="details-<?= $id ?>">
-    <i class="fa-regular fa-eye"></i> View details
-  </button>
+              <div class="btns">
+                <button class="btn btn-ghost js-toggle-details" type="button" data-target="details-<?= $id ?>">
+                  <i class="fa-regular fa-eye"></i> View details
+                </button>
 
-  <?php if ($status === 'pending'): ?>
-    <!-- ✅ زر يكمل الحجز (يروح على booking.php ويكمّل نفس الحجز) -->
-    <a class="btn btn-primary" href="booking.php?booking_id=<?= (int)$id ?>">
-      <i class="fa-solid fa-credit-card"></i> Complete booking
-    </a>
+                <?php if ($status === 'pending'): ?>
+                  <a class="btn btn-primary" href="booking.php?booking_id=<?= (int)$id ?>">
+                    <i class="fa-solid fa-credit-card"></i> Complete booking
+                  </a>
 
-    <form method="post" style="margin:0" onsubmit="return confirm('Cancel this booking?');">
-      <input type="hidden" name="action" value="cancel">
-      <input type="hidden" name="booking_id" value="<?= (int)$id ?>">
-      <button class="btn btn-danger" type="submit">
-        <i class="fa-solid fa-ban"></i> Cancel
-      </button>
-    </form>
+                  <form method="post" style="margin:0" onsubmit="return confirm('Cancel this booking?');">
+                    <input type="hidden" name="action" value="cancel">
+                    <input type="hidden" name="booking_id" value="<?= (int)$id ?>">
+                    <button class="btn btn-danger" type="submit">
+                      <i class="fa-solid fa-ban"></i> Cancel
+                    </button>
+                  </form>
 
-  <?php elseif ($status === 'cancelled'): ?>
+                <?php elseif ($status === 'cancelled'): ?>
 
-    <form method="post" style="margin:0" onsubmit="return confirm('Restore this booking to pending?');">
-      <input type="hidden" name="action" value="restore">
-      <input type="hidden" name="booking_id" value="<?= (int)$id ?>">
-      <button class="btn btn-primary" type="submit">
-        <i class="fa-solid fa-rotate-left"></i> Restore
-      </button>
-    </form>
+                  <form method="post" style="margin:0" onsubmit="return confirm('Restore this booking to pending?');">
+                    <input type="hidden" name="action" value="restore">
+                    <input type="hidden" name="booking_id" value="<?= (int)$id ?>">
+                    <button class="btn btn-primary" type="submit">
+                      <i class="fa-solid fa-rotate-left"></i> Restore
+                    </button>
+                  </form>
 
-  <?php else: ?>
+                <?php else: ?>
 
-    <!-- confirmed -->
-    <form method="post" style="margin:0"
-          onsubmit="return confirm('Cancel this confirmed booking? (Refund will apply if payment is successful)');">
-      <input type="hidden" name="action" value="cancel">
-      <input type="hidden" name="booking_id" value="<?= (int)$id ?>">
-      <button class="btn btn-danger" type="submit">
-        <i class="fa-solid fa-ban"></i> Cancel
-      </button>
-    </form>
+                  <form method="post" style="margin:0"
+                        onsubmit="return confirm('Cancel this confirmed booking? (Refund will apply if payment is successful)');">
+                    <input type="hidden" name="action" value="cancel">
+                    <input type="hidden" name="booking_id" value="<?= (int)$id ?>">
+                    <button class="btn btn-danger" type="submit">
+                      <i class="fa-solid fa-ban"></i> Cancel
+                    </button>
+                  </form>
 
-  <?php endif; ?>
+                <?php endif; ?>
 
-  <button class="btn btn-primary js-copy" type="button" data-code="<?= h($b['booking_code'] ?? '') ?>">
-    <i class="fa-regular fa-copy"></i> Copy code
-  </button>
-</div>
+                <button class="btn btn-primary js-copy" type="button" data-code="<?= h($b['booking_code'] ?? '') ?>">
+                  <i class="fa-regular fa-copy"></i> Copy code
+                </button>
+              </div>
             </div>
 
             <!-- details -->
@@ -1124,6 +991,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
                     <div><span class="muted">Departure:</span> <b><?= h($b['f_departure_time'] ?? '—') ?></b></div>
                     <div><span class="muted">Arrival:</span> <b><?= h($b['f_arrival_time'] ?? '—') ?></b></div>
                   </div>
+
                 <?php elseif ($type === 'hotel'): ?>
                   <div class="hr"></div>
                   <div class="grid2">
@@ -1132,6 +1000,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
                     <div><span class="muted">Rating:</span> <b><?= isset($b['h_rating']) ? h($b['h_rating']) : '—' ?></b></div>
                     <div><span class="muted">Reviews:</span> <b><?= h((int)($b['h_reviews'] ?? 0)) ?></b></div>
                   </div>
+
                 <?php else: ?>
                   <div class="hr"></div>
                   <div class="grid2">
@@ -1139,6 +1008,12 @@ $userEmail = $_SESSION['user_email'] ?? '';
                     <div><span class="muted">Location:</span> <b><?= h($b['p_location'] ?? '—') ?></b></div>
                     <div><span class="muted">From:</span> <b><?= h($b['p_from_city'] ?? '—') ?></b></div>
                     <div><span class="muted">Days:</span> <b><?= !empty($b['p_days']) ? h((int)$b['p_days']) : '—' ?></b></div>
+
+                    <div><span class="muted">Included flight:</span> <b><?= h(trim(($b['pf_airline_name'] ?? '—') . (!empty($b['pf_flight_number']) ? (' · '.$b['pf_flight_number']) : ''))) ?></b></div>
+                    <div><span class="muted">Flight time:</span> <b><?= h(trim(($b['pf_departure_time'] ?? '—') . ' → ' . ($b['pf_arrival_time'] ?? '—'))) ?></b></div>
+
+                    <div><span class="muted">Included hotel:</span> <b><?= h($b['ph_name'] ?? '—') ?></b></div>
+                    <div><span class="muted">Hotel location:</span> <b><?= h($b['ph_location'] ?? '—') ?></b></div>
                   </div>
                 <?php endif; ?>
               </div>
@@ -1154,8 +1029,6 @@ $userEmail = $_SESSION['user_email'] ?? '';
   <div class="toast" id="toast"></div>
 
   <script>
-    
-
     // ===== Toast =====
     const toast = (msg) => {
       const el = document.getElementById("toast");
@@ -1232,6 +1105,6 @@ $userEmail = $_SESSION['user_email'] ?? '';
     <?php endif; ?>
   </script>
 
-   <script src="./assets/js/home.js"></script>
+  <script src="./assets/js/home.js"></script>
 </body>
 </html>

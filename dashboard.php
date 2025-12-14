@@ -71,6 +71,134 @@ require __DIR__ . '/db.php';
     #flightsMap { height: 360px; border-radius: 12px; overflow: hidden; }
     .page-title { font-weight: 700; font-size: 1.1rem; }
     .btn-action { padding: .35rem .5rem; }
+
+    /* ==============================
+       Prettier Admin Letter Badge
+       ============================== */
+    .admin-badge{
+      width: 46px;
+      height: 46px;
+      border: 0;
+      padding: 0;
+      border-radius: 999px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.55), transparent 48%),
+        linear-gradient(135deg, #7c3aed 0%, #6c63ff 45%, #22c55e 130%);
+
+      box-shadow:
+        0 16px 34px rgba(124,58,237,.20),
+        0 0 0 1px rgba(124,58,237,.18) inset;
+
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+
+    .admin-badge:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      box-shadow:
+        0 22px 48px rgba(124,58,237,.24),
+        0 0 0 1px rgba(124,58,237,.22) inset;
+    }
+
+    .admin-badge:focus{
+      outline: none;
+      box-shadow:
+        0 0 0 4px rgba(124,58,237,.18),
+        0 22px 48px rgba(124,58,237,.24);
+    }
+
+    .admin-badge.dropdown-toggle::after{ display:none; }
+
+    .admin-badge__ring{
+      position: absolute;
+      inset: -2px;
+      border-radius: 999px;
+      background:
+        conic-gradient(from 180deg, rgba(124,58,237,.55), rgba(108,99,255,.55), rgba(124,58,237,.55));
+      filter: blur(.2px);
+      opacity: .65;
+      z-index: 0;
+    }
+
+    .admin-badge__ring::after{
+      content:"";
+      position:absolute;
+      inset: 2px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset;
+    }
+
+    .admin-badge__letter{
+      position: relative;
+      z-index: 1;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+
+      color: #fff;
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: -0.03em;
+
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.24), transparent 55%),
+        rgba(15,23,42,.18);
+
+      box-shadow:
+        0 10px 20px rgba(15,23,42,.18),
+        0 0 0 1px rgba(255,255,255,.16) inset;
+    }
+
+    /* dropdown menu look */
+    .admin-menu{
+      border-radius: 16px;
+      border: 1px solid var(--tbl-border);
+      box-shadow: 0 18px 45px rgba(15,23,42,.18);
+      padding: 8px;
+      min-width: 210px;
+    }
+    .admin-menu .dropdown-item{
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .admin-menu .dropdown-item:hover{
+      background: rgba(124,58,237,.10);
+      color: #7c3aed;
+    }
+
+    /* ===== Soft purple hover for topbar buttons ===== */
+    .topbar .btn-outline-secondary{
+      border-radius: 14px;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+    }
+    .topbar .btn-outline-secondary:hover{
+      background: rgba(124,58,237,.10) !important;
+      border-color: rgba(124,58,237,.35) !important;
+      color: #7c3aed !important;
+      transform: translateY(-1px);
+    }
+    .topbar .btn-outline-secondary:focus{
+      box-shadow: 0 0 0 4px rgba(124,58,237,.16) !important;
+    }
+
+    .topbar .form-control:focus{
+      border-color: rgba(124,58,237,.35) !important;
+      box-shadow: 0 0 0 4px rgba(124,58,237,.14) !important;
+    }
+    .topbar .input-group-text{
+      border-radius: 14px 0 0 14px;
+    }
+    .topbar .form-control{
+      border-radius: 0 14px 14px 0;
+    }
   </style>
 </head>
 <body>
@@ -111,15 +239,55 @@ require __DIR__ . '/db.php';
         </button>
         <div class="page-title" id="pageTitle">Dashboard</div>
       </div>
+
       <div class="d-flex align-items-center gap-2">
         <div class="input-group" style="max-width:360px;">
           <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
           <input id="globalSearch" class="form-control border-start-0" placeholder="Search (Ctrl + K)" />
         </div>
+
         <button id="themeToggle" class="btn btn-outline-secondary" title="Toggle theme">
           <i class="bi bi-moon-stars" id="themeIcon"></i>
         </button>
-        <img src="https://i.pravatar.cc/80?img=3" alt="Admin" class="avatar" title="Admin Account" />
+
+        <?php
+          $adminName = $_SESSION['user_name'] ?? $_SESSION['admin_name'] ?? $_SESSION['username'] ?? 'Admin';
+          $adminName = trim((string)$adminName);
+          $adminLetter = strtoupper(mb_substr($adminName !== '' ? $adminName : 'A', 0, 1));
+        ?>
+
+        <!-- ✅ THIS is the only replacement: avatar image -> admin letter badge -->
+        <div class="dropdown">
+          <button
+            class="admin-badge dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="<?= htmlspecialchars($adminName ?: 'Admin') ?>"
+          >
+            <span class="admin-badge__ring"></span>
+            <span class="admin-badge__letter"><?= htmlspecialchars($adminLetter) ?></span>
+          </button>
+
+<ul class="dropdown-menu dropdown-menu-end admin-menu">
+  <li>
+    <a class="dropdown-item" href="./adminprofile.php">
+      <i class="bi bi-person me-2"></i> My profile
+    </a>
+  </li>
+
+  <li><hr class="dropdown-divider"></li>
+
+  <li>
+    <form action="./logout.php" method="post" class="m-0 p-0">
+      <button type="submit" class="dropdown-item">
+        <i class="bi bi-box-arrow-right me-2"></i> Log out
+      </button>
+    </form>
+  </li>
+</ul>
+
+        </div>
       </div>
     </div>
 
@@ -441,6 +609,8 @@ require __DIR__ . '/db.php';
               <th>Image</th>
               <th>Title</th>
               <th>Destination</th>
+              <th>Hotel</th>
+              <th>Flight</th>
               <th>From City</th>
               <th>Location</th>
               <th>Duration (Days)</th>
@@ -482,7 +652,7 @@ require __DIR__ . '/db.php';
               <th>End</th>
               <th>Total</th>
               <th>Currency</th>
-              <th>Status</th> <!-- فقط booking_status من جدول bookings -->
+              <th>Status</th>
               <th>Created</th>
               <th>Actions</th>
             </tr>

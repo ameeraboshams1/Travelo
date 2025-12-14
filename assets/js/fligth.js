@@ -17,63 +17,128 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentTripFilter = "all";
 
   const qs = new URLSearchParams(window.location.search);
-const destinationFilterId = qs.get("destination_id") ? String(qs.get("destination_id")) : null;
-
+  const destinationFilterId = qs.get("destination_id") ? String(qs.get("destination_id")) : null;
 
   if (!flightList || allCards.length === 0) return;
 
-  // ====== BOOKING LOGIC ======
-  // 🚨 الملف الجديد تبع الويزرد
+  // ========================= Helpers =========================
+  function safeText(el) {
+    return el ? String(el.textContent || "").trim() : "";
+  }
+
+  function getCardData(card) {
+    // Prefer dataset first (best), fallback to DOM.
+    const fromCityEl = card.querySelector(".ticket-route .city:first-child");
+    const toCityEl = card.querySelector(".ticket-route .city:last-child");
+    const depTimeEl = card.querySelector(".ticket-times .time:first-child strong");
+    const arrTimeEl = card.querySelector(".ticket-times .time:last-child strong");
+    const airlineEl = card.querySelector(".airline-name");
+    const flightCodeEl = card.querySelector(".ticket-code");
+
+    const fromCity = card.dataset.originCity || safeText(fromCityEl);
+    const toCity = card.dataset.destCity || safeText(toCityEl);
+
+    const fromCode =
+      card.dataset.fromAirportCode ||
+      (fromCityEl && fromCityEl.dataset.code) ||
+      fromCity;
+
+    const toCode =
+      card.dataset.toAirportCode ||
+      (toCityEl && toCityEl.dataset.code) ||
+      toCity;
+
+    const airline = card.dataset.airlineName || safeText(airlineEl);
+    const flightNumber = card.dataset.flightNumber || safeText(flightCodeEl);
+
+    const depTime = card.dataset.departureTime || safeText(depTimeEl);
+    const arrTime = card.dataset.arrivalTime || safeText(arrTimeEl);
+
+    // Dates: prefer ISO from dataset, fallback to labels if you didn't add ISO yet
+    const departDateISO =
+      card.dataset.departDate ||
+      card.dataset.departureDate ||
+      ""; // expected YYYY-MM-DD
+
+    const returnDateISO =
+      card.dataset.returnDate ||
+      ""; // expected YYYY-MM-DD
+
+    const depDateLabel = card.dataset.depDateLabel || "";
+    const retDateLabel = card.dataset.retDateLabel || "";
+
+    const tripType = (card.dataset.trip || "oneway").toLowerCase();
+
+    const base = Number(card.dataset.price || "0");
+    const tax = +(base * 0.15).toFixed(2);
+
+    const flightId = card.dataset.flightId || "";
+    const destinationId = card.dataset.destinationId || "";
+
+    return {
+      fromCity,
+      toCity,
+      fromCode,
+      toCode,
+      airline,
+      flightNumber,
+      depTime,
+      arrTime,
+      departDateISO,
+      returnDateISO,
+      depDateLabel,
+      retDateLabel,
+      tripType,
+      base,
+      tax,
+      flightId,
+      destinationId
+    };
+  }
+
+  function parseISODate(s) {
+    // expects YYYY-MM-DD
+    if (!s) return null;
+    const d = new Date(s + "T00:00:00");
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function calcDurationDays(departISO, returnISO, tripType) {
+    // only meaningful for roundtrip
+    if (tripType !== "roundtrip") return 1;
+
+    const d1 = parseISODate(departISO);
+    const d2 = parseISODate(returnISO);
+    if (!d1 || !d2) return 1;
+
+    const diff = Math.round((d2.getTime() - d1.getTime()) / 86400000);
+    // clamp: at least 1 day
+    return diff >= 1 ? diff : 1;
+  }
+
+  function formatHoursToHM(hours) {
+    const n = Number(hours);
+    if (!Number.isFinite(n)) return "";
+    const h = Math.floor(n);
+    const m = Math.round((n - h) * 60);
+    if (m <= 0) return `${h}h`;
+    if (m >= 60) return `${h + 1}h`;
+    return `${h}h ${m}m`;
+  }
+
+  // ========================= BOOKING LOGIC =========================
   const bookingBaseUrl = "booking.php";
   let lastSelectedCard = null;
 
   function buildBookingParams(card) {
     if (!card) return "";
 
-    const fromCityEl = card.querySelector(".ticket-route .city:first-child");
-    const toCityEl = card.querySelector(".ticket-route .city:last-child");
-    const depTimeEl = card.querySelector(
-      ".ticket-times .time:first-child strong"
-    );
-    const arrTimeEl = card.querySelector(
-      ".ticket-times .time:last-child strong"
-    );
-    const airlineEl = card.querySelector(".airline-name");
-    const flightCodeEl = card.querySelector(".ticket-code");
+    const d = getCardData(card);
 
-    const fromCode =
-      (fromCityEl && fromCityEl.dataset.code) ||
-      (fromCityEl && fromCityEl.textContent.trim()) ||
-      "";
-    const toCode =
-      (toCityEl && toCityEl.dataset.code) ||
-      (toCityEl && toCityEl.textContent.trim()) ||
-      "";
-
-    const depTime = depTimeEl ? depTimeEl.textContent.trim() : "";
-    const arrTime = arrTimeEl ? arrTimeEl.textContent.trim() : "";
-    const airline = airlineEl ? airlineEl.textContent.trim() : "";
-    const flightCode = flightCodeEl ? flightCodeEl.textContent.trim() : "";
-
-    const tripType = card.dataset.trip || "oneway";
-    const depDateLabel = card.dataset.depDateLabel || "";
-    const retDateLabel = card.dataset.retDateLabel || "";
-
-    const base = Number(card.dataset.price || "0");
-    const tax = +(base * 0.15).toFixed(2); // ضريبة 15% بشكل مرتب
-    const add = 0;
-
-    // بيانات اليوزر من السكربت في PHP
-    const userId =
-      window.TRAVELO && window.TRAVELO.userId ? window.TRAVELO.userId : "";
-    const userName =
-      window.TRAVELO && window.TRAVELO.userName ? window.TRAVELO.userName : "";
-    const userEmail =
-      window.TRAVELO && window.TRAVELO.userEmail
-        ? window.TRAVELO.userEmail
-        : "";
-
-    const flightId = card.dataset.flightId || "";
+    // user info from PHP injected script
+    const userId = (window.TRAVELO && window.TRAVELO.userId) ? window.TRAVELO.userId : "";
+    const userName = (window.TRAVELO && window.TRAVELO.userName) ? window.TRAVELO.userName : "";
+    const userEmail = (window.TRAVELO && window.TRAVELO.userEmail) ? window.TRAVELO.userEmail : "";
 
     const params = new URLSearchParams();
 
@@ -81,38 +146,40 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
     params.set("booking_type", "flight");
     params.set("booking_status", "pending");
 
-    if (fromCityEl) params.set("from_city", fromCityEl.textContent.trim());
-    if (toCityEl) params.set("to_city", toCityEl.textContent.trim());
+    if (d.fromCity) params.set("from_city", d.fromCity);
+    if (d.toCity) params.set("to_city", d.toCity);
 
-    // التواريخ (الويزرد بس بعرضهم ستـرينغ، فآمن نبعث الـ label)
-    if (depDateLabel) params.set("trip_start_date", depDateLabel);
-    if (tripType === "roundtrip" && retDateLabel) {
-      params.set("trip_end_date", retDateLabel);
-    } else if (depDateLabel) {
-      params.set("trip_end_date", depDateLabel);
-    }
+    // Prefer ISO dates, fallback to labels
+    const startDate = d.departDateISO || d.depDateLabel || "";
+    const endDate =
+      (d.tripType === "roundtrip" ? (d.returnDateISO || d.retDateLabel) : "") ||
+      startDate;
 
-    // نرسل كمان شوية معلومات شكلية لو حبيتي تستخدميها لاحقاً
-    if (airline) params.set("airline", airline);
-    if (flightCode) params.set("flight_number", flightCode);
-    if (fromCode) params.set("from_airport_code", fromCode);
-    if (toCode) params.set("to_airport_code", toCode);
-    if (depTime) params.set("departure_time", depTime);
-    if (arrTime) params.set("arrival_time", arrTime);
+    if (startDate) params.set("trip_start_date", startDate);
+    if (endDate) params.set("trip_end_date", endDate);
 
-    if (flightId) params.set("flight_id", flightId);
+    // duration_days (useful for booking page display if you want)
+    const durDays = calcDurationDays(d.departDateISO, d.returnDateISO, d.tripType);
+    params.set("duration_days", String(durDays));
 
-    // ========= Amount columns (جدول الـ bookings + payments) =========
-    params.set("amount_flight", base.toString());
+    // Extra flight info
+    if (d.airline) params.set("airline", d.airline);
+    if (d.flightNumber) params.set("flight_number", d.flightNumber);
+    if (d.fromCode) params.set("from_airport_code", d.fromCode);
+    if (d.toCode) params.set("to_airport_code", d.toCode);
+    if (d.depTime) params.set("departure_time", d.depTime);
+    if (d.arrTime) params.set("arrival_time", d.arrTime);
+
+    if (d.flightId) params.set("flight_id", d.flightId);
+    if (d.destinationId) params.set("destination_id", d.destinationId);
+
+    // ========= Amount columns =========
+    params.set("amount_flight", d.base.toString());
     params.set("amount_hotel", "0");
     params.set("amount_package", "0");
-    params.set("amount_taxes", tax.toString());
+    params.set("amount_taxes", d.tax.toString());
     params.set("discount_amount", "0");
     params.set("currency", "USD");
-
-    // ========= Travellers (لو مش موجودين، الويزرد بيفترض 1 adult) =========
-    // هون ممكن لاحقاً نجيبهم من كويري الـ search لو عندك
-    // params.set("travellers_adults", "2") ... الخ
 
     // ========= User info =========
     if (userId) params.set("user_id", userId);
@@ -125,23 +192,20 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
   function goToBooking(card) {
     if (!card) return;
 
-    // لو مش عامل لوجين → نفتح مودال اللوجين بدال ما نروح على البوكنج
+    // if not logged in -> open login modal/button
     if (!window.TRAVELO || !window.TRAVELO.isLoggedIn) {
       const loginBtn = document.getElementById("btnLogin");
-      if (loginBtn) {
-        loginBtn.click();
-        return;
-      }
+      if (loginBtn) loginBtn.click();
+      return;
     }
 
-    const qs = buildBookingParams(card);
-    if (!qs) return;
-    window.location.href = bookingBaseUrl + "?" + qs;
+    const q = buildBookingParams(card);
+    if (!q) return;
+    window.location.href = bookingBaseUrl + "?" + q;
   }
 
-  // ربط Book Now
-  const bookButtons = document.querySelectorAll(".book-btn");
-  bookButtons.forEach((btn) => {
+  // Bind Book Now buttons
+  document.querySelectorAll(".book-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const card = btn.closest(".flight-card.ticket");
       lastSelectedCard = card;
@@ -149,59 +213,56 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
     });
   });
 
-  // باقي الفلترة والفرز
+  // ========================= FILTER + SORT =========================
   function renderCards(cards) {
     flightList.innerHTML = "";
     cards.forEach((card) => flightList.appendChild(card));
   }
 
   function getFilteredCards() {
-  const maxPrice = maxPriceInput ? Number(maxPriceInput.value) : Infinity;
+    const maxPrice = maxPriceInput ? Number(maxPriceInput.value) : Infinity;
 
-  return allCards.filter((card) => {
+    return allCards.filter((card) => {
+      // destination filter (if provided)
+      if (destinationFilterId) {
+        const cardDestId = String(card.dataset.destinationId || "");
+        if (cardDestId !== destinationFilterId) return false;
+      }
 
-    // ✅ فلترة حسب الوجهة فقط إذا جاي destination_id من الرابط
-    if (destinationFilterId) {
-      const cardDestId = String(card.dataset.destinationId || "");
-      if (cardDestId !== destinationFilterId) return false;
-    }
+      const price = Number(card.dataset.price || 0);
+      const stops = Number(card.dataset.stops || 0);
+      const tripType = (card.dataset.trip || "all").toLowerCase();
 
-    const price = Number(card.dataset.price || 0);
-    const stops = Number(card.dataset.stops || 0);
-    const tripType = card.dataset.trip || "all";
+      if (maxPriceInput && price > maxPrice) return false;
+      if (nonStopOnly && nonStopOnly.checked && stops !== 0) return false;
 
-    if (maxPriceInput && price > maxPrice) return false;
-    if (nonStopOnly && nonStopOnly.checked && stops !== 0) return false;
+      if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
+        return false;
+      }
 
-    if (currentTripFilter !== "all" && tripType !== currentTripFilter) {
-      return false;
-    }
+      if (currentTimeFilter !== "all") {
+        const depTimeEl = card.querySelector(".ticket-times .time:first-child strong");
+        const depTimeText = depTimeEl ? depTimeEl.textContent.trim() : "";
+        const hour = Number(depTimeText.split(":")[0]);
+        if (!Number.isFinite(hour)) return false;
 
-    if (currentTimeFilter !== "all") {
-      const depTimeEl = card.querySelector(".ticket-times .time:first-child strong");
-      if (!depTimeEl) return false;
+        if (currentTimeFilter === "morning" && hour >= 12) return false;
+        if (currentTimeFilter === "evening" && hour < 12) return false;
+      }
 
-      const depTimeText = depTimeEl.textContent.trim();
-      const hour = Number(depTimeText.split(":")[0]);
-
-      if (currentTimeFilter === "morning" && hour >= 12) return false;
-      if (currentTimeFilter === "evening" && hour < 12) return false;
-    }
-
-    return true;
-  });
-}
-
+      return true;
+    });
+  }
 
   function applySortAndFilter() {
     const filtered = getFilteredCards();
 
     filtered.sort((a, b) => {
       if (currentSort === "cheapest") {
-        return Number(a.dataset.price) - Number(b.dataset.price);
-      } else {
-        return Number(a.dataset.duration) - Number(b.dataset.duration);
+        return Number(a.dataset.price || 0) - Number(b.dataset.price || 0);
       }
+      // fastest:
+      return Number(a.dataset.duration || 999999) - Number(b.dataset.duration || 999999);
     });
 
     renderCards(filtered);
@@ -224,7 +285,7 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
     chip.addEventListener("click", () => {
       tripChips.forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
-      currentTripFilter = chip.dataset.trip || "all";
+      currentTripFilter = (chip.dataset.trip || "all").toLowerCase();
       applySortAndFilter();
     });
   });
@@ -251,17 +312,18 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
 
   if (resetBtn && maxPriceInput && maxPriceValue) {
     resetBtn.addEventListener("click", () => {
+      // special: if we came with destination_id, reset removes it first
+      if (destinationFilterId) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("destination_id");
+        window.location.href = url.toString();
+        return;
+      }
 
-       if (destinationFilterId) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("destination_id");
-      window.location.href = url.toString();
-      return;
-    }
-    
       maxPriceInput.value = maxPriceInput.max || 600;
       maxPriceValue.textContent = `Up to ${maxPriceInput.value}`;
       if (nonStopOnly) nonStopOnly.checked = false;
+
       currentTimeFilter = "all";
       currentTripFilter = "all";
       currentSort = "cheapest";
@@ -275,16 +337,14 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
       if (tripAll) tripAll.classList.add("active");
 
       tabItems.forEach((t) => t.classList.remove("active"));
-      const cheapestTab = document.querySelector(
-        '.tab-item[data-sort="cheapest"]'
-      );
+      const cheapestTab = document.querySelector('.tab-item[data-sort="cheapest"]');
       if (cheapestTab) cheapestTab.classList.add("active");
 
       applySortAndFilter();
     });
   }
 
-  // Modal التفاصيل
+  // ========================= Modal التفاصيل =========================
   const modalEl = document.getElementById("flightDetailsModal");
   let detailsModal = null;
 
@@ -303,56 +363,35 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
       if (!card) return;
       lastSelectedCard = card;
 
-      const airlineName =
-        card.querySelector(".airline-name")?.textContent.trim() || "";
-      const flightCode =
-        card.querySelector(".ticket-code")?.textContent.trim() || "";
+      const d = getCardData(card);
 
-      const fromCityEl =
-        card.querySelector(".ticket-route .city:first-child") || null;
-      const toCityEl =
-        card.querySelector(".ticket-route .city:last-child") || null;
+      const durationHours = card.dataset.duration || "";
+      const durationNice = durationHours ? formatHoursToHM(durationHours) : "";
 
-      const fromCity = fromCityEl ? fromCityEl.textContent.trim() : "";
-      const toCity = toCityEl ? toCityEl.textContent.trim() : "";
+      const priceText = card.querySelector(".price") ? card.querySelector(".price").textContent.trim() : "";
 
-      const depTime =
-        card
-          .querySelector(".ticket-times .time:first-child strong")
-          ?.textContent.trim() || "";
-      const arrTime =
-        card
-          .querySelector(".ticket-times .time:last-child strong")
-          ?.textContent.trim() || "";
-
-      const duration = card.dataset.duration || "";
-      const price = card.querySelector(".price")?.textContent.trim() || "";
-
-      const tripTypeRaw = card.dataset.trip || "all";
       let tripTypeText = "Flight";
-      if (tripTypeRaw === "oneway") tripTypeText = "One way";
-      else if (tripTypeRaw === "roundtrip") tripTypeText = "Round trip";
+      if (d.tripType === "oneway") tripTypeText = "One way";
+      else if (d.tripType === "roundtrip") tripTypeText = "Round trip";
 
       const stopsCount = Number(card.dataset.stops || "0");
-      const stopsText =
-        stopsCount === 0 ? "Non stop" : `${stopsCount} stop(s)`;
+      const stopsText = stopsCount === 0 ? "Non stop" : `${stopsCount} stop(s)`;
 
-      modalEl.querySelector(".modal-airline-name").textContent = airlineName;
-      modalEl.querySelector(".modal-flight-code").textContent = flightCode;
+      modalEl.querySelector(".modal-airline-name").textContent = d.airline || "";
+      modalEl.querySelector(".modal-flight-code").textContent = d.flightNumber || "";
       modalEl.querySelector(".modal-trip-type").textContent = tripTypeText;
 
       modalEl.querySelector(".modal-route").textContent =
-        fromCity && toCity ? `${fromCity} → ${toCity}` : "";
+        d.fromCity && d.toCity ? `${d.fromCity} → ${d.toCity}` : "";
 
-      modalEl.querySelector(".modal-departure").textContent = depTime;
-      modalEl.querySelector(".modal-arrival").textContent = arrTime;
+      modalEl.querySelector(".modal-departure").textContent = d.depTime || "";
+      modalEl.querySelector(".modal-arrival").textContent = d.arrTime || "";
 
-      modalEl.querySelector(".modal-duration").textContent =
-        duration ? `${duration} h` : "";
+      modalEl.querySelector(".modal-duration").textContent = durationNice || "";
       modalEl.querySelector(".modal-stops").textContent = stopsText;
 
       modalEl.querySelectorAll(".modal-price").forEach((el) => {
-        el.textContent = price;
+        el.textContent = priceText || "";
       });
 
       detailsModal.show();
@@ -361,14 +400,13 @@ const destinationFilterId = qs.get("destination_id") ? String(qs.get("destinatio
 
   if (modalBookBtn) {
     modalBookBtn.addEventListener("click", () => {
-      if (lastSelectedCard) {
-        goToBooking(lastSelectedCard);
-      }
+      if (lastSelectedCard) goToBooking(lastSelectedCard);
     });
   }
 
   applySortAndFilter();
 });
+
 
 // ================== FLASH / ANIMATION SECTION (نفسه) ==================
 function animateTextReveal() {
@@ -450,12 +488,6 @@ function initFlashButtons() {
       setTimeout(() => {
         this.style.transform = "translateY(-8px) scale(1.05)";
       }, 150);
-
-      if (this.classList.contains("btn-primary")) {
-        // simulateBooking(); // مش لازمتنا حالياً
-      } else {
-        // simulateExplore();
-      }
     });
   });
 }
@@ -465,13 +497,7 @@ function enhanceAirplanes() {
 
   airplanes.forEach((plane) => {
     plane.addEventListener("animationiteration", () => {
-      const colors = [
-        "#3498db",
-        "#9b59b6",
-        "#2ecc71",
-        "#e74c3c",
-        "#f1c40f",
-      ];
+      const colors = ["#3498db", "#9b59b6", "#2ecc71", "#e74c3c", "#f1c40f"];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
       plane.style.color = randomColor;
 
@@ -542,13 +568,7 @@ function addDynamicAirplanes() {
       const top = Math.random() * 80 + 10;
       const duration = Math.random() * 15 + 20;
       const delay = Math.random() * 5;
-      const colors = [
-        "#3498db",
-        "#9b59b6",
-        "#2ecc71",
-        "#e74c3c",
-        "#f1c40f",
-      ];
+      const colors = ["#3498db", "#9b59b6", "#2ecc71", "#e74c3c", "#f1c40f"];
       const color = colors[Math.floor(Math.random() * colors.length)];
 
       airplane.style.cssText = `
@@ -565,9 +585,7 @@ function addDynamicAirplanes() {
       flashSection.appendChild(airplane);
 
       setTimeout(() => {
-        if (airplane.parentNode) {
-          airplane.remove();
-        }
+        if (airplane.parentNode) airplane.remove();
       }, (duration + delay) * 1000);
     }
   }, 3000);

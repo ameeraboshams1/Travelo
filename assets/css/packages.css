@@ -1228,3 +1228,671 @@ a {
     transform: translateY(0) scale(1);
   }
 }
+/* ===== Layout upgrade for card structure ===== */
+.tour-card{
+  display: grid;
+  grid-template-rows: 200px 1fr auto; /* image / body / footer */
+}
+
+/* خلي الصورة تاخد نفس الارتفاع دايمًا */
+.tour-card-image{
+  height: 200px;
+}
+
+/* ===== Body: ترتيب أوضح + ارتفاعات ثابتة ===== */
+.tour-card-body{
+  padding: 18px 18px 14px;
+  display: grid;
+  grid-template-rows: auto auto 1fr; /* location / title / meta */
+  gap: 10px;
+}
+
+/* location ثابت وما يزاحم */
+.tour-location{
+  align-self: start;
+}
+
+/* العنوان: سطرين كحد أقصى وثابت */
+.tour-title{
+  margin: 0;
+  min-height: 46px; /* يثبت اختلاف العناوين */
+  line-height: 1.45;
+}
+
+/* ===== Meta: خليها دايمًا آخر البودي ===== */
+.tour-meta{
+  align-self: end;          /* ينزل لآخر الكارد */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* chips (rating + days) */
+.tour-meta-left{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 68%;
+}
+
+.tour-meta-left span{
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+/* السعر ثابت وما يلف */
+.tour-price{
+  white-space: nowrap;
+  flex: 0 0 auto;
+  font-size: 18px;
+  padding: 7px 10px;
+}
+
+/* ===== Footer: توزيع أحسن للأزرار ===== */
+.tour-footer{
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tour-footer > span{
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* لو from المدينة طويلة */
+}
+
+/* الأزرار يمين بتناسق */
+.tour-footer-actions{
+  flex: 0 0 auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* خلي زر BOOK NOW أوضح وموحد */
+.tour-footer .book-package-btn{
+  min-width: 118px;
+}
+
+/* Responsive: تحت 480 خلي الأزرار تحت بعض */
+@media (max-width: 480px){
+  .tour-footer{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tour-footer-actions{
+    width: 100%;
+  }
+  .tour-footer .view-details,
+  .tour-footer .book-package-btn{
+    width: 100%;
+    justify-content: center;
+  }
+}
+/* ===========================
+   PACKAGE MODAL (Tour Modal)
+   Paste into packages.css
+   =========================== */
+
+/* Overlay wrapper */
+.tour-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 22px;
+  animation: pmFadeIn .22s ease-out;
+}
+
+.tour-modal-overlay{
+  position:absolute;
+  inset:0;
+  background: rgba(15, 23, 42, .62);
+  backdrop-filter: blur(14px);
+}
+
+/* Dialog layout */
+.tour-modal-dialog{
+  position: relative;
+  width: min(1040px, 100%);
+  max-height: 92vh;
+  background: #ffffff;
+  border-radius: 22px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, .28);
+  border: 1px solid rgba(241, 228, 255, .9);
+  z-index: 1;
+}
+
+/* Mobile layout */
+@media (max-width: 900px){
+  .tour-modal{ padding: 14px; }
+  .tour-modal-dialog{
+    grid-template-columns: 1fr;
+    max-height: 94vh;
+  }
+}
+
+/* Hero image */
+.tour-modal-hero{
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.tour-modal-hero img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  filter: saturate(1.05) contrast(1.03);
+}
+
+/* Gradient overlay on hero */
+.tour-modal-hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(
+    to top,
+    rgba(15,23,42,.55),
+    rgba(15,23,42,.10) 60%,
+    rgba(15,23,42,0)
+  );
+}
+
+/* Badge */
+.tour-modal-hero-badge{
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  background: linear-gradient(135deg, #b049f1, #ff41f9);
+  box-shadow: 0 10px 22px rgba(176, 73, 241, .35);
+  z-index: 3;
+}
+
+.tour-modal-hero-badge i{
+  font-size: 12px;
+  opacity: .95;
+}
+
+/* Close button */
+.tour-modal-close{
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(255,255,255,.92);
+  color: #334155;
+  cursor: pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .22);
+  transition: transform .18s ease, background .18s ease, color .18s ease;
+  z-index: 4;
+}
+
+.tour-modal-close:hover{
+  background: #b049f1;
+  color: #fff;
+  transform: rotate(90deg) scale(1.03);
+}
+
+/* Main scroll area */
+.tour-modal-main{
+  padding: 22px 24px 26px;
+  overflow: auto;
+  max-height: calc(92vh - 280px);
+}
+
+@media (max-width: 900px){
+  .tour-modal-main{
+    max-height: unset;
+  }
+}
+
+/* Scrollbar */
+.tour-modal-main::-webkit-scrollbar{ width: 10px; }
+.tour-modal-main::-webkit-scrollbar-thumb{
+  background: rgba(176, 73, 241, .25);
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.9);
+}
+.tour-modal-main::-webkit-scrollbar-track{
+  background: rgba(241, 228, 255, .5);
+}
+
+/* Location + title */
+.tour-modal-location{
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: #94a3b8;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tour-modal-location::before{
+  content:"";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #b049f1;
+  box-shadow: 0 0 0 6px rgba(176, 73, 241, .12);
+}
+
+.tour-modal-title{
+  margin: 8px 0 12px;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #102a43;
+}
+
+/* Meta chips */
+.tour-modal-meta{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.tour-modal-meta span{
+  display:inline-flex;
+  align-items:center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #eef2ff;
+}
+
+.tour-modal-meta i.fa-star{ color: #ffb100; }
+
+/* Sections */
+.tour-modal-section-title{
+  margin: 18px 0 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #102a43;
+}
+
+.tour-modal-text{
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: #475569;
+}
+
+/* Included grid */
+.tour-included-list{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+@media (max-width: 900px){
+  .tour-included-list{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px){
+  .tour-included-list{ grid-template-columns: 1fr; }
+}
+
+.tour-included-item{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5f3ff;
+  color: #4c1d95;
+  font-size: 12.5px;
+  border: 1px solid rgba(176, 73, 241, .18);
+}
+
+.tour-included-item i{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #ffffff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: #b049f1;
+  box-shadow: 0 8px 18px rgba(176, 73, 241, .18);
+  flex: 0 0 auto;
+}
+
+/* Itinerary */
+.tour-itinerary{
+  margin-top: 10px;
+  background: #f9fafb;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.tour-itinerary-item{
+  display:flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+.tour-itinerary-item:last-child{ border-bottom: none; }
+
+.tour-itinerary-day{
+  min-width: 64px;
+  font-weight: 800;
+  color: #6b21a8;
+}
+
+.tour-itinerary-text{
+  color: #4b5563;
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+/* Side panel */
+.tour-modal-side{
+  background: #fbf9ff;
+  border-left: 1px solid #f1f5f9;
+  padding: 22px 22px 24px;
+  display:flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 900px){
+  .tour-modal-side{
+    border-left: none;
+    border-top: 1px solid #f1f5f9;
+  }
+}
+
+/* Price box */
+.tour-price-box{
+  background: #ffffff;
+  border: 1px solid rgba(241, 228, 255, .95);
+  border-radius: 16px;
+  padding: 16px 16px 18px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
+}
+
+.tour-price-label{
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.tour-price-main{
+  margin-top: 6px;
+  display:flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tour-price-main .amount{
+  font-size: 28px;
+  font-weight: 900;
+  color: #b049f1;
+  letter-spacing: -0.02em;
+}
+
+.tour-price-main .per{
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Side meta */
+.tour-side-meta{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  font-size: 12px;
+}
+
+@media (max-width: 520px){
+  .tour-side-meta{ grid-template-columns: 1fr; }
+}
+
+.tour-side-meta-item{
+  background: #ffffff;
+  border: 1px solid rgba(241, 228, 255, .95);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display:flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tour-side-meta-label{
+  color: #9ca3af;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.tour-side-meta-value{
+  color: #334155;
+  font-weight: 800;
+  font-size: 12.5px;
+}
+
+/* Actions */
+.tour-modal-actions{
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.tour-btn-primary,
+.tour-btn-secondary{
+  border-radius: 999px;
+  border: none;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.tour-btn-primary{
+  color:#ffffff;
+  background: linear-gradient(135deg, #b049f1, #ff41f9);
+  box-shadow: 0 14px 28px rgba(176, 73, 241, .36);
+}
+
+.tour-btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(176, 73, 241, .48);
+}
+
+.tour-btn-secondary{
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e5e7eb;
+}
+
+.tour-btn-secondary:hover{
+  background: #eef2f7;
+}
+
+/* Animation */
+@keyframes pmFadeIn{
+  from{ opacity: 0; transform: translateY(10px) scale(.985); }
+  to{ opacity: 1; transform: translateY(0) scale(1); }
+}
+/* =========================================================
+   Modal: Flight + Hotel details (clean stacked cards)
+   Paste at END of packages.css
+========================================================= */
+
+/* مساحة وتنظيم عام داخل المودال */
+.tour-modal .tour-modal-main {
+  display: grid;
+  gap: 14px;
+}
+
+/* أي سطر فيه strong (مثل Departure <strong>08:00</strong>) يتحول لصف مرتب */
+.tour-modal .tour-modal-main :where(p, div, li):has(> strong) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin: 0;
+  padding: 10px 12px;
+
+  background: #ffffff;
+  border: 1px solid #f1e4ff;
+  border-radius: 14px;
+
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+}
+
+.tour-modal .tour-modal-main :where(p, div, li):has(> strong) strong {
+  font-weight: 800;
+  color: #2a0f38;
+  letter-spacing: 0.02em;
+}
+
+/* أي سطر فيه أيقونة FontAwesome يصير "كارد" صغير */
+.tour-modal .tour-modal-main :where(p, div, li):has(> i.fa-solid),
+.tour-modal .tour-modal-main :where(p, div, li):has(> i.fa-regular),
+.tour-modal .tour-modal-main :where(p, div, li):has(> i.fa-brands) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin: 0;
+  padding: 9px 12px;
+
+  background: #ffffff;
+  border: 1px solid #f1e4ff;
+  border-radius: 14px;
+
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+/* الأيقونة داخل دائرة بنفسجية ناعمة */
+.tour-modal .tour-modal-main :where(p, div, li) > i.fa-solid,
+.tour-modal .tour-modal-main :where(p, div, li) > i.fa-regular,
+.tour-modal .tour-modal-main :where(p, div, li) > i.fa-brands {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f6efff;
+  border: 1px solid #eadbff;
+
+  color: #b049f1;
+  font-size: 14px;
+  flex: 0 0 30px;
+}
+
+/* سطر "Hotel" كعنوان أنيق */
+.tour-modal .tour-modal-main :where(p, div, li):has(> i.fa-hotel),
+.tour-modal .tour-modal-main :where(p, div, li):has(> i.fa-building) {
+  font-weight: 800;
+  color: #2a0f38;
+  background: linear-gradient(135deg, #ffffff, #fbf6ff);
+  border-color: #e9d6ff;
+}
+
+/* سطر اسم الفندق (لو كان لحاله بدون أيقونة) نخليه واضح وأقوى */
+.tour-modal .tour-modal-main :where(h3, h4, .hotel-name, .pkg-hotel-name) {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #102a43;
+  letter-spacing: -0.01em;
+}
+
+/* سطر الريتنغ/السعر (عادة فيه نجمة) نخليه يرصّ المعلومات */
+.tour-modal .tour-modal-main :where(p, div, li):has(> i.fa-star) {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 6px;
+}
+
+/* amenities كثير؟ نخليها Grid تلقائي إذا كانت داخل UL */
+.tour-modal .tour-modal-main ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* إذا كان عندك عناصر amenities مش داخل ul (مجرد سطور متكررة) رح تضل كروت مرتبة فوق */
+
+/* Overview بلوك أنعم */
+.tour-modal .tour-modal-main .tour-modal-section-title {
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px dashed #eadbff;
+}
+
+.tour-modal .tour-modal-main .tour-modal-text {
+  margin: 0;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid #f1e4ff;
+  border-radius: 14px;
+  line-height: 1.7;
+  color: #4b5563;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+/* رسبونسف للموبايل */
+@media (max-width: 640px) {
+  .tour-modal .tour-modal-main ul {
+    grid-template-columns: 1fr;
+  }
+}

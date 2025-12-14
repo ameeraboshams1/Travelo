@@ -43,6 +43,45 @@ function generate_booking_code(PDO $pdo): string
     return $code;
 }
 
+/* ================== Date Helpers (NEW) ================== */
+function normalize_datetime(?string $s): ?string
+{
+    if ($s === null) return null;
+    $s = trim($s);
+    if ($s === '') return null;
+
+    // دعم datetime-local: 2025-12-20T10:30
+    $s = str_replace('T', ' ', $s);
+
+    // لو "YYYY-MM-DD HH:MM" -> "YYYY-MM-DD HH:MM:SS"
+    if (preg_match('/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/', $s)) {
+        $s .= ':00';
+    }
+
+    // Date فقط
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) return $s;
+
+    // Datetime كامل
+    if (preg_match('/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/', $s)) return $s;
+
+    $ts = strtotime($s);
+    if ($ts === false) return null;
+
+    return date('Y-m-d H:i:s', $ts);
+}
+
+function add_days_keep_format(?string $start, int $days): ?string
+{
+    if (!$start) return null;
+    $start = trim(str_replace('T', ' ', $start));
+    $hasTime = (bool)preg_match('/\d{2}:\d{2}/', $start);
+
+    $dt = new DateTimeImmutable($start);
+    $dt2 = $dt->modify("+{$days} days");
+
+    return $hasTime ? $dt2->format('Y-m-d H:i:s') : $dt2->format('Y-m-d');
+}
+
 /* ================== RESUME BOOKING (from MyBooking) ================== */
 $resumeId = (int)($_GET['booking_id'] ?? 0);
 $resumeBooking = null;
@@ -59,14 +98,9 @@ if ($resumeId > 0 && isset($pdo) && isset($_SESSION['user_id'])) {
 }
 
 /* ========== AJAX handler: save booking + payment ========== */
-/*
-   ملاحظة مهمّة:
-   خَلّيت الشرط هو أي POST → معناها جاية من الجافاسكربت
-*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json; charset=utf-8');
 
-    // تأكيد إنه عندنا $pdo جاهز
     if (!isset($pdo)) {
         http_response_code(500);
         echo json_encode([
@@ -78,9 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // --------- BOOKING META ---------
-        $bookingType     = $_POST['booking_type']   ?? 'flight';
-        $bookingStatus   = $_POST['booking_status'] ?? 'pending';
-        $existingBookingId = (int)($_POST['booking_id'] ?? 0); // ✅ NEW: resume booking id (optional)
+        $bookingType       = $_POST['booking_type']   ?? 'flight';
+        $bookingStatus     = $_POST['booking_status'] ?? 'pending';
+        $existingBookingId = (int)($_POST['booking_id'] ?? 0);
 
         // user_id (أمان: خذيها من السيشن لو موجودة)
         $sessionUserId = (int)($_SESSION['user_id'] ?? 0);
@@ -94,8 +128,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hotelId   = !empty($_POST['hotel_id'])   ? (int)$_POST['hotel_id']   : null;
         $packageId = !empty($_POST['package_id']) ? (int)$_POST['package_id'] : null;
 
-        $tripStart = $_POST['trip_start_date'] ?? null;
-        $tripEnd   = $_POST['trip_end_date']   ?? $tripStart;
+        // ✅ NEW: hotel nights (جاي من hidden)
+        $stayNights = (int)($_POST['stay_nights'] ?? 0);
+
+        // ✅ NEW: normalize dates + hotel end calc
+        $tripStartRaw = $_POST['trip_start_date'] ?? null;
+        $tripEndRaw   = $_POST['trip_end_date']   ?? null;
+
+        $tripStart = normalize_datetime($tripStartRaw);
+        $tripEnd   = normalize_datetime($tripEndRaw);
+
+        // لو ما في end خليها start
+        if ($tripStart && !$tripEnd) $tripEnd = $tripStart;
+
+        // ✅ Hotel: end = start + nights
+        if ($bookingType === 'hotel' && $tripStart) {
+            if ($stayNights > 0) {
+                $tripEnd = add_days_keep_format($tripStart, $stayNights);
+            } else {
+                $tripEnd = $tripStart;
+            }
+        }
 
         $adults    = (int)($_POST['travellers_adults']   ?? 1);
         $children  = (int)($_POST['travellers_children'] ?? 0);
@@ -108,7 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $discountAmount = (float)($_POST['discount_amount'] ?? 0);
         $currency       = $_POST['currency'] ?? 'USD';
 
-        // hidden input من الفورم: amount_total (اسم الكولوم نفسه)
         $amountTotalPost = isset($_POST['amount_total']) ? (float)$_POST['amount_total'] : null;
         $subtotal        = $amountFlight + $amountHotel + $amountPackage;
         $amountTotal     = $amountTotalPost !== null
@@ -120,7 +172,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $promoCode      = trim($_POST['promo_code'] ?? '');
         $cardSaved      = isset($_POST['card_saved']) ? (int)$_POST['card_saved'] : 0;
 
-        // ✅ نخزنها كـ coupon_code بالحجز (لأن عندك عمود coupon_code بالـ bookings)
         $couponCode = trim($_POST['coupon_code'] ?? '');
         if ($couponCode === '' && $promoCode !== '') $couponCode = $promoCode;
 
@@ -135,7 +186,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $isOffline = ($paymentMethod === 'cashcard');
 
         if ($isOffline) {
-            // Offline: لا بيانات كرت + الدفع مو مكتمل
             $paymentStatus       = 'pending';
             $gatewayReferenceStr = null;
 
@@ -153,21 +203,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $paymentStatus       = 'success';
             $gatewayReferenceStr = 'LOCAL-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
             $cardBrand = $paymentMethod;
-            // منطقيا خلي الحجز confirmed لما الدفع success
             $bookingStatus = 'confirmed';
         }
 
         // --------- booking_code (UNIQUE, ما يضل فاضي) ---------
         $bookingCode = trim($_POST['booking_code'] ?? '');
 
-        // ✅ لو Resume وما بعثتي booking_code، خديه من DB
         if ($existingBookingId > 0 && $bookingCode === '' && isset($pdo)) {
             $stmt = $pdo->prepare("SELECT booking_code FROM bookings WHERE id=? AND user_id=? LIMIT 1");
             $stmt->execute([$existingBookingId, $userId]);
             $bookingCode = (string)($stmt->fetchColumn() ?: '');
         }
 
-        // ✅ لو New booking: ولّدي booking_code
         if ($existingBookingId <= 0) {
             if ($bookingCode === '') {
                 $bookingCode = generate_booking_code($pdo);
@@ -188,7 +235,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // =========================
         if ($existingBookingId > 0) {
 
-            // تأكد إنه الحجز pending وإلك
             $chk = $pdo->prepare("
                 SELECT id, booking_status
                 FROM bookings
@@ -205,7 +251,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Only pending bookings can be completed.");
             }
 
-            // UPDATE booking (نحدّث تفاصيل + حالة)
             $upd = $pdo->prepare("
                 UPDATE bookings
                 SET
@@ -260,7 +305,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } else {
 
-            // INSERT NEW booking (الكود القديم + أضفنا coupon_code)
             $stmt = $pdo->prepare("
                 INSERT INTO bookings
                 (
@@ -411,11 +455,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->commit();
 
         echo json_encode([
-            'success'      => true,
-            'booking_id'   => $bookingId,
-            'booking_code' => $bookingCode,
-            'amount_total' => $amountTotal,
-            'currency'     => $currency,
+            'success'        => true,
+            'booking_id'     => $bookingId,
+            'booking_code'   => $bookingCode,
+            'amount_total'   => $amountTotal,
+            'currency'       => $currency,
             'booking_status' => $bookingStatus,
             'payment_status' => $paymentStatus,
         ]);
@@ -430,7 +474,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
-    exit; // مهم: ما نكمّل نرندر HTML
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -441,14 +485,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Bootstrap -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    rel="stylesheet"
-  />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
   <!-- CSS -->
   <link rel="stylesheet" href="./assets/css/booking.css" />
@@ -526,8 +564,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <div class="ticket-main-left">
                     <div class="ticket-route" id="ticketRouteMain"></div>
                     <div class="ticket-meta" id="ticketMetaLine"></div>
+
+                    <!-- old line stays -->
                     <div class="ticket-dates" id="ticketDates"></div>
+
+                    <!-- ✅ NEW: nice start/end view -->
+                    <div class="mt-2" id="tripDatesGrid" hidden>
+                      <div class="row g-2">
+                        <div class="col-12 col-md-6">
+                          <div class="small text-muted mb-1">Start</div>
+                          <div class="fw-semibold" id="tripStartView">—</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <div class="small text-muted mb-1">End</div>
+                          <div class="fw-semibold" id="tripEndView">—</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- ✅ NEW: hotel date picker (shown only for hotel) -->
+                    <div class="mt-3" id="hotelDatesForm" hidden>
+                      <div class="row g-2">
+                        <div class="col-12 col-md-6">
+                          <label class="form-label small mb-1">Check-in date</label>
+                          <input type="date" class="form-control" id="hotelStartInput">
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <label class="form-label small mb-1">Check-out date</label>
+                          <input type="date" class="form-control" id="hotelEndInput" readonly>
+                        </div>
+                      </div>
+                      <div class="small text-muted mt-2" id="hotelDatesHint"></div>
+                    </div>
                   </div>
+
                   <div class="ticket-main-right text-end">
                     <div class="ticket-user-label">Traveler</div>
                     <div class="ticket-user-name" id="ticketUserName">
@@ -646,9 +716,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </label>
               </div>
 
-              <!-- Card details -->
               <form id="paymentForm" novalidate>
-                <!-- Card details wrapper -->
                 <div id="cardFields">
                   <div class="row g-3">
                     <div class="col-12">
@@ -687,7 +755,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
                 </div>
 
-                <!-- Offline wrapper -->
                 <div id="offlineFields" hidden>
                   <div class="alert alert-light border mb-3">
                     <div class="fw-semibold mb-1">
@@ -699,7 +766,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
                 </div>
 
-                <!-- Promo code (يبقى دايمًا) -->
                 <div class="row g-3">
                   <div class="col-12">
                     <label class="form-label">Promo code</label>
@@ -809,7 +875,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <!-- ===== Hidden meta form ===== -->
       <form id="bookingMeta" class="d-none">
         <input type="hidden" id="hfBookingType"   name="booking_type" />
-        <!-- ✅ NEW: booking_id (for resume) -->
         <input type="hidden" id="hfBookingId" name="booking_id" />
 
         <input type="hidden" id="hfUserId"   name="user_id"
@@ -838,13 +903,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="hidden" id="hfAmountTaxes"   name="amount_taxes" />
         <input type="hidden" id="hfDiscount"      name="discount_amount" />
         <input type="hidden" id="hfCurrency"      name="currency" />
-        <!-- اسم الحقل زي الكولوم بالجدول -->
         <input type="hidden" id="hfTotalAmount"   name="amount_total" />
       </form>
     </div>
   </main>
 
-  <!-- Session info للـ JS لو احتاج -->
   <script>
     window.TRAVELO = {
       isLoggedIn: <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>,
@@ -852,7 +915,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       userName: <?php echo json_encode($_SESSION['user_name'] ?? ''); ?>,
       userEmail: <?php echo json_encode($_SESSION['user_email'] ?? ''); ?>
     };
-    // ✅ NEW: resume booking payload (null if not coming from myBooking)
     window.TRAVELO.resumeBooking = <?php echo json_encode($resumeBooking); ?>;
   </script>
 

@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const qs = new URLSearchParams(window.location.search);
   const destinationFilterId = qs.get('destination_id') ? String(qs.get('destination_id')) : null;
 
-
   function formatPrice(num) {
     const n = Number(num) || 0;
     return `$${n.toFixed(2)}`;
@@ -50,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const taxAmount    = +(totalAmount * 0.15).toFixed(2);
     const currency     = card.dataset.currency || 'USD';
 
-    // user info from PHP (window.TRAVELO)
     const userId =
       window.TRAVELO && window.TRAVELO.userId ? window.TRAVELO.userId : '';
     const userName =
@@ -60,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const params = new URLSearchParams();
 
-    // ===== Booking base info =====
     params.set('booking_type', 'hotel');
     params.set('booking_status', 'pending');
 
@@ -69,7 +66,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cityCountry)   params.set('to_city', cityCountry);
     if (hotelId)       params.set('hotel_id', hotelId);
 
-    // nights + amounts
     params.set('stay_nights', stayNights.toString());
     params.set('amount_flight', '0');
     params.set('amount_hotel', totalAmount.toFixed(2));
@@ -78,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function () {
     params.set('discount_amount', '0');
     params.set('currency', currency);
 
-    // user info
     if (userId)    params.set('user_id', userId);
     if (userName)  params.set('user_name', userName);
     if (userEmail) params.set('user_email', userEmail);
@@ -89,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
   function goToBooking(card, nights) {
     if (!card) return;
 
-    // لو مش عامل لوجين → نفتح مودال اللوجين
     if (!window.TRAVELO || !window.TRAVELO.isLoggedIn) {
       const loginBtn = document.getElementById('btnLogin');
       if (loginBtn) {
@@ -125,9 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function updateSliderLabels() {
     if (minValueLabel) minValueLabel.textContent = formatPrice(currentMinPrice);
     if (maxValueLabel) maxValueLabel.textContent = formatPrice(currentMaxPrice);
-    if (priceSummary) {
-      priceSummary.textContent = `Up to ${formatPrice(currentMaxPrice)}`;
-    }
+    if (priceSummary)  priceSummary.textContent  = `Up to ${formatPrice(currentMaxPrice)}`;
   }
 
   function updateSliderUI() {
@@ -169,55 +161,54 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function applyAllFilters() {
-  const selectedFilters = getSelectedFilters();
-  const hasFilters      = selectedFilters.length > 0;
+    const selectedFilters = getSelectedFilters();
+    const hasFilters      = selectedFilters.length > 0;
 
-  const visibleCards = [];
+    const visibleCards = [];
 
-  hotelCards.forEach(card => {
-    const price = parseFloat(card.dataset.price) || 0;
+    hotelCards.forEach(card => {
+      const price = parseFloat(card.dataset.price) || 0;
 
-    // ✅ فلترة حسب الوجهة (destination_id) إذا جاي من الرابط
-    if (destinationFilterId) {
-      const cardDestId = String(card.dataset.destinationId || '');
-      if (cardDestId !== destinationFilterId) {
-        card.style.display = 'none';
-        return; // مهم جداً عشان ما يكمل باقي الفلاتر
+      if (destinationFilterId) {
+        const cardDestId = String(card.dataset.destinationId || '');
+        if (cardDestId !== destinationFilterId) {
+          card.style.display = 'none';
+          return;
+        }
       }
-    }
 
-    let match = price >= currentMinPrice && price <= currentMaxPrice;
+      let match = price >= currentMinPrice && price <= currentMaxPrice;
 
-    if (match && hasFilters) {
-      const text = (card.textContent || '').toLowerCase();
-      let filterMatch = false;
+      if (match && hasFilters) {
+        const text = (card.textContent || '').toLowerCase();
+        let filterMatch = false;
 
-      selectedFilters.forEach(f => {
-        if (text.includes(f)) filterMatch = true;
-        if (f.includes('breakfast') && text.includes('free breakfast')) filterMatch = true;
-        if (f.includes('airport') && text.includes('airport shuttle')) filterMatch = true;
-      });
+        selectedFilters.forEach(f => {
+          if (text.includes(f)) filterMatch = true;
+          if (f.includes('breakfast') && text.includes('free breakfast')) filterMatch = true;
+          if (f.includes('airport') && text.includes('airport shuttle')) filterMatch = true;
+        });
 
-      match = filterMatch;
-    }
+        match = filterMatch;
+      }
 
-    card.style.display = match ? '' : 'none';
-    if (match) visibleCards.push(card);
-  });
+      card.style.display = match ? '' : 'none';
+      if (match) visibleCards.push(card);
+    });
 
-  visibleCards.sort(compareCards);
+    visibleCards.sort(compareCards);
 
-  if (!hotelsList) return;
+    if (!hotelsList) return;
 
-  hotelsList.innerHTML = '';
-  visibleCards.forEach(card => hotelsList.appendChild(card));
+    hotelsList.innerHTML = '';
+    visibleCards.forEach(card => hotelsList.appendChild(card));
 
-  hotelCards.forEach(card => {
-    if (card.style.display === 'none') {
-      hotelsList.appendChild(card);
-    }
-  });
-}
+    hotelCards.forEach(card => {
+      if (card.style.display === 'none') {
+        hotelsList.appendChild(card);
+      }
+    });
+  }
 
   // ========= SORT TABS =========
   sortTabs.forEach(tab => {
@@ -270,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function () {
       isDraggingRight = false;
     });
 
-    // لمس
     leftThumb.addEventListener('touchstart', e => {
       isDraggingLeft = true;
       e.preventDefault();
@@ -307,12 +297,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // ========= FILTER CHECKBOXES =========
-  filterCheckboxes.forEach(cb => {
-    cb.addEventListener('change', applyAllFilters);
-  });
+  filterCheckboxes.forEach(cb => cb.addEventListener('change', applyAllFilters));
 
   // ========= SIMPLE ACTION BUTTONS =========
-  // Card "BOOK NOW" -> ليلة واحدة
   bookNowBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const card = btn.closest('.hotel-card');
@@ -325,12 +312,8 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', () => {
       const card = btn.closest('.hotel-card');
       if (!card) return;
-      const name =
-        card.querySelector('.hotel-name')?.textContent.trim() || '';
-      const loc =
-        card.dataset.location ||
-        card.querySelector('.hotel-location')?.textContent.trim() ||
-        '';
+      const name = card.querySelector('.hotel-name')?.textContent.trim() || '';
+      const loc  = card.dataset.location || card.querySelector('.hotel-location')?.textContent.trim() || '';
       alert(`Map view for:\n${name}\n${loc}\n(Map modal can be added later)`);
     });
   });
@@ -365,7 +348,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const prevImgBtn    = document.getElementById('modalPrevImg');
   const nextImgBtn    = document.getElementById('modalNextImg');
 
-  // nights controls
   const nightsMinusBtn = document.getElementById('modalNightsMinus');
   const nightsPlusBtn  = document.getElementById('modalNightsPlus');
   const nightsValueEl  = document.getElementById('modalNightsValue');
@@ -376,6 +358,21 @@ document.addEventListener('DOMContentLoaded', function () {
   let modalNights    = 1;
   let modalCurrency  = 'USD';
 
+  function isValidImageUrl(u) {
+    const s = (u || '').trim();
+    if (!s) return false;
+    if (/^\d+$/.test(s)) return false;
+    const low = s.toLowerCase();
+    if (low === 'null' || low === 'none') return false;
+    return (
+      low.startsWith('http://') ||
+      low.startsWith('https://') ||
+      low.startsWith('/') ||
+      low.startsWith('./') ||
+      low.startsWith('../')
+    );
+  }
+
   function refreshModalPriceUI() {
     const total = modalBasePrice * modalNights;
     if (priceEl) priceEl.textContent = formatPrice(total);
@@ -384,13 +381,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const suffix = modalNights === 1 ? 'night' : 'nights';
       modalPerEl.textContent = `${modalCurrency} · ${modalNights} ${suffix}`;
     }
-    if (nightsValueEl) {
-      nightsValueEl.textContent = String(modalNights);
-    }
+    if (nightsValueEl) nightsValueEl.textContent = String(modalNights);
   }
 
   function renderImages() {
     if (!mainImageEl || !thumbsContainer || !currentImages.length) return;
+
     mainImageEl.src = currentImages[currentIndex];
 
     thumbsContainer.innerHTML = '';
@@ -414,11 +410,8 @@ document.addEventListener('DOMContentLoaded', function () {
     modalCurrentCard = card;
 
     const name = card.querySelector('.hotel-name')?.textContent.trim() || '';
-    const locationText =
-      card.dataset.location ||
-      card.querySelector('.hotel-location')?.textContent.trim() ||
-      '';
-    const cityCountry = card.dataset.cityCountry || '';
+    const locationText = card.dataset.location || card.querySelector('.hotel-location')?.textContent.trim() || '';
+    const cityCountry  = card.dataset.cityCountry || '';
 
     const rating   = parseFloat(card.dataset.rating) || 0;
     const reviews  = parseInt(card.dataset.reviews || '0', 10);
@@ -430,24 +423,32 @@ document.addEventListener('DOMContentLoaded', function () {
     modalNights    = 1;
     modalCurrency  = currency;
 
-    const description =
-      card.dataset.description ||
+    const description = card.dataset.description ||
       'This property offers a comfortable stay with great location and helpful staff.';
 
     const amenitiesStr = card.dataset.amenities || '';
-    const amenities    = amenitiesStr
+    const amenities = amenitiesStr
       ? amenitiesStr.split('|').map(a => a.trim()).filter(Boolean)
       : [];
 
     const imagesStr = card.dataset.images || '';
-    currentImages   = imagesStr
-      ? imagesStr.split('|').map(i => i.trim()).filter(Boolean)
+    currentImages = imagesStr
+      ? imagesStr.split('|').map(i => i.trim()).filter(isValidImageUrl)
       : [];
+
+    currentImages = Array.from(new Set(currentImages));
 
     if (!currentImages.length) {
       const fallbackImg = card.querySelector('.hotel-image-wrapper img');
-      if (fallbackImg) currentImages = [fallbackImg.src];
+      if (fallbackImg && isValidImageUrl(fallbackImg.src)) currentImages = [fallbackImg.src];
     }
+
+    if (!currentImages.length) {
+      currentImages = [
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80'
+      ];
+    }
+
     currentIndex = 0;
 
     if (nameEl)     nameEl.textContent     = name;
@@ -457,11 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (reviewsEl) reviewsEl.textContent = reviews ? `${reviews} reviews` : '';
 
     if (offerTagEl) {
-      if (discount > 0) {
-        offerTagEl.textContent = `${discount}% OFF`;
-      } else {
-        offerTagEl.textContent = 'BEST DEAL';
-      }
+      offerTagEl.textContent = discount > 0 ? `${discount}% OFF` : 'BEST DEAL';
     }
 
     if (aboutEl) aboutEl.textContent = description;
@@ -469,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (servicesEl) {
       servicesEl.innerHTML = '';
       amenities.slice(0, 6).forEach(service => {
-        const li   = document.createElement('li');
+        const li = document.createElement('li');
         li.textContent = service;
         servicesEl.appendChild(li);
       });
@@ -480,13 +477,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (scoreServiceEl)  scoreServiceEl.style.width  = `${Math.max(55, ratingPercent - 5)}%`;
     if (scoreValueEl)    scoreValueEl.style.width    = `${Math.max(50, ratingPercent - 10)}%`;
 
-    if (safetyTitleEl) {
-      safetyTitleEl.textContent = 'Travel safe during your stay';
-    }
-    if (safetyDescEl) {
-      safetyDescEl.textContent =
-        'This property follows enhanced health & safety measures including cleaning and distancing practices.';
-    }
+    if (safetyTitleEl) safetyTitleEl.textContent = 'Travel safe during your stay';
+    if (safetyDescEl)  safetyDescEl.textContent  =
+      'This property follows enhanced health & safety measures including cleaning and distancing practices.';
 
     refreshModalPriceUI();
     renderImages();
@@ -501,7 +494,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.classList.remove('no-scroll');
   }
 
-  // View Details -> Modal
   viewDetailsBtns.forEach(btn => {
     btn.addEventListener('click', e => {
       e.preventDefault();
@@ -527,7 +519,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Nights +/- buttons
   if (nightsMinusBtn && nightsPlusBtn && nightsValueEl) {
     nightsMinusBtn.addEventListener('click', () => {
       if (modalNights > 1) {
@@ -544,31 +535,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Modal "Book Now" → يبعث عدد الليالي
   if (bookBtn) {
     bookBtn.addEventListener('click', () => {
-      if (modalCurrentCard) {
-        goToBooking(modalCurrentCard, modalNights);
-      }
+      if (modalCurrentCard) goToBooking(modalCurrentCard, modalNights);
     });
   }
 
-  // Pay now نفس سلوك Book Now
   if (payUnderBtn) {
     payUnderBtn.addEventListener('click', () => {
-      if (modalCurrentCard) {
-        goToBooking(modalCurrentCard, modalNights);
-      }
+      if (modalCurrentCard) goToBooking(modalCurrentCard, modalNights);
     });
   }
 
   if (modalClose)          modalClose.addEventListener('click', closeModal);
   if (modalCloseSecondary) modalCloseSecondary.addEventListener('click', closeModal);
+
   if (modalOverlay) {
     modalOverlay.addEventListener('click', e => {
       if (e.target === modalOverlay) closeModal();
     });
   }
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
   });
@@ -596,6 +583,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // أول تطبيق للفلاتر
   applyAllFilters();
 });
