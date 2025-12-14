@@ -770,37 +770,29 @@
 
       <!-- Chat Messages -->
       <div class="chat-window" id="chatWindow">
-        <!-- Messages will be inserted here by JavaScript -->
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="quick-actions">
-        <div class="actions-title">
-          <i class="fas fa-bolt"></i>
-          إجراءات سريعة:
-        </div>
-        <div class="action-buttons">
-          <button class="action-btn" data-action="booking">حجز رحلة</button>
-          <button class="action-btn" data-action="payment">مشكلة دفع</button>
-          <button class="action-btn" data-action="cancel">إلغاء حجز</button>
-          <button class="action-btn" data-action="hotel">حجز فندق</button>
-          <button class="action-btn" data-action="package">بكج سياحي</button>
-          <button class="action-btn" data-action="support">التواصل مع الدعم</button>
-        </div>
+               <iframe id="JotFormIFrame-019b189a507c7f0e98a0580ad136880f79ad" title="Tara: Customer Service Agent"
+  onload="window.parent.scrollTo(0,0)" allowtransparency="true"
+  allow="geolocation; microphone; camera; fullscreen"
+  src="https://agent.jotform.com/019b189a507c7f0e98a0580ad136880f79ad?embedMode=iframe&background=1&shadow=1"
+  frameborder="0" style="
+    max-width:100%;
+    height:688px;
+    border:none;
+    
+    width:100%;
+  " scrolling="no">
+</iframe>
+<script src='https://cdn.jotfor.ms/s/umd/171f4dd0398/for-form-embed-handler.js'></script>
+<script>
+  window.jotformEmbedHandler("iframe[id='JotFormIFrame-019b189a507c7f0e98a0580ad136880f79ad']",
+    "https://www.jotform.com")
+</script>
       </div>
 
       <!-- Chat Input -->
       <div class="chat-input-area">
         <div class="input-wrapper">
-          <textarea 
-            class="chat-input" 
-            id="chatInput" 
-            placeholder="اكتب رسالتك هنا... (يدعم العربية والإنجليزية)"
-            rows="2"
-          ></textarea>
-          <button class="send-button" id="sendButton">
-            <i class="fas fa-paper-plane"></i>
-          </button>
+        
         </div>
       </div>
     </div>
@@ -818,11 +810,6 @@
           <li><i class="fas fa-check-circle"></i> يحل مشاكل الدفع الفنية</li>
           <li><i class="fas fa-check-circle"></i> يساعد في تعديل الحجوزات</li>
         </ul>
-        
-        <div class="language-switcher">
-          <button class="lang-btn active" data-lang="ar">العربية</button>
-          <button class="lang-btn" data-lang="en">English</button>
-        </div>
       </div>
 
       <!-- Help Topics Card -->
@@ -859,157 +846,5 @@
     </p>
   </footer>
 
-  <script>
-    // DOM Elements
-    const chatWindow = document.getElementById('chatWindow');
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    const actionButtons = document.querySelectorAll('.action-btn');
-    const langButtons = document.querySelectorAll('.lang-btn');
-
-    // State
-    let currentLanguage = 'ar';
-    let conversationHistory = [];
-    let typingTimeout = null;
-
-    // Initial welcome message
-    const welcomeMessages = {
-      ar: `مرحباً بك في Travelo! 🎉
-
-أنا مساعدك الذكي لجمعة أمور السفر. كيف يمكنني مساعدتك اليوم؟
-
-يمكنك الاستفسار عن:
-• 🛫 حجوزات الطيران والرحلات
-• 🏨 الفنادق والإقامة
-• 💳 طرق الدفع والمشاكل
-• 🎒 البكجات السياحية
-• 👤 حسابك الشخصي
-• 🛠️ أي مشكلة تقنية
-
-اكتب سؤالك وسأجيبك فوراً!`,
-      en: `Welcome to Travelo! 🎉
-
-I'm your smart assistant for all travel matters. How can I help you today?
-
-You can ask about:
-• 🛫 Flight bookings and trips
-• 🏨 Hotels and accommodation
-• 💳 Payment methods and issues
-• 🎒 Travel packages
-• 👤 Your personal account
-• 🛠️ Any technical issues
-
-Type your question and I'll answer immediately!`
-    };
-
-    // Initialize chat
-    setTimeout(() => {
-      addMessage(welcomeMessages.ar, 'bot');
-    }, 1000);
-
-    // Add message to chat
-    function addMessage(text, sender) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${sender}`;
-      
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'message-content';
-      contentDiv.textContent = text;
-      
-      const timeDiv = document.createElement('div');
-      timeDiv.className = 'message-time';
-      timeDiv.textContent = new Date().toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-      
-      contentDiv.appendChild(timeDiv);
-      messageDiv.appendChild(contentDiv);
-      chatWindow.appendChild(messageDiv);
-      
-      // Add to history
-      conversationHistory.push({
-        text,
-        sender,
-        time: new Date().toISOString(),
-        language: currentLanguage
-      });
-      
-      // Scroll to bottom
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      
-      // Save to localStorage
-      saveConversation();
-    }
-
-    // Show typing indicator
-    function showTyping() {
-      const typingDiv = document.createElement('div');
-      typingDiv.className = 'typing-indicator';
-      typingDiv.id = 'typingIndicator';
-      typingDiv.innerHTML = `
-        <span></span>
-        <span></span>
-        <span></span>
-      `;
-      chatWindow.appendChild(typingDiv);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    // Hide typing indicator
-    function hideTyping() {
-      const typingIndicator = document.getElementById('typingIndicator');
-      if (typingIndicator) {
-        typingIndicator.remove();
-      }
-    }
-
-    // AI Response Logic
-    function getAIResponse(userMessage) {
-      const message = userMessage.toLowerCase();
-      
-      // Detect language
-      const isArabic = /[\u0600-\u06FF]/.test(userMessage);
-      const lang = isArabic ? 'ar' : 'en';
-      
-      // Responses in both languages
-      const responses = {
-        ar: {
-          greeting: ['أهلاً وسهلاً! كيف يمكنني مساعدتك اليوم؟', 'مرحباً! سعيد برؤيتك. كيف أساعدك؟'],
-          booking: 'لحجز رحلة، يمكنك:\n1. زيارة صفحة "حجوزات الطيران"\n2. اختيار وجهتك وتواريخ السفر\n3. اختيار الرحلة المناسبة\n4. إدخال بيانات المسافرين\n5. إتمام الدفع\nهل تحتاج مساعدة في خطوة محددة؟',
-          payment: 'لمشاكل الدفع:\n1. تأكد من صحة بيانات البطاقة\n2. جرب طريقة دفع مختلفة\n3. تحقق من اتصال الإنترنت\n4. اتصل بالبنك لتأكيد المعاملة\nهل تواجه مشكلة معينة؟',
-          cancel: 'لإلغاء حجز:\n1. سجل الدخول لحسابك\n2. اذهب لـ "حجوزاتي"\n3. اختر الحجز المراد إلغاؤه\n4. اضغط على "إلغاء الحجز"\n5. تأكد من سياسة الاسترجاع\nهل لديك رقم الحجز؟',
-          hotel: 'لحجز فندق:\n1. ابحث عن الفندق في وجهتك\n2. اختر تواريخ الإقامة\n3. اختر نوع الغرفة والخدمات\n4. أكمل بيانات الحجز\n5. تأكيد الحجز والدفع\nأي مدينة تخطط لزيارتها؟',
-          package: 'البكجات السياحية تشمل:\n• الرحلة ذهاب وعودة\n• الإقامة في الفندق\n• الانتقالات\n• بعض الأنشطة\n• تأمين السفر\nما هي الميزانية التي تخطط لها؟',
-          support: 'للتواصل مع الدعم:\n📧 البريد: support@travelo.com\n📞 الهاتف: 800-123-4567\n🕒 متاح 24/7\nهل تريد مساعدة في أمر محدد؟',
-          thanks: ['العفو! سعيد بمساعدتك.', 'لا شكر على واجب!', 'أنت تستحق الأفضل.'],
-          unknown: 'أفهم أنك تقول: "' + userMessage + '"\nكيف يمكنني مساعدتك في Travelo؟ يمكنك السؤال عن الحجوزات، الدفع، الفنادق، أو أي استفسار آخر.'
-        },
-        en: {
-          greeting: ['Hello! How can I help you today?', 'Welcome! Nice to see you. How can I assist?'],
-          booking: 'To book a flight:\n1. Visit "Flight Bookings" page\n2. Choose destination and dates\n3. Select suitable flight\n4. Enter passenger details\n5. Complete payment\nDo you need help with a specific step?',
-          payment: 'For payment issues:\n1. Verify card details\n2. Try different payment method\n3. Check internet connection\n4. Contact bank to confirm transaction\nAre you facing a specific problem?',
-          cancel: 'To cancel booking:\n1. Login to your account\n2. Go to "My Bookings"\n3. Select booking to cancel\n4. Click "Cancel Booking"\n5. Check refund policy\nDo you have booking reference?',
-          hotel: 'To book hotel:\n1. Search hotel in destination\n2. Choose dates\n3. Select room type and services\n4. Complete booking details\n5. Confirm and pay\nWhich city are you planning to visit?',
-          package: 'Travel packages include:\n• Round-trip flight\n• Hotel accommodation\n• Transfers\n• Some activities\n• Travel insurance\nWhat\'s your budget range?',
-          support: 'To contact support:\n📧 Email: support@travelo.com\n📞 Phone: 800-123-4567\n🕒 Available 24/7\nDo you need help with something specific?',
-          thanks: ['You\'re welcome! Happy to help.', 'My pleasure!', 'You deserve the best.'],
-          unknown: 'I understand you\'re saying: "' + userMessage + '"\nHow can I help you with Travelo? You can ask about bookings, payments, hotels, or any other inquiry.'
-        }
-      };
-
-      // Check for specific intents
-      if (message.includes('مرحبا') || message.includes('اهلا') || message.includes('hello') || message.includes('hi')) {
-        const greetings = responses[lang].greeting;
-        return greetings[Math.floor(Math.random() * greetings.length)];
-      }
-      
-      if (message.includes('شكر') || message.includes('thank')) {
-        const thanks = responses[lang].thanks;
-        return thanks[Math.floor(Math.random() * thanks.length)];
-      }
-      
-      if (message.includes('حجز') || message.includes('رحلة') || message.includes('flight') || message.includes('book')) {
-        return responses[lang].booking
-      }
-    } 
+</body>
+</html>
