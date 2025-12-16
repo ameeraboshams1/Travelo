@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabItems = document.querySelectorAll(".tab-item");
   const tripChips = document.querySelectorAll(".trip-chip");
   const flightList = document.getElementById("flightList");
-  const allCards = flightList ? Array.from(flightList.children) : [];
+  const allCards = flightList ? Array.from(flightList.querySelectorAll(".flight-card.ticket")) : [];
 
   const maxPriceInput = document.getElementById("maxPrice");
   const maxPriceValue = document.getElementById("maxPriceValue");
@@ -255,22 +255,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applySortAndFilter() {
-    const filtered = getFilteredCards();
+  const filtered = getFilteredCards();
 
-    filtered.sort((a, b) => {
-      if (currentSort === "cheapest") {
-        return Number(a.dataset.price || 0) - Number(b.dataset.price || 0);
-      }
-      // fastest:
-      return Number(a.dataset.duration || 999999) - Number(b.dataset.duration || 999999);
-    });
+  filtered.sort((a, b) => {
+    const ap = Number(a.dataset.price || "0");
+    const bp = Number(b.dataset.price || "0");
+    const ad = Number(a.dataset.duration || "999999");
+    const bd = Number(b.dataset.duration || "999999");
 
-    renderCards(filtered);
-
-    if (resultsCountEl) {
-      resultsCountEl.textContent = `${filtered.length} results found`;
+    if (currentSort === "fastest") {
+      if (ad !== bd) return ad - bd; 
+      return ap - bp;               
     }
+
+    // cheapest
+    if (ap !== bp) return ap - bp;  
+    return ad - bd;                
+  });
+
+  renderCards(filtered);
+
+  if (resultsCountEl) {
+    resultsCountEl.textContent = `${filtered.length} results found`;
   }
+}
+
 
   tabItems.forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -403,6 +412,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (lastSelectedCard) goToBooking(lastSelectedCard);
     });
   }
+
+  // ✅ default عند أول تحميل: Cheapest
+currentSort = "cheapest";
+tabItems.forEach((t) => t.classList.remove("active"));
+document.querySelector('.tab-item[data-sort="cheapest"]')?.classList.add("active");
 
   applySortAndFilter();
 });

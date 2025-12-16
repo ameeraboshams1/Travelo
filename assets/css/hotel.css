@@ -2077,3 +2077,53 @@ body {
     justify-content: center;
   }
 }
+
+
+
+/* ===== Dropdown Filters (Travelo) ===== */
+/* ============ DROPDOWN FIX (PASTE AT END) ============ */
+/* نفس روح Popular Filters */
+.filters-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.filters-list .filter-checkbox{
+  margin:0;
+  padding:12px 12px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:transparent;
+  border:1px solid transparent;
+}
+
+.filters-list .filter-checkbox:hover{
+  background:#f8fafc;
+  border-color:#eef2ff;
+}
+
+.filters-list .filter-checkbox input{
+  width:18px;
+  height:18px;
+  accent-color: var(--primary);
+}
+
+.clear-inline{
+  margin-top:6px;
+  align-self:flex-end;
+  border:1px solid #e7e9f6;
+  background:#fff;
+  border-radius:999px;
+  padding:8px 12px;
+  font-weight:800;
+  cursor:pointer;
+}
+.clear-inline:hover{ border-color: var(--primary); color: var(--primary); }
+
+
+
+
+

@@ -668,20 +668,20 @@ function formatDateLabel($dateStr)
             Travelo makes travel easy and enjoyable. Find flights, hotels, and bookings all in one place.
           </p>
 
-          <div class="linksfoot">
+         <div class="linksfoot">
             <a href="#">Tulkarm, PS</a>
-            <a href="#">+970 599 000 111</a>
-            <a href="#">info@travelo.com</a>
+            <a href="#">+972 59-260-2379</a>
+            <a href="#">traveloa9@gmail.com</a>
           </div>
         </div>
 
         <div class="footer-links">
           <div class="footer-link">
             <h3>Products</h3>
-            <a href="#">Flights</a>
-            <a href="#">Hotels</a>
+            <a href="./fligths.php">Flights</a>
+            <a href="./hotel.php">Hotels</a>
             <a href="#">Car Rentals</a>
-            <a href="#">Travel Packages</a>
+            <a href="./packages.php">Travel Packages</a>
           </div>
 
           <div class="footer-link">

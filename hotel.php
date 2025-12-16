@@ -564,28 +564,56 @@ try {
               </div>
             </section>
 
-            <section class="filter-block">
-              <div class="filter-row">
-                <span class="filter-label">Looking for</span>
-                <span class="filter-dot">2</span>
-              </div>
-              <div class="filter-select">
-                <div class="select-display">
-                  <span>Package Deals</span>
-                  <span class="icon-placeholder small"></span>
-                </div>
-              </div>
-            </section>
+            <section class="filter-block" id="lookingForBlock">
+  <div class="filter-row">
+    <span class="filter-label">Looking for</span>
+    <span class="filter-dot" id="lookingForCount" style="display:none;">0</span>
+  </div>
 
-            <section class="filter-block">
-              <div class="filter-row"><span class="filter-label">Category</span></div>
-              <div class="filter-select">
-                <div class="select-display">
-                  <span>5 Star</span>
-                  <span class="icon-placeholder small"></span>
-                </div>
-              </div>
-            </section>
+  <div class="filters-checkboxes filters-list" id="lookingForList">
+    <label class="filter-checkbox"><input type="checkbox" value="deals"> Deals & Discounts</label>
+    <label class="filter-checkbox"><input type="checkbox" value="pay_at_hotel"> Pay at Hotel</label>
+    <label class="filter-checkbox"><input type="checkbox" value="breakfast"> Breakfast Included</label>
+    <label class="filter-checkbox"><input type="checkbox" value="wifi"> Wi-Fi</label>
+    <label class="filter-checkbox"><input type="checkbox" value="parking"> Parking</label>
+    <label class="filter-checkbox"><input type="checkbox" value="airport_shuttle"> Airport Shuttle</label>
+    <label class="filter-checkbox"><input type="checkbox" value="couple_friendly"> Couple Friendly</label>
+    <label class="filter-checkbox"><input type="checkbox" value="pet_friendly"> Pet Friendly</label>
+    <label class="filter-checkbox"><input type="checkbox" value="view"> Great View</label>
+    <label class="filter-checkbox"><input type="checkbox" value="cctv"> CCTV / Security</label>
+
+    <button type="button" class="clear-inline" id="lookingForClear">Clear</button>
+  </div>
+</section>
+
+
+
+           <section class="filter-block" id="categoryBlock">
+  <div class="filter-row">
+    <span class="filter-label">Category</span>
+  </div>
+
+  <div class="filters-checkboxes filters-list" id="categoryList">
+    <label class="filter-checkbox">
+      <input type="radio" name="categoryTier" value="any" checked>
+      Any
+    </label>
+    <label class="filter-checkbox">
+      <input type="radio" name="categoryTier" value="budget">
+      Budget
+    </label>
+    <label class="filter-checkbox">
+      <input type="radio" name="categoryTier" value="mid">
+      Mid-range
+    </label>
+    <label class="filter-checkbox">
+      <input type="radio" name="categoryTier" value="luxury">
+      Luxury
+    </label>
+  </div>
+</section>
+
+
 
             <section class="filter-block">
               <div class="filter-row"><span class="filter-label">Popular Filters</span></div>
@@ -764,20 +792,21 @@ try {
                     </p>
 
                     <div class="linksfoot">
-                        <a href="#">Tulkarm, PS</a>
-                        <a href="#">+970 599 000 111</a>
-                        <a href="#">info@travelo.com</a>
-                    </div>
-                </div>
+            <a href="#">Tulkarm, PS</a>
+            <a href="#">+972 59-260-2379</a>
+            <a href="#">traveloa9@gmail.com</a>
+          </div>
+        </div>
 
-                <div class="footer-links">
-                    <div class="footer-link">
-                        <h3>Products</h3>
-                        <a href="#">Flights</a>
-                        <a href="#">Hotels</a>
-                        <a href="#">Car Rentals</a>
-                        <a href="#">Travel Packages</a>
-                    </div>
+        <div class="footer-links">
+          <div class="footer-link">
+            <h3>Products</h3>
+            <a href="./fligths.php">Flights</a>
+            <a href="./hotel.php">Hotels</a>
+            <a href="#">Car Rentals</a>
+            <a href="./packages.php">Travel Packages</a>
+          </div>
+
 
                     <div class="footer-link">
                         <h3>Useful Links</h3>

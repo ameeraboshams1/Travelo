@@ -708,9 +708,62 @@
         max-width: 90%;
       }
     }
+
+    .topbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0);
+    border-bottom: 1px solid rgba(255, 255, 255, 0);
+}
+
+
+.topbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px
+}
+
+.brand {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    text-decoration: none
+}
+
+.logo {
+    width: 28px;
+    height: 28px
+}
+
+.brand span {
+    font-weight: 900;
+    color: white
+}
+.top-actions {
+    display: flex;
+    gap: 8px
+}
   </style>
 </head>
 <body>
+
+  <header class="topbar">
+    <div class="topbar-row">
+      <a class="brand" href="index.php" aria-label="Go to Travelo home">
+        <img src="./assets/images/logo.svg" alt="Travelo" class="logo">
+        <span>Travelo</span>
+      </a>
+    </div>
+    <div class="glow"></div>
+  </header>
+
   <!-- Hero Banner -->
   <header class="hero-banner">
     <div class="hero-content">

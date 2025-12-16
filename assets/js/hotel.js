@@ -1,106 +1,100 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const hotelCards   = Array.from(document.querySelectorAll('.hotel-card'));
-  const hotelsList   = document.querySelector('.hotels-list');
-  const sortTabs     = document.querySelectorAll('.toolbar-tab');
+document.addEventListener('DOMContentLoaded', () => {
+  const hotelCards = Array.from(document.querySelectorAll('.hotel-card'));
+  const hotelsList = document.querySelector('.hotels-list');
+  const sortTabs   = document.querySelectorAll('.toolbar-tab');
 
   // ========== PRICE SLIDER ==========
-  const sliderTrack    = document.querySelector('.slider-track');
-  const sliderFill     = document.querySelector('.slider-fill');
-  const leftThumb      = document.querySelector('.slider-thumb.left');
-  const rightThumb     = document.querySelector('.slider-thumb.right');
-  const minValueLabel  = document.querySelector('.slider-values span:first-child');
-  const maxValueLabel  = document.querySelector('.slider-values span:last-child');
-  const priceSummary   = document.getElementById('priceSummary');
+  const sliderTrack   = document.querySelector('.slider-track');
+  const sliderFill    = document.querySelector('.slider-fill');
+  const leftThumb     = document.querySelector('.slider-thumb.left');
+  const rightThumb    = document.querySelector('.slider-thumb.right');
+  const minValueLabel = document.querySelector('.slider-values span:first-child');
+  const maxValueLabel = document.querySelector('.slider-values span:last-child');
+  const priceSummary  = document.getElementById('priceSummary');
 
+  // Popular filters (checkboxes existing in your UI)
   const moreFiltersBtn   = document.getElementById('moreFiltersBtn');
   const filtersExtra     = document.getElementById('filtersExtra');
   const filterCheckboxes = document.querySelectorAll('.filter-checkbox input[type="checkbox"]');
 
+  // ========== LOOKING FOR (ALWAYS VISIBLE) ==========
+  const lookingForList  = document.getElementById('lookingForList');   // container that has checkboxes
+  const lookingForClear = document.getElementById('lookingForClear');  // clear button
+  const lookingForCount = document.getElementById('lookingForCount');  // count badge (optional)
+  const lookingForChecks = lookingForList
+    ? Array.from(lookingForList.querySelectorAll('input[type="checkbox"]'))
+    : [];
+
+  // ========== CATEGORY (ALWAYS VISIBLE - RADIO) ==========
+  const categoryList   = document.getElementById('categoryList'); // container radios
+  const categoryRadios = categoryList
+    ? Array.from(categoryList.querySelectorAll('input[type="radio"][name="categoryTier"]'))
+    : [];
+
+  let selectedLookingFor = new Set(); // deals, wifi, ...
+  let selectedCategory   = 'any';     // any | budget | mid | luxury
+
+  // ========= BOOKING / BUTTONS =========
   const viewDetailsBtns = document.querySelectorAll('.hotel-card .btn-light');
   const bookNowBtns     = document.querySelectorAll('.hotel-card .btn-primary');
   const mapViewBtns     = document.querySelectorAll('.map-view');
 
-  // ========= BOOKING WIZARD =========
   const bookingBaseUrl = 'booking.php';
-  let   modalCurrentCard = null;
+  let modalCurrentCard = null;
 
   const qs = new URLSearchParams(window.location.search);
   const destinationFilterId = qs.get('destination_id') ? String(qs.get('destination_id')) : null;
 
+  // ================== HELPERS ==================
   function formatPrice(num) {
     const n = Number(num) || 0;
     return `$${n.toFixed(2)}`;
   }
 
-  function buildBookingParams(card, nights) {
-    if (!card) return '';
-
-    const hotelId   = card.dataset.hotelId || '';
-    const hotelName = card.querySelector('.hotel-name')?.textContent.trim() || '';
-    const hotelLocation =
-      card.dataset.location ||
-      card.querySelector('.hotel-location')?.textContent.trim() ||
-      '';
-    const cityCountry = card.dataset.cityCountry || '';
-
-    const basePerNight = parseFloat(card.dataset.price || '0') || 0;
-    const stayNights   = nights && nights > 0 ? nights : 1;
-    const totalAmount  = basePerNight * stayNights;
-    const taxAmount    = +(totalAmount * 0.15).toFixed(2);
-    const currency     = card.dataset.currency || 'USD';
-
-    const userId =
-      window.TRAVELO && window.TRAVELO.userId ? window.TRAVELO.userId : '';
-    const userName =
-      window.TRAVELO && window.TRAVELO.userName ? window.TRAVELO.userName : '';
-    const userEmail =
-      window.TRAVELO && window.TRAVELO.userEmail ? window.TRAVELO.userEmail : '';
-
-    const params = new URLSearchParams();
-
-    params.set('booking_type', 'hotel');
-    params.set('booking_status', 'pending');
-
-    if (hotelName)     params.set('hotel_name', hotelName);
-    if (hotelLocation) params.set('hotel_location', hotelLocation);
-    if (cityCountry)   params.set('to_city', cityCountry);
-    if (hotelId)       params.set('hotel_id', hotelId);
-
-    params.set('stay_nights', stayNights.toString());
-    params.set('amount_flight', '0');
-    params.set('amount_hotel', totalAmount.toFixed(2));
-    params.set('amount_package', '0');
-    params.set('amount_taxes', taxAmount.toFixed(2));
-    params.set('discount_amount', '0');
-    params.set('currency', currency);
-
-    if (userId)    params.set('user_id', userId);
-    if (userName)  params.set('user_name', userName);
-    if (userEmail) params.set('user_email', userEmail);
-
-    return params.toString();
+  function parseAmenities(card) {
+    const raw = (card.dataset.amenities || '')
+      .split('|')
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean);
+    return new Set(raw);
   }
 
-  function goToBooking(card, nights) {
-    if (!card) return;
+  function matchLookingForKey(key, card, amenSet) {
+    const discount = parseInt(card.dataset.discount || '0', 10) || 0;
 
-    if (!window.TRAVELO || !window.TRAVELO.isLoggedIn) {
-      const loginBtn = document.getElementById('btnLogin');
-      if (loginBtn) {
-        loginBtn.click();
-        return;
-      }
+    if (key === 'deals') return discount > 0;
+    if (key === 'pay_at_hotel') return amenSet.has('pay hotel available');
+    if (key === 'breakfast') return amenSet.has('free breakfast');
+    if (key === 'wifi') return amenSet.has('wifi');
+    if (key === 'parking') return amenSet.has('parking');
+    if (key === 'airport_shuttle') return amenSet.has('airport shuttle');
+    if (key === 'couple_friendly') return amenSet.has('couple friendly');
+    if (key === 'pet_friendly') return amenSet.has('pet friendly');
+    if (key === 'view') return (amenSet.has('sea view') || amenSet.has('city view'));
+    if (key === 'cctv') return (amenSet.has('cctv cameras') || amenSet.has('cctv'));
+
+    return true;
+  }
+
+  function computeTierBounds(minP, maxP) {
+    const span = Math.max(0, maxP - minP);
+    const t1 = minP + span * 0.33;
+    const t2 = minP + span * 0.66;
+    return { t1, t2 };
+  }
+
+  function updateLookingForUI() {
+    const n = selectedLookingFor.size;
+    if (lookingForCount) {
+      lookingForCount.textContent = String(n);
+      lookingForCount.style.display = n ? '' : 'none';
     }
-
-    const qs = buildBookingParams(card, nights);
-    if (!qs) return;
-    window.location.href = `${bookingBaseUrl}?${qs}`;
   }
 
-  // ========= FILTER + SORT STATE =========
+  // ================== FILTER + SORT STATE ==================
   let currentSort = 'popular';
 
-  const prices         = hotelCards.map(card => parseFloat(card.dataset.price) || 0);
+  const prices = hotelCards.map(card => parseFloat(card.dataset.price) || 0);
   const globalMinPrice = prices.length ? Math.min(...prices) : 0;
   const globalMaxPrice = prices.length ? Math.max(...prices) : 0;
 
@@ -154,21 +148,34 @@ document.addEventListener('DOMContentLoaded', function () {
     return ia - ib;
   }
 
-  function getSelectedFilters() {
+  function getSelectedPopularFilters() {
     return Array.from(filterCheckboxes)
       .filter(cb => cb.checked)
       .map(cb => cb.value.trim().toLowerCase());
   }
 
   function applyAllFilters() {
-    const selectedFilters = getSelectedFilters();
-    const hasFilters      = selectedFilters.length > 0;
+    const selectedPopular = getSelectedPopularFilters();
+    const hasPopular      = selectedPopular.length > 0;
+
+    const bounds = computeTierBounds(globalMinPrice, globalMaxPrice);
+
+    // tier labels (optional)
+    const b1 = formatPrice(bounds.t1);
+    const b2 = formatPrice(bounds.t2);
+    const elB = document.getElementById('tierBudget');
+    const elM = document.getElementById('tierMid');
+    const elL = document.getElementById('tierLuxury');
+    if (elB) elB.textContent = `Budget (≤ ${b1})`;
+    if (elM) elM.textContent = `Mid-range (${b1} – ${b2})`;
+    if (elL) elL.textContent = `Luxury (≥ ${b2})`;
 
     const visibleCards = [];
 
     hotelCards.forEach(card => {
       const price = parseFloat(card.dataset.price) || 0;
 
+      // destination filter
       if (destinationFilterId) {
         const cardDestId = String(card.dataset.destinationId || '');
         if (cardDestId !== destinationFilterId) {
@@ -177,51 +184,103 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
 
+      // price range
       let match = price >= currentMinPrice && price <= currentMaxPrice;
+      if (!match) { card.style.display = 'none'; return; }
 
-      if (match && hasFilters) {
-        const text = (card.textContent || '').toLowerCase();
-        let filterMatch = false;
-
-        selectedFilters.forEach(f => {
-          if (text.includes(f)) filterMatch = true;
-          if (f.includes('breakfast') && text.includes('free breakfast')) filterMatch = true;
-          if (f.includes('airport') && text.includes('airport shuttle')) filterMatch = true;
-        });
-
-        match = filterMatch;
+      // category tier (based on price bounds)
+      if (selectedCategory !== 'any') {
+        if (selectedCategory === 'budget') match = price <= bounds.t1;
+        else if (selectedCategory === 'mid') match = price > bounds.t1 && price <= bounds.t2;
+        else if (selectedCategory === 'luxury') match = price >= bounds.t2;
+        if (!match) { card.style.display = 'none'; return; }
       }
 
-      card.style.display = match ? '' : 'none';
-      if (match) visibleCards.push(card);
+      const amenSet = parseAmenities(card);
+
+      // popular filters (AND)
+      if (hasPopular) {
+        const ok = selectedPopular.every(v => amenSet.has(v));
+        if (!ok) { card.style.display = 'none'; return; }
+      }
+
+      // looking for (AND)
+      if (selectedLookingFor.size) {
+        const ok = Array.from(selectedLookingFor).every(key =>
+          matchLookingForKey(key, card, amenSet)
+        );
+        if (!ok) { card.style.display = 'none'; return; }
+      }
+
+      card.style.display = '';
+      visibleCards.push(card);
     });
 
     visibleCards.sort(compareCards);
 
     if (!hotelsList) return;
-
     hotelsList.innerHTML = '';
     visibleCards.forEach(card => hotelsList.appendChild(card));
 
+    // keep hidden at end (optional)
     hotelCards.forEach(card => {
-      if (card.style.display === 'none') {
-        hotelsList.appendChild(card);
-      }
+      if (card.style.display === 'none') hotelsList.appendChild(card);
     });
   }
 
-  // ========= SORT TABS =========
+  // ================== EVENTS ==================
+
+  // Sort tabs
   sortTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       sortTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-
       currentSort = tab.dataset.sort || 'popular';
       applyAllFilters();
     });
   });
 
-  // ========= PRICE SLIDER INIT =========
+  // Looking For checkboxes
+  if (lookingForChecks.length) {
+    lookingForChecks.forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.checked ? selectedLookingFor.add(cb.value) : selectedLookingFor.delete(cb.value);
+        updateLookingForUI();
+        applyAllFilters();
+      });
+    });
+  }
+
+  // Looking For clear
+  if (lookingForClear) {
+    lookingForClear.addEventListener('click', (e) => {
+      e.preventDefault();
+      selectedLookingFor.clear();
+      lookingForChecks.forEach(cb => cb.checked = false);
+      updateLookingForUI();
+      applyAllFilters();
+    });
+  }
+
+  // Category radios
+  if (categoryRadios.length) {
+    // set initial from checked radio
+    const init = categoryRadios.find(r => r.checked);
+    if (init) selectedCategory = init.value || 'any';
+
+    categoryRadios.forEach(r => {
+      r.addEventListener('change', () => {
+        if (!r.checked) return;
+        selectedCategory = r.value || 'any';
+        applyAllFilters();
+      });
+    });
+  }
+
+  // Popular filter checkboxes
+  filterCheckboxes.forEach(cb => cb.addEventListener('change', applyAllFilters));
+
+  // Price slider init
   if (sliderTrack && sliderFill && leftThumb && rightThumb && prices.length) {
     leftPercent  = 0;
     rightPercent = 100;
@@ -241,48 +300,26 @@ document.addEventListener('DOMContentLoaded', function () {
       applyAllFilters();
     }
 
-    leftThumb.addEventListener('mousedown', e => {
-      isDraggingLeft = true;
-      e.preventDefault();
-    });
-
-    rightThumb.addEventListener('mousedown', e => {
-      isDraggingRight = true;
-      e.preventDefault();
-    });
+    leftThumb.addEventListener('mousedown', e => { isDraggingLeft = true; e.preventDefault(); });
+    rightThumb.addEventListener('mousedown', e => { isDraggingRight = true; e.preventDefault(); });
 
     document.addEventListener('mousemove', e => {
       if (!isDraggingLeft && !isDraggingRight) return;
       handleMove(e.clientX);
     });
+    document.addEventListener('mouseup', () => { isDraggingLeft = false; isDraggingRight = false; });
 
-    document.addEventListener('mouseup', () => {
-      isDraggingLeft  = false;
-      isDraggingRight = false;
-    });
-
-    leftThumb.addEventListener('touchstart', e => {
-      isDraggingLeft = true;
-      e.preventDefault();
-    });
-
-    rightThumb.addEventListener('touchstart', e => {
-      isDraggingRight = true;
-      e.preventDefault();
-    });
+    leftThumb.addEventListener('touchstart', e => { isDraggingLeft = true; e.preventDefault(); }, { passive:false });
+    rightThumb.addEventListener('touchstart', e => { isDraggingRight = true; e.preventDefault(); }, { passive:false });
 
     document.addEventListener('touchmove', e => {
       if (!isDraggingLeft && !isDraggingRight) return;
       handleMove(e.touches[0].clientX);
-    });
-
-    document.addEventListener('touchend', () => {
-      isDraggingLeft  = false;
-      isDraggingRight = false;
-    });
+    }, { passive:false });
+    document.addEventListener('touchend', () => { isDraggingLeft = false; isDraggingRight = false; });
   }
 
-  // ========= MORE FILTERS TOGGLE =========
+  // More filters toggle
   if (moreFiltersBtn && filtersExtra) {
     let isExpanded = false;
     filtersExtra.style.display = 'none';
@@ -296,10 +333,64 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ========= FILTER CHECKBOXES =========
-  filterCheckboxes.forEach(cb => cb.addEventListener('change', applyAllFilters));
+  // ========= BOOK NOW =========
+  function buildBookingParams(card, nights) {
+    if (!card) return '';
+    const hotelId   = card.dataset.hotelId || '';
+    const hotelName = card.querySelector('.hotel-name')?.textContent.trim() || '';
+    const hotelLocation = card.dataset.location || card.querySelector('.hotel-location')?.textContent.trim() || '';
+    const cityCountry = card.dataset.cityCountry || '';
 
-  // ========= SIMPLE ACTION BUTTONS =========
+    const basePerNight = parseFloat(card.dataset.price || '0') || 0;
+    const stayNights   = nights && nights > 0 ? nights : 1;
+    const totalAmount  = basePerNight * stayNights;
+    const taxAmount    = +(totalAmount * 0.15).toFixed(2);
+    const currency     = card.dataset.currency || 'USD';
+
+    const userId =
+      window.TRAVELO && window.TRAVELO.userId ? window.TRAVELO.userId : '';
+    const userName =
+      window.TRAVELO && window.TRAVELO.userName ? window.TRAVELO.userName : '';
+    const userEmail =
+      window.TRAVELO && window.TRAVELO.userEmail ? window.TRAVELO.userEmail : '';
+
+    const params = new URLSearchParams();
+    params.set('booking_type', 'hotel');
+    params.set('booking_status', 'pending');
+
+    if (hotelName)     params.set('hotel_name', hotelName);
+    if (hotelLocation) params.set('hotel_location', hotelLocation);
+    if (cityCountry)   params.set('to_city', cityCountry);
+    if (hotelId)       params.set('hotel_id', hotelId);
+
+    params.set('stay_nights', stayNights.toString());
+    params.set('amount_flight', '0');
+    params.set('amount_hotel', totalAmount.toFixed(2));
+    params.set('amount_package', '0');
+    params.set('amount_taxes', taxAmount.toFixed(2));
+    params.set('discount_amount', '0');
+    params.set('currency', currency);
+
+    if (userId)    params.set('user_id', userId);
+    if (userName)  params.set('user_name', userName);
+    if (userEmail) params.set('user_email', userEmail);
+
+    return params.toString();
+  }
+
+  function goToBooking(card, nights) {
+    if (!card) return;
+
+    if (!window.TRAVELO || !window.TRAVELO.isLoggedIn) {
+      const loginBtn = document.getElementById('btnLogin');
+      if (loginBtn) { loginBtn.click(); return; }
+    }
+
+    const qs2 = buildBookingParams(card, nights);
+    if (!qs2) return;
+    window.location.href = `${bookingBaseUrl}?${qs2}`;
+  }
+
   bookNowBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const card = btn.closest('.hotel-card');
@@ -343,10 +434,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const safetyTitleEl = document.getElementById('safetyTitle');
   const safetyDescEl  = document.getElementById('safetyDesc');
 
-  const bookBtn       = document.getElementById('modalBookBtn');
-  const payUnderBtn   = document.getElementById('modalPayUnderBtn');
-  const prevImgBtn    = document.getElementById('modalPrevImg');
-  const nextImgBtn    = document.getElementById('modalNextImg');
+  const bookBtn     = document.getElementById('modalBookBtn');
+  const payUnderBtn = document.getElementById('modalPayUnderBtn');
+  const prevImgBtn  = document.getElementById('modalPrevImg');
+  const nextImgBtn  = document.getElementById('modalNextImg');
 
   const nightsMinusBtn = document.getElementById('modalNightsMinus');
   const nightsPlusBtn  = document.getElementById('modalNightsPlus');
@@ -365,11 +456,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const low = s.toLowerCase();
     if (low === 'null' || low === 'none') return false;
     return (
-      low.startsWith('http://') ||
-      low.startsWith('https://') ||
-      low.startsWith('/') ||
-      low.startsWith('./') ||
-      low.startsWith('../')
+      low.startsWith('http://') || low.startsWith('https://') ||
+      low.startsWith('/') || low.startsWith('./') || low.startsWith('../')
     );
   }
 
@@ -388,8 +476,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!mainImageEl || !thumbsContainer || !currentImages.length) return;
 
     mainImageEl.src = currentImages[currentIndex];
-
     thumbsContainer.innerHTML = '';
+
     currentImages.forEach((src, idx) => {
       const btn = document.createElement('button');
       if (idx === currentIndex) btn.classList.add('active');
@@ -435,32 +523,25 @@ document.addEventListener('DOMContentLoaded', function () {
     currentImages = imagesStr
       ? imagesStr.split('|').map(i => i.trim()).filter(isValidImageUrl)
       : [];
-
     currentImages = Array.from(new Set(currentImages));
 
     if (!currentImages.length) {
       const fallbackImg = card.querySelector('.hotel-image-wrapper img');
       if (fallbackImg && isValidImageUrl(fallbackImg.src)) currentImages = [fallbackImg.src];
     }
-
     if (!currentImages.length) {
-      currentImages = [
-        'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80'
-      ];
+      currentImages = ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80'];
     }
 
     currentIndex = 0;
 
-    if (nameEl)     nameEl.textContent     = name;
+    if (nameEl) nameEl.textContent = name;
     if (locationEl) locationEl.textContent = locationText || cityCountry;
 
     if (ratingEl)  ratingEl.textContent  = rating.toFixed(1);
     if (reviewsEl) reviewsEl.textContent = reviews ? `${reviews} reviews` : '';
 
-    if (offerTagEl) {
-      offerTagEl.textContent = discount > 0 ? `${discount}% OFF` : 'BEST DEAL';
-    }
-
+    if (offerTagEl) offerTagEl.textContent = discount > 0 ? `${discount}% OFF` : 'BEST DEAL';
     if (aboutEl) aboutEl.textContent = description;
 
     if (servicesEl) {
@@ -478,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (scoreValueEl)    scoreValueEl.style.width    = `${Math.max(50, ratingPercent - 10)}%`;
 
     if (safetyTitleEl) safetyTitleEl.textContent = 'Travel safe during your stay';
-    if (safetyDescEl)  safetyDescEl.textContent  =
+    if (safetyDescEl)  safetyDescEl.textContent =
       'This property follows enhanced health & safety measures including cleaning and distancing practices.';
 
     refreshModalPriceUI();
@@ -503,58 +584,41 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  if (prevImgBtn) {
-    prevImgBtn.addEventListener('click', () => {
-      if (!currentImages.length) return;
-      currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
-      renderImages();
-    });
-  }
+  if (prevImgBtn) prevImgBtn.addEventListener('click', () => {
+    if (!currentImages.length) return;
+    currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
+    renderImages();
+  });
 
-  if (nextImgBtn) {
-    nextImgBtn.addEventListener('click', () => {
-      if (!currentImages.length) return;
-      currentIndex = (currentIndex + 1) % currentImages.length;
-      renderImages();
-    });
-  }
+  if (nextImgBtn) nextImgBtn.addEventListener('click', () => {
+    if (!currentImages.length) return;
+    currentIndex = (currentIndex + 1) % currentImages.length;
+    renderImages();
+  });
 
-  if (nightsMinusBtn && nightsPlusBtn && nightsValueEl) {
+  if (nightsMinusBtn && nightsPlusBtn) {
     nightsMinusBtn.addEventListener('click', () => {
-      if (modalNights > 1) {
-        modalNights -= 1;
-        refreshModalPriceUI();
-      }
+      if (modalNights > 1) { modalNights -= 1; refreshModalPriceUI(); }
     });
-
     nightsPlusBtn.addEventListener('click', () => {
-      if (modalNights < 30) {
-        modalNights += 1;
-        refreshModalPriceUI();
-      }
+      if (modalNights < 30) { modalNights += 1; refreshModalPriceUI(); }
     });
   }
 
-  if (bookBtn) {
-    bookBtn.addEventListener('click', () => {
-      if (modalCurrentCard) goToBooking(modalCurrentCard, modalNights);
-    });
-  }
+  if (bookBtn) bookBtn.addEventListener('click', () => {
+    if (modalCurrentCard) goToBooking(modalCurrentCard, modalNights);
+  });
 
-  if (payUnderBtn) {
-    payUnderBtn.addEventListener('click', () => {
-      if (modalCurrentCard) goToBooking(modalCurrentCard, modalNights);
-    });
-  }
+  if (payUnderBtn) payUnderBtn.addEventListener('click', () => {
+    if (modalCurrentCard) goToBooking(modalCurrentCard, modalNights);
+  });
 
-  if (modalClose)          modalClose.addEventListener('click', closeModal);
+  if (modalClose) modalClose.addEventListener('click', closeModal);
   if (modalCloseSecondary) modalCloseSecondary.addEventListener('click', closeModal);
 
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', e => {
-      if (e.target === modalOverlay) closeModal();
-    });
-  }
+  if (modalOverlay) modalOverlay.addEventListener('click', e => {
+    if (e.target === modalOverlay) closeModal();
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
@@ -575,13 +639,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const ctaButton = document.querySelector('.cta-button');
   if (ctaButton) {
-    ctaButton.addEventListener('mouseenter', function () {
-      this.classList.add('hover');
-    });
-    ctaButton.addEventListener('mouseleave', function () {
-      this.classList.remove('hover');
-    });
+    ctaButton.addEventListener('mouseenter', function () { this.classList.add('hover'); });
+    ctaButton.addEventListener('mouseleave', function () { this.classList.remove('hover'); });
   }
+
+  // ========= INIT =========
+  // ensure category initial value if radios exist
+  if (categoryRadios.length) {
+    const init = categoryRadios.find(r => r.checked);
+    if (init) selectedCategory = init.value || 'any';
+  }
+  updateLookingForUI();
+
+  // slider init labels
+  currentMinPrice = globalMinPrice;
+  currentMaxPrice = globalMaxPrice;
+  updateSliderLabels();
 
   applyAllFilters();
 });
