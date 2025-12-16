@@ -10,7 +10,6 @@ $stmtTop = $pdo->prepare("
   FROM destinations
   WHERE is_active = 1 AND is_top = 1
   ORDER BY created_at DESC
-  LIMIT 6
 ");
 $stmtTop->execute();
 $topDestinations = $stmtTop->fetchAll();
@@ -31,6 +30,10 @@ $topDestinations = $stmtTop->fetchAll();
     rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
   <link href="./assets/css/main.css" rel="stylesheet">
   <link href="./assets/css/home.css" rel="stylesheet">
 <style>
@@ -409,8 +412,6 @@ $topDestinations = $stmtTop->fetchAll();
 </div>
 
 
-
-
         <button class="menu-toggle" aria-label="Open menu"><span></span></button>
       </nav>
     </div>
@@ -525,147 +526,168 @@ $topDestinations = $stmtTop->fetchAll();
     </div>
   </section>
 
-  <div class="top-wrapper">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
-      <div>
-        <div class="section-label">TOP DESTINATION</div>
-        <h1 class="section-title mb-0">Explore top destination</h1>
-      </div>
-
-      <div class="category-tabs">
-        <button class="category-btn" data-category="city">City</button>
-        <button class="category-btn" data-category="mountain">Mountain</button>
-        <button class="category-btn" data-category="forest">Forest</button>
-        <button class="category-btn" data-category="island">Island</button>
-        <a href="./destination.php" class="see-all-link">see all</a>
-      </div>
+<div class="top-wrapper">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+    <div>
+      <div class="section-label">TOP DESTINATION</div>
+      <h1 class="section-title mb-0">Explore top destination</h1>
     </div>
 
-    <div class="row g-4">
-     <?php foreach ($topDestinations as $dest): ?>
-      <div class="col-12 col-md-6 col-lg-4 destination-col"
-         data-category="<?= htmlspecialchars(strtolower($dest['category'] ?? 'city')) ?>">
-       <div class="destination-card">
-        <div class="image-container">
-          <div class="image-blur-effect"></div>
-
-          <img
-            src="<?= htmlspecialchars($dest['image_url']) ?>"
-            alt="<?= htmlspecialchars($dest['name']) ?>"
-            class="destination-image"
-          />
-
-          <div class="rating-badge">
-            <span class="star">★</span>
-            <span>5.0</span>
-          </div>
-        </div>
-
-        <div class="card-content">
-          <div class="destination-city"><?= htmlspecialchars($dest['name']) ?></div>
-
-          <div class="destination-desc">
-            <?= htmlspecialchars($dest['short_desc']) ?>
-          </div>
-
-          <div class="destination-bottom">
-            <div class="destination-footer-top">
-              <span class="location-city">
-                <?= htmlspecialchars($dest['city'] . ', ' . $dest['country']) ?>
-              </span>
-            </div>
-
-            <div class="destination-footer-bottom">
-              <div class="destination-price">
-                $<?= htmlspecialchars($dest['base_price']) ?>
-                <span>+12 interest free</span>
-              </div>
-
-              <button class="btn-gradient view-btn"
-                data-id="<?= (int)$dest['id'] ?>"
-                data-name="<?= htmlspecialchars($dest['name']) ?>"
-                data-location="<?= htmlspecialchars($dest['city'] . ', ' . $dest['country']) ?>"
-                data-image="<?= htmlspecialchars($dest['image_url']) ?>"
-                data-desc="<?= htmlspecialchars($dest['short_desc']) ?>"
-                data-price="$<?= htmlspecialchars($dest['base_price']) ?>"
-                data-rating="5.0">
-                See More
-              </button>
-
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="category-tabs">
+      <button class="category-btn" data-category="city">City</button>
+      <button class="category-btn" data-category="mountain">Mountain</button>
+      <button class="category-btn" data-category="forest">Forest</button>
+      <button class="category-btn" data-category="island">Island</button>
+      <a href="./destination.php" class="see-all-link">see all</a>
     </div>
-      <?php endforeach; ?>
-   </div>
   </div>
 
-  <div class="destination-modal-overlay" id="destinationModal">
-    <div class="destination-modal">
-      <button class="destination-modal-close" id="destinationModalClose">&times;</button>
+  <!-- ✅ Stage: الأسهم على الطرفين وبالنص -->
+  <div class="td-stage">
+    <button class="td-nav-btn prev" type="button" aria-label="Previous">
+      <i class="bi bi-chevron-left"></i>
+    </button>
 
-      <div class="destination-modal-image-wrapper">
-        <img src="" alt="" id="modalDestinationImage" class="destination-modal-image" />
-        <div class="destination-modal-chip">Top destination</div>
-        <div class="destination-modal-gradient"></div>
-      </div>
+    <div class="row g-4">
+      <?php if (!empty($topDestinations)): ?>
+        <?php foreach ($topDestinations as $dest): ?>
+          <div class="col-12 col-md-6 col-lg-4 destination-col"
+               data-category="<?= htmlspecialchars($dest['category']) ?>"
+               data-id="<?= (int)$dest['id'] ?>">
+            <div class="destination-card">
+              <div class="image-container">
+                <div class="image-blur-effect"></div>
 
-      <div class="destination-modal-body">
-        <div class="destination-modal-header">
-          <div>
-            <h2 id="modalDestinationTitle">Tokyo</h2>
-            <p id="modalDestinationLocation" class="modal-location">Tokyo, Japan</p>
+                <img
+                  src="<?= htmlspecialchars($dest['image_url']) ?>"
+                  alt="<?= htmlspecialchars($dest['name']) ?>"
+                  class="destination-image"
+                />
+
+                <div class="rating-badge">
+                  <span class="star">★</span>
+                  <span>5.0</span>
+                </div>
+              </div>
+
+              <div class="card-content">
+                <div class="destination-city"><?= htmlspecialchars($dest['name']) ?></div>
+                <div class="destination-desc"><?= htmlspecialchars($dest['short_desc']) ?></div>
+
+                <div class="destination-bottom">
+                  <div class="destination-footer-top">
+                    <span class="location-city">
+                      <?= htmlspecialchars($dest['city'] . ', ' . $dest['country']) ?>
+                    </span>
+                  </div>
+
+                  <div class="destination-footer-bottom">
+                    <div class="destination-price">
+                      $<?= htmlspecialchars($dest['base_price']) ?>
+                      <span>per person</span>
+                    </div>
+
+                    <button class="btn-gradient view-btn"
+                      data-id="<?= (int)$dest['id'] ?>"
+                      data-name="<?= htmlspecialchars($dest['name'], ENT_QUOTES) ?>"
+                      data-location="<?= htmlspecialchars($dest['city'] . ', ' . $dest['country'], ENT_QUOTES) ?>"
+                      data-image="<?= htmlspecialchars($dest['image_url'], ENT_QUOTES) ?>"
+                      data-desc="<?= htmlspecialchars($dest['short_desc'], ENT_QUOTES) ?>"
+                      data-price="$<?= htmlspecialchars($dest['base_price'], ENT_QUOTES) ?>"
+                      data-rating="5.0">
+                      See More
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
           </div>
-          <div class="modal-rating">
-            <span>★ 5.0</span>
-          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <div class="col-12"><p>No destinations available right now.</p></div>
+      <?php endif; ?>
+    </div>
+
+    <button class="td-nav-btn next" type="button" aria-label="Next">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- ✅ dots تحت -->
+  <div class="td-dots" id="tdDots" aria-label="Top destinations pages"></div>
+</div>
+
+
+
+    <!-- MODAL -->
+    <div class="destination-modal-overlay" id="destinationModal">
+      <div class="destination-modal">
+        <button class="destination-modal-close" id="destinationModalClose">&times;</button>
+
+        <div class="destination-modal-image-wrapper">
+          <img src="" alt="" id="modalDestinationImage" class="destination-modal-image" />
+          <div class="destination-modal-chip">Top destination</div>
+          <div class="destination-modal-gradient"></div>
         </div>
 
-        <p id="modalDestinationDesc" class="modal-description">
-          Explore the vibrant streets, neon lights, and traditional temples in one of the most
-          exciting cities in the world.
-        </p>
-
-        <div class="destination-modal-stats">
-          <div class="stat-card">
-            <span class="stat-label">Avg. visitors</span>
-            <span class="stat-value" id="modalVisitors">12M / year</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Best season</span>
-            <span class="stat-value" id="modalSeason">Mar – May</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Starting from</span>
-            <span class="stat-value" id="modalPrice">$360</span>
-          </div>
-        </div>
-
-        <div class="destination-modal-actions">
-          <button class="modal-btn primary">
-            <span class="icon">✈️</span>
-            <div class="text">
-              <span class="title">Book Trip</span>
-              <span class="subtitle">Flights & activities</span>
+        <div class="destination-modal-body">
+          <div class="destination-modal-header">
+            <div>
+              <h2 id="modalDestinationTitle">Title</h2>
+              <p id="modalDestinationLocation" class="modal-location">City, Country</p>
             </div>
-          </button>
-
-          <button class="modal-btn outline">
-            <span class="icon">🎁</span>
-            <div class="text">
-              <span class="title">Book Package</span>
-              <span class="subtitle">Flight + hotel + tour</span>
+            <div class="modal-rating">
+              <span>★ 5.0</span>
             </div>
-          </button>
+          </div>
 
-          <button class="modal-btn ghost">
-            <span class="icon">🏨</span>
-            <div class="text">
-              <span class="title">Book Hotel</span>
-              <span class="subtitle">Hand-picked stays</span>
+          <p id="modalDestinationDesc" class="modal-description">
+            Description...
+          </p>
+
+          <div class="destination-modal-stats">
+            <div class="stat-card">
+              <span class="stat-label">Avg. visitors</span>
+              <span class="stat-value" id="modalVisitors">—</span>
             </div>
-          </button>
+            <div class="stat-card">
+              <span class="stat-label">Best season</span>
+              <span class="stat-value" id="modalSeason">—</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Starting from</span>
+              <span class="stat-value" id="modalPrice">$0</span>
+            </div>
+          </div>
+
+          <div class="destination-modal-actions">
+            <button class="modal-btn primary" type="button" id="modalBookFlightBtn">
+  <span class="icon">✈️</span>
+  <div class="text">
+    <span class="title">Book Trip</span>
+    <span class="subtitle">Flights & activities</span>
+  </div>
+</button>
+
+
+            <button class="modal-btn outline" type="button" id="modalBookPackageBtn">
+  <span class="icon">🎁</span>
+  <div class="text">
+    <span class="title">Book Package</span>
+    <span class="subtitle">Flight + hotel + tour</span>
+  </div>
+</button>
+
+
+           <button class="modal-btn ghost" type="button" id="modalBookHotelBtn">
+  <span class="icon">🏨</span>
+  <div class="text">
+    <span class="title">Book Hotel</span>
+    <span class="subtitle">Hand-picked stays</span>
+  </div>
+</button>
+
         </div>
       </div>
     </div>
@@ -849,8 +871,6 @@ $topDestinations = $stmtTop->fetchAll();
     <input type="email" name="email" class="nl-input" placeholder="Your email" required>
     <button type="submit" id="subscribeBtn" class="nl-btn">Subscribe</button>
 </form>
-
-
           </div>
 
         </div>
@@ -922,9 +942,10 @@ $topDestinations = $stmtTop->fetchAll();
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
     crossorigin="anonymous"></script>
- <script src='https://cdn.jotfor.ms/agent/embedjs/019b189a507c7f0e98a0580ad136880f79ad/embed.js'>
+ 
 </script>
-  <script src="./assets/js/home.js"></script>
+   <script src="./assets/js/home.js"></script>
+<script src="./assets/js/destination.js"></script>
   <!-- Toast -->
 <div id="toast" class="toast"></div>
 <style>
@@ -973,47 +994,80 @@ function showToast(message, type = 'success') {
   }, 2200);
 }
 </script>
+<button id="askAiBtn" class="ask-ai-btn" type="button" aria-label="Ask AI">
+  <i class="bi bi-airplane-fill" aria-hidden="true"></i>
+  <span class="ask-ai-bubble">Ask AI</span>
+</button>
+
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('newsletterForm');
+(() => {
+  const AGENT_ID = "019b189a507c7f0e98a0580ad136880f79ad";
+  const SRC = `https://cdn.jotfor.ms/agent/embedjs/${AGENT_ID}/embed.js`;
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault(); 
+  function loadWidget(){
+    return new Promise((resolve, reject) => {
+      // لو محمّل قبل لا تعيديه
+      if (document.querySelector(`script[src="${SRC}"]`)) return resolve();
 
-    const formData = new FormData(form);
+      const s = document.createElement("script");
+      s.src = SRC;
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("Failed to load widget"));
+      document.body.appendChild(s);
+    });
+  }
 
-    try {
-      const res = await fetch('subscribe.php', {
-        method: 'POST',
-        body: formData
+  function openLauncherWhenReady(timeoutMs = 8000){
+    return new Promise((resolve) => {
+      const start = Date.now();
+
+      const tryOpen = () => {
+        // لانشر Jotform (جربي عدة سلكترات)
+        const launcher =
+          document.querySelector('button[aria-label*="Ask AI" i]') ||
+          document.querySelector('button[aria-label*="Chat" i]') ||
+          document.querySelector('[data-testid*="launcher" i]') ||
+          document.querySelector('.jotform-ai-launcher, .agent-launcher, .chat-launcher');
+
+        if (launcher) { launcher.click(); resolve(true); return true; }
+
+        if (Date.now() - start > timeoutMs) { resolve(false); return true; }
+        return false;
+      };
+
+      if (tryOpen()) return;
+
+      const obs = new MutationObserver(() => {
+        if (tryOpen()) obs.disconnect();
       });
+      obs.observe(document.documentElement, { childList:true, subtree:true });
+    });
+  }
 
-      const data = await res.json();
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("askAiBtn");
+    if (!btn) return;
 
-      switch (data.status) {
-        case 'ok':
-          showToast('Subscribed successfully!', 'success');
-          form.reset();
-          break;
+    btn.addEventListener("click", async () => {
+      // ✅ اخفي زرّك فورًا بعد أول كبسة
+      btn.style.display = "none";
 
-        case 'exists':
-          showToast('This email is already registered ! ', 'error');
-          break;
-
-        case 'invalid':
-          showToast('Invalid email address ❌', 'error');
-          break;
-
-        default:
-          showToast('Something went wrong ⚠️', 'error');
+      try{
+        await loadWidget();           // ✅ حمّلي الشات بوت الآن (كان مخفي قبل)
+        await openLauncherWhenReady(); // ✅ افتحيه تلقائيًا
+      }catch(e){
+        console.error(e);
+        // لو صار خطأ، رجّعي الزر حتى ما يختفي على الفاضي
+        btn.style.display = "";
+        alert("AI widget failed to load.");
       }
-    } catch (err) {
-      showToast('Network error ⚠️', 'error');
-      console.error(err);
-    }
+    }, { once:true }); // ✅ يمنع تعدد الكبس/تكرار
   });
-});
+})();
 </script>
+
+
 </body>
 </html>

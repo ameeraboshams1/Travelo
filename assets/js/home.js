@@ -226,132 +226,90 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ===============================
-// Top Destinations Tabs + Modal (from data-* on button)
+// Top Destinations Tabs 
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {
-  // ---- Tabs filtering ----
-  const tabs = document.querySelectorAll(".category-btn");
-  const cols = document.querySelectorAll(".destination-col");
+  const root = document.querySelector(".top-wrapper");
+  if (!root) return;
 
-  if (tabs.length && cols.length) {
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => {
-        tabs.forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
+  const stage = root.querySelector(".td-stage");
+  const row = root.querySelector(".row.g-4");
+  const prev = root.querySelector(".td-nav-btn.prev");
+  const next = root.querySelector(".td-nav-btn.next");
+  const dotsHost = document.getElementById("tdDots");
 
-        const cat = (tab.dataset.category || "all").toLowerCase();
+  if (!stage || !row || !prev || !next || !dotsHost) return;
 
-        cols.forEach((col) => {
-          const itemCat = (col.dataset.category || "").toLowerCase();
+  let page = 0;
 
-          if (cat === "all") {
-            col.classList.remove("hidden", "filtered-out");
-            col.style.display = "";
-          } else {
-            const show = itemCat === cat;
-            col.classList.toggle("hidden", !show);
-            col.classList.toggle("filtered-out", !show);
-            col.style.display = show ? "" : "none";
-          }
-        });
-      });
-    });
+  const allCards = () => Array.from(row.querySelectorAll(".destination-col"));
+  const isFilteredOut = (el) =>
+    el.classList.contains("hidden") || el.classList.contains("filtered-out");
+  const visibleCards = () => allCards().filter((c) => !isFilteredOut(c));
+
+  function getPageSize() {
+    const w = window.innerWidth;
+    if (w < 576) return 2;      // mobile
+    if (w < 992) return 4;      // tablet
+    return 6;                   // desktop
   }
 
-  // ---- Modal ----
-  const modalOverlay = document.getElementById("destinationModal");
-  const modalCloseBtn = document.getElementById("destinationModalClose");
+  function buildDots(pages) {
+    dotsHost.innerHTML = "";
+    if (pages <= 1) return;
 
-  const modalImg = document.getElementById("modalDestinationImage");
-  const modalTitle = document.getElementById("modalDestinationTitle");
-  const modalLocation = document.getElementById("modalDestinationLocation");
-  const modalDesc = document.getElementById("modalDestinationDesc");
-  const modalVisitors = document.getElementById("modalVisitors");
-  const modalSeason = document.getElementById("modalSeason");
-  const modalPrice = document.getElementById("modalPrice");
-
-  // اختياري: بيانات إضافية حسب الاسم (لو مش موجود، بحط defaults)
-  const detailsByName = {
-    Tokyo: { visitors: "14M / year", season: "Mar – Apr (Sakura)" },
-    Rome: { visitors: "9.8M / year", season: "Apr – Jun" },
-    Barcelona: { visitors: "11M / year", season: "May – Sep" },
-    Bangkok: { visitors: "22M / year", season: "Nov – Feb" },
-    Sydney: { visitors: "10M / year", season: "Dec – Feb" },
-    Toronto: { visitors: "8M / year", season: "May – Sep" },
-  };
-
-  function openDestinationModalFromBtn(btn) {
-    if (!modalOverlay) return;
-
-    const name = btn.dataset.name || "Destination";
-    const location = btn.dataset.location || "";
-    const imgSrc = btn.dataset.image || "";
-    const desc = btn.dataset.desc || "Discover this destination with Travelo.";
-    const price = btn.dataset.price || "$ ---";
-
-    if (modalTitle) modalTitle.textContent = name;
-    if (modalLocation) modalLocation.textContent = location;
-    if (modalDesc) modalDesc.textContent = desc;
-
-    if (modalImg) {
-      modalImg.src = imgSrc;
-      modalImg.alt = name;
+    for (let i = 0; i < pages; i++) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "td-dot" + (i === page ? " active" : "");
+      dot.setAttribute("aria-label", `Page ${i + 1}`);
+      dot.addEventListener("click", () => render(i));
+      dotsHost.appendChild(dot);
     }
-
-    if (modalPrice) modalPrice.textContent = price;
-
-    const extra = detailsByName[name] || {
-      visitors: "Millions / year",
-      season: "All year",
-    };
-    if (modalVisitors) modalVisitors.textContent = extra.visitors;
-    if (modalSeason) modalSeason.textContent = extra.season;
-
-    modalOverlay.classList.add("show");
-    document.body.classList.add("no-scroll");
   }
 
-  function closeDestinationModal() {
-    if (!modalOverlay) return;
-    modalOverlay.classList.remove("show");
-    document.body.classList.remove("no-scroll");
+  function render(targetPage = page) {
+    const pageSize = getPageSize();
+    const vis = visibleCards();
+    const pages = Math.max(1, Math.ceil(vis.length / pageSize));
+
+    page = Math.max(0, Math.min(targetPage, pages - 1));
+
+    // hide all
+    allCards().forEach((c) => c.classList.add("td-page-hidden"));
+
+    // show page slice
+    const start = page * pageSize;
+    const end = start + pageSize;
+    vis.slice(start, end).forEach((c) => c.classList.remove("td-page-hidden"));
+
+    // show/hide arrows + dots only when needed
+    const needNav = pages > 1;
+    prev.style.display = needNav ? "" : "none";
+    next.style.display = needNav ? "" : "none";
+    dotsHost.style.display = needNav ? "flex" : "none";
+
+    prev.disabled = page === 0;
+    next.disabled = page >= pages - 1;
+
+    buildDots(pages);
   }
 
-  // Delegation: يشتغل حتى لو الكروت PHP
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".view-btn");
-    if (!btn) return;
-    openDestinationModalFromBtn(btn);
+  prev.addEventListener("click", () => render(page - 1));
+  next.addEventListener("click", () => render(page + 1));
+
+  // لما تغيّري category (الفلتر بملف ثاني): رجّعي لأول صفحة
+  root.querySelectorAll(".category-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setTimeout(() => render(0), 0));
   });
 
-  if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeDestinationModal);
+  // لو تغيّر حجم الشاشة
+  window.addEventListener("resize", () => render(0));
 
-  if (modalOverlay) {
-    modalOverlay.addEventListener("click", (e) => {
-      if (e.target === modalOverlay) closeDestinationModal();
-    });
-  }
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modalOverlay?.classList.contains("show")) {
-      closeDestinationModal();
-    }
-  });
-
-  // ---- See all link (destination.php) + spinner ----
-  const seeAllBtn = document.querySelector(".see-all-link");
-  const globalSpinner = document.getElementById("spinner");
-
-  if (seeAllBtn && globalSpinner) {
-    seeAllBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      globalSpinner.classList.add("show");
-      setTimeout(function () {
-        window.location.href = "destination.php";
-      }, 600);
-    });
-  }
+  render(0);
 });
+
+
 
 // ===============================
 // User menu toggle (avatar dropdown)
@@ -371,3 +329,49 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('newsletterForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch('subscribe.php', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        showToast('Subscribed successfully! ✨', 'success');
+        form.reset();
+      } else if (data.status === 'exists') {
+        showToast('This email is already subscribed.', 'error');
+      } else if (data.status === 'invalid') {
+        showToast('Please enter a valid email address ❌', 'error');
+      } else if (data.status === 'mail_error') {
+        showToast('Subscribed, but email failed to send ⚠️', 'error');
+        console.log('Mailer error:', data.error);
+      } else {
+        showToast('Something went wrong ⚠️', 'error');
+      }
+    } catch (err) {
+      showToast('Network error ⚠️', 'error');
+      console.error(err);
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.querySelector(".get-started");
+  if (!btn) return;
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    window.location.href = "login.html"; 
+  });
+});
+

@@ -73,7 +73,12 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
 
   <link rel="stylesheet" href="./assets/css/home.css">
   <link rel="stylesheet" href="./assets/css/profile.css">
-    <script src='https://cdn.jotfor.ms/agent/embedjs/019b189a507c7f0e98a0580ad136880f79ad/embed.js'>
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
 </script>
   <!-- avatar letter small css (بدون صورة) -->
   <style>
@@ -638,5 +643,79 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
 
   <script src="./assets/js/home.js"></script>
   <script src="./assets/js/profile.js"></script>
+
+  <button id="askAiBtn" class="ask-ai-btn" type="button" aria-label="Ask AI">
+  <i class="bi bi-airplane-fill" aria-hidden="true"></i>
+  <span class="ask-ai-bubble">Ask AI</span>
+</button>
+
+
+<script>
+(() => {
+  const AGENT_ID = "019b189a507c7f0e98a0580ad136880f79ad";
+  const SRC = `https://cdn.jotfor.ms/agent/embedjs/${AGENT_ID}/embed.js`;
+
+  function loadWidget(){
+    return new Promise((resolve, reject) => {
+      // لو محمّل قبل لا تعيديه
+      if (document.querySelector(`script[src="${SRC}"]`)) return resolve();
+
+      const s = document.createElement("script");
+      s.src = SRC;
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("Failed to load widget"));
+      document.body.appendChild(s);
+    });
+  }
+
+  function openLauncherWhenReady(timeoutMs = 8000){
+    return new Promise((resolve) => {
+      const start = Date.now();
+
+      const tryOpen = () => {
+        // لانشر Jotform (جربي عدة سلكترات)
+        const launcher =
+          document.querySelector('button[aria-label*="Ask AI" i]') ||
+          document.querySelector('button[aria-label*="Chat" i]') ||
+          document.querySelector('[data-testid*="launcher" i]') ||
+          document.querySelector('.jotform-ai-launcher, .agent-launcher, .chat-launcher');
+
+        if (launcher) { launcher.click(); resolve(true); return true; }
+
+        if (Date.now() - start > timeoutMs) { resolve(false); return true; }
+        return false;
+      };
+
+      if (tryOpen()) return;
+
+      const obs = new MutationObserver(() => {
+        if (tryOpen()) obs.disconnect();
+      });
+      obs.observe(document.documentElement, { childList:true, subtree:true });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("askAiBtn");
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+      // ✅ اخفي زرّك فورًا بعد أول كبسة
+      btn.style.display = "none";
+
+      try{
+        await loadWidget();           // ✅ حمّلي الشات بوت الآن (كان مخفي قبل)
+        await openLauncherWhenReady(); // ✅ افتحيه تلقائيًا
+      }catch(e){
+        console.error(e);
+        // لو صار خطأ، رجّعي الزر حتى ما يختفي على الفاضي
+        btn.style.display = "";
+        alert("AI widget failed to load.");
+      }
+    }, { once:true }); // ✅ يمنع تعدد الكبس/تكرار
+  });
+})();
+</script>
 </body>
 </html>
