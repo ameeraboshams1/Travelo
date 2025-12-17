@@ -772,69 +772,129 @@ $topDestinations = $stmtTop->fetchAll();
     </div>
   </section>
 
+<?php
+// =================== TESTIMONIALS BACK (PUT THIS ABOVE THE SECTION) ===================
+require_once __DIR__ . '/db.php';
 
-  <section class="testimonials-section">
-    <div class="container-testimonials">
-      <div class="section-header">
-        <p class="subtitle">TESTIMONIALS</p>
-        <h2>Trust our clients</h2>
-      </div>
+function h($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
-      <div class="testimonial-slider">
-        <div class="slider-wrapper">
-          <div class="testimonial-slide active-slide">
-            <img src="./assets/images/TESTIMONIALS/avatar.png" alt="Irfan Rahmat" class="client-avatar">
-            <h3>Irfan Rahmat</h3>
-            <p class="client-title">Travel Enthusiast</p>
-            <div class="rating"></div>
-            <p class="testimonial-text">
-              I love Travelo, this is the best place to buy ticket and help you find your dream holiday.
-            </p>
-          </div>
+function name_style_bucket(string $name): string {
+  $n = mb_strtolower(trim($name));
 
-          <div class="testimonial-slide">
-            <img src="./assets/images/TESTIMONIALS/avatar2.png" alt="Jane Doe" class="client-avatar">
-            <h3>Jane Doe</h3>
-            <p class="client-title">Adventure Seeker</p>
-            <div class="rating"></div>
-            <p class="testimonial-text">
-              An amazing experience from start to finish. The support team was incredibly helpful. Highly
-              recommended!
-            </p>
-          </div>
+  $femaleHints = ['aya','sara','sarah','maria','maryam','fatima','noor','nour','lama','leen','lina','dana','hala','ruba','eman','iman','huda','heba','reema','rima','rana','jana','janna','tala','shahd','yasmin','yasmeen','yara'];
+  $maleHints   = ['ahmad','mohammad','muhammad','ali','omar','amr','hassan','hussein','yousef','yusuf','khaled','karem','ibrahim','adam','ammar','ameer','sameer','maher','tariq','zaid','zayd'];
 
-          <div class="testimonial-slide">
-            <img src="./assets/images/TESTIMONIALS/avatar1.png" alt="John Smith" class="client-avatar">
-            <h3>John Smith</h3>
-            <p class="client-title">Family Vacationer</p>
-            <div class="rating"></div>
-            <p class="testimonial-text">
-              Our family trip was perfectly organized. Everything was seamless. We will definitely be back
-              for more.
-            </p>
-          </div>
-        </div>
+  foreach ($femaleHints as $w) if (str_contains($n, $w)) return 'female';
+  foreach ($maleHints as $w)   if (str_contains($n, $w)) return 'male';
 
-        <button class="slider-btn prev-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <button class="slider-btn next-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+  $last = mb_substr($n, -1);
+  if (in_array($last, ['ة','ه','ى','ا'], true)) return 'female';
 
-        <div class="slider-pagination">
-        </div>
-      </div>
+  return 'neutral';
+}
 
-      <img src="./assets/images/TESTIMONIALS/Graphic_Elements.png" alt="Decorative Dots" class="deco-dots-testimonials">
+function pick_avatar(array $row): string {
+  $dbUrl = trim((string)($row['avatar_url'] ?? ''));
+  if ($dbUrl !== '') return $dbUrl;
+
+  // استخدم الصور الموجودة عندك
+  $male    = ['./assets/images/TESTIMONIALS/avatar1.png'];
+  $female  = ['./assets/images/TESTIMONIALS/avatar2.png'];
+  $neutral = ['./assets/images/TESTIMONIALS/avatar.png'];
+
+  $bucket = name_style_bucket((string)($row['name'] ?? ''));
+  $pool = $neutral;
+  if ($bucket === 'male') $pool = $male;
+  if ($bucket === 'female') $pool = $female;
+
+  // راندوم ثابت لكل شخص
+  $seed = crc32(strtolower(($row['name'] ?? '') . '|' . ($row['id'] ?? '0')));
+  $idx = $seed % max(1, count($pool));
+
+  return $pool[$idx];
+}
+
+// جلب approved فقط
+$stmt = $pdo->prepare("
+  SELECT id, name, title, message, rating, avatar_url, reviewed_at
+  FROM testimonials
+  WHERE status='approved'
+  ORDER BY reviewed_at DESC, id DESC
+  LIMIT 12
+");
+$stmt->execute();
+$testimonials = $stmt->fetchAll();
+?>
+
+<!-- =================== TESTIMONIALS SECTION (DYNAMIC) =================== -->
+<section class="testimonials-section">
+  <div class="container-testimonials">
+    <div class="section-header">
+      <p class="subtitle">TESTIMONIALS</p>
+      <h2>Trust our clients</h2>
     </div>
-  </section>
+
+    <div class="testimonial-slider">
+      <div class="slider-wrapper">
+
+        <?php if (!$testimonials): ?>
+          <div class="testimonial-slide active-slide">
+            <img src="./assets/images/TESTIMONIALS/avatar.png" alt="User" class="client-avatar">
+            <h3>No testimonials yet</h3>
+            <p class="client-title">—</p>
+
+            <!-- ✅ لا نطبع نجوم هنا (عشان ما تتكرر) -->
+            <div class="rating" data-rating="5"></div>
+
+            <p class="testimonial-text">Be the first to leave a review 💜</p>
+          </div>
+
+        <?php else: ?>
+          <?php $first = true; ?>
+          <?php foreach ($testimonials as $t): ?>
+            <?php
+              $avatar = pick_avatar($t);
+              $rating = (int)($t['rating'] ?? 5);
+              if ($rating < 1) $rating = 1;
+              if ($rating > 5) $rating = 5;
+            ?>
+            <div class="testimonial-slide <?= $first ? 'active-slide' : '' ?>">
+              <img src="<?= h($avatar) ?>" alt="<?= h($t['name'] ?? 'User') ?>" class="client-avatar">
+              <h3><?= h($t['name'] ?? 'User') ?></h3>
+              <p class="client-title"><?= h($t['title'] ?? '') ?></p>
+
+              <!-- ✅ أهم سطر: نخليها فاضية + data-rating -->
+              <div class="rating" data-rating="<?= $rating ?>"></div>
+
+              <p class="testimonial-text"><?= h($t['message'] ?? '') ?></p>
+            </div>
+            <?php $first = false; ?>
+          <?php endforeach; ?>
+        <?php endif; ?>
+
+      </div>
+
+      <button class="slider-btn prev-btn" type="button" aria-label="Previous">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <button class="slider-btn next-btn" type="button" aria-label="Next">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <div class="slider-pagination"></div>
+    </div>
+
+    <img src="./assets/images/TESTIMONIALS/Graphic_Elements.png" alt="Decorative Dots" class="deco-dots-testimonials">
+  </div>
+</section>
+
 <?php if ($subStatus === 'ok'): ?>
   <div class="alert alert-success ">
     Thank you for subscribing to Travelo newsletter ✈️💜
