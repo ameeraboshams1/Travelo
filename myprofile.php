@@ -69,11 +69,10 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
   <title>Travelo · My Profile</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
   <link rel="stylesheet" href="./assets/css/home.css">
   <link rel="stylesheet" href="./assets/css/profile.css">
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -82,16 +81,6 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
 </script>
   <!-- avatar letter small css (بدون صورة) -->
   <style>
-    :root{
-      --ink:#0f172a;
-      --muted:#64748b;
-      --border:#e8eaf3;
-      --bg:#f7f8fb;
-      --accent:#7c3aed;
-      --accent2:#6c63ff;
-      --shadow: 0 14px 36px rgba(15,23,42,.10);
-      --radius: 16px;
-    }
 
     *{ box-sizing:border-box; }
     body{
@@ -100,72 +89,18 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
       background: var(--bg);
       color: var(--ink);
     }
-
-    /* ===== Demo Header layout ===== */
-    .topbar{
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      background: rgba(255,255,255,.86);
-      backdrop-filter: blur(14px) saturate(160%);
-      border-bottom: 1px solid rgba(232,234,243,.9);
-    }
-    .topbar .wrap{
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 14px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 14px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight:800;
-      letter-spacing:-.02em;
-      color: var(--ink);
-      text-decoration:none;
-    }
-    .brand .logo{
-      width:34px;height:34px;border-radius:12px;
-      background: radial-gradient(circle at 30% 20%, rgba(124,58,237,.35), transparent 55%),
-                  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      box-shadow: 0 10px 22px rgba(124,58,237,.18);
-    }
-
-    .nav-actions{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-    }
-
-    /* ===== Guest buttons ===== */
-    .sign_in, .sign_up{
-      border: 0;
-      outline: none;
-      cursor: pointer;
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 14px;
-      transition: .2s ease;
-      font-family:"Plus Jakarta Sans", system-ui, sans-serif;
-    }
-    .sign_in{
-      background: rgba(255,255,255,.95);
-      box-shadow: 0 8px 22px rgba(15,23,42,.08), 0 0 0 1px rgba(232,234,243,.9) inset;
-      color: var(--ink);
-    }
-    .sign_in:hover{ transform: translateY(-1px); box-shadow: 0 14px 30px rgba(15,23,42,.12); }
-    .sign_up{
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      color: #fff;
-      box-shadow: 0 14px 30px rgba(124,58,237,.22);
-    }
-    .sign_up:hover{ transform: translateY(-1px); filter: brightness(1.02); }
-
+a { text-decoration: none; color: inherit; }
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 60px;
+}
     /* ===== Travelo User Chip (Premium Design) ===== */
     .nav-user{
       position: relative;

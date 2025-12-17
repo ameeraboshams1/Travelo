@@ -26,6 +26,65 @@
 
 *{ box-sizing:border-box; }
 
+.nav {
+  display: flex;
+  align-items: center;
+  height: 90px;
+}
+
+.nav-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: #fff;
+  box-shadow: 0 0 60px 40px rgba(151, 71, 255, 0.03) inset;
+
+}
+
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.logo a {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.img-logo {
+  width: 40px;
+  height: 40px;
+}
+
+.nav-links {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-links-ul li a:hover {
+  color: #872BFF;   }
+
+
+  .active{
+    color: #872BFF;
+  }
+
+.nav-button {
+  width: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+
 /* =========================
    PAGE LAYOUT تحت الناف
    ========================= */

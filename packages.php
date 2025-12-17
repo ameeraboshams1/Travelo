@@ -481,26 +481,33 @@ try {
                 <span class="user-text">
                   Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
                 </span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </button>
+                <!-- السهم -->
+        <i class="bi bi-chevron-down user-caret" aria-hidden="true"></i>
+      </button>
 
-              <div class="user-menu" id="userMenu">
-                <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                  <a href="admin-dashboard.php"><i class="fa-solid fa-gauge"></i> Admin dashboard</a>
-                <?php else: ?>
-                  <a href="my-bookings.php"><i class="fa-solid fa-ticket"></i> My bookings</a>
-                <?php endif; ?>
-                <hr>
-                <form action="logout.php" method="post">
-                  <button type="submit"><i class="fa-solid fa-right-from-bracket"></i> Log out</button>
-                </form>
-              </div>
-            </div>
-          <?php else: ?>
-            <button id="btnLogin" type="button" class="sign_in">Login</button>
-            <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
-          <?php endif; ?>
-        </div>
+      <div class="user-menu" id="userMenu">
+        <a href="./myprofile.php"><i class="bi bi-person"></i> My profile</a>
+
+        <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+          <a href="admin-dashboard.php"><i class="bi bi-speedometer2"></i> Admin dashboard</a>
+        <?php else: ?>
+          <a href="./myBooking.php"><i class="bi bi-ticket-perforated"></i> My bookings</a>
+        <?php endif; ?>
+
+        <hr>
+
+        <form action="logout.php" method="post">
+          <button type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
+        </form>
+      </div>
+    </div>
+  <?php else: ?>
+    <!-- ====== Guest state ====== -->
+    <button id="btnLogin" type="button" class="sign_in">Login</button>
+    <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
+  <?php endif; ?>
+</div>
+
 
         <button class="menu-toggle" aria-label="Open menu"><span></span></button>
       </nav>
