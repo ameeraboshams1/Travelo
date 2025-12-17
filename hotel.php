@@ -478,6 +478,17 @@ try {
                 data-amenities="<?= htmlspecialchars(implode('|', $amenities), ENT_QUOTES) ?>"
                 data-images="<?= htmlspecialchars($imagesAttr, ENT_QUOTES) ?>"
                 data-currency="<?= htmlspecialchars($hotel['currency'], ENT_QUOTES) ?>"
+                data-has-parking="<?= (int)$hotel['has_parking'] ?>"
+data-has-cctv="<?= (int)$hotel['has_cctv'] ?>"
+data-has-wifi="<?= (int)$hotel['has_wifi'] ?>"
+data-has-free-breakfast="<?= (int)$hotel['has_free_breakfast'] ?>"
+data-pay-at-hotel="<?= (int)$hotel['pay_at_hotel'] ?>"
+data-couple-friendly="<?= (int)$hotel['couple_friendly'] ?>"
+data-pet-friendly="<?= (int)$hotel['pet_friendly'] ?>"
+data-airport-shuttle="<?= (int)$hotel['airport_shuttle'] ?>"
+data-has-sea-view="<?= (int)$hotel['has_sea_view'] ?>"
+data-has-city-view="<?= (int)$hotel['has_city_view'] ?>"
+
               >
                 <div class="hotel-image-col">
                   <div class="hotel-image-wrapper">

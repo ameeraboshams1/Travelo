@@ -12,21 +12,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const maxValueLabel = document.querySelector('.slider-values span:last-child');
   const priceSummary  = document.getElementById('priceSummary');
 
-  // Popular filters (checkboxes existing in your UI)
-  const moreFiltersBtn   = document.getElementById('moreFiltersBtn');
-  const filtersExtra     = document.getElementById('filtersExtra');
-  const filterCheckboxes = document.querySelectorAll('.filter-checkbox input[type="checkbox"]');
+  // ========== POPULAR FILTERS (ONLY THIS BLOCK) ==========
+  const moreFiltersBtn = document.getElementById('moreFiltersBtn');
+  const filtersExtra   = document.getElementById('filtersExtra');
+
+  const popularBlock = moreFiltersBtn ? moreFiltersBtn.closest('.filter-block') : null;
+  const popularCheckboxes = popularBlock
+    ? Array.from(popularBlock.querySelectorAll('.filter-checkbox input[type="checkbox"]'))
+    : [];
 
   // ========== LOOKING FOR (ALWAYS VISIBLE) ==========
-  const lookingForList  = document.getElementById('lookingForList');   // container that has checkboxes
-  const lookingForClear = document.getElementById('lookingForClear');  // clear button
-  const lookingForCount = document.getElementById('lookingForCount');  // count badge (optional)
+  const lookingForList   = document.getElementById('lookingForList');
+  const lookingForClear  = document.getElementById('lookingForClear');
+  const lookingForCount  = document.getElementById('lookingForCount');
   const lookingForChecks = lookingForList
     ? Array.from(lookingForList.querySelectorAll('input[type="checkbox"]'))
     : [];
 
   // ========== CATEGORY (ALWAYS VISIBLE - RADIO) ==========
-  const categoryList   = document.getElementById('categoryList'); // container radios
+  const categoryList   = document.getElementById('categoryList');
   const categoryRadios = categoryList
     ? Array.from(categoryList.querySelectorAll('input[type="radio"][name="categoryTier"]'))
     : [];
@@ -59,21 +63,63 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Set(raw);
   }
 
-  function matchLookingForKey(key, card, amenSet) {
-    const discount = parseInt(card.dataset.discount || '0', 10) || 0;
+  function flag(card, keyCamel) {
+    // reads dataset flags if you added them in PHP (data-has-wifi="1", etc)
+    // dataset keys become camelCase: data-has-wifi -> card.dataset.hasWifi
+    const v = card.dataset[keyCamel];
+    if (v === undefined) return null;        // flag not provided in HTML
+    return String(v) === '1';
+  }
 
-    if (key === 'deals') return discount > 0;
-    if (key === 'pay_at_hotel') return amenSet.has('pay hotel available');
-    if (key === 'breakfast') return amenSet.has('free breakfast');
-    if (key === 'wifi') return amenSet.has('wifi');
-    if (key === 'parking') return amenSet.has('parking');
-    if (key === 'airport_shuttle') return amenSet.has('airport shuttle');
-    if (key === 'couple_friendly') return amenSet.has('couple friendly');
-    if (key === 'pet_friendly') return amenSet.has('pet friendly');
-    if (key === 'view') return (amenSet.has('sea view') || amenSet.has('city view'));
-    if (key === 'cctv') return (amenSet.has('cctv cameras') || amenSet.has('cctv'));
+  function matchLookingForKey(key, card) {
+  const discount = parseInt(card.dataset.discount || "0", 10) || 0;
 
-    return true;
+  const is1 = (v) => String(v) === "1";
+
+  if (key === "deals") return discount > 0;
+  if (key === "pay_at_hotel") return is1(card.dataset.payAtHotel);
+  if (key === "breakfast") return is1(card.dataset.hasFreeBreakfast);
+  if (key === "wifi") return is1(card.dataset.hasWifi);
+  if (key === "parking") return is1(card.dataset.hasParking);
+  if (key === "airport_shuttle") return is1(card.dataset.airportShuttle);
+  if (key === "couple_friendly") return is1(card.dataset.coupleFriendly);
+  if (key === "pet_friendly") return is1(card.dataset.petFriendly);
+  if (key === "cctv") return is1(card.dataset.hasCctv);
+  if (key === "view") return is1(card.dataset.hasSeaView) || is1(card.dataset.hasCityView);
+
+  return true;
+}
+
+
+  function matchPopularValue(valueLower, card, amenSet) {
+    // Popular filters values are like: "Pay Hotel Available", "Couple Friendly", "Free Breakfast", ...
+    if (valueLower === 'pay hotel available' || valueLower === 'pay at hotel') {
+      const f = flag(card, 'payAtHotel');
+      return (f !== null) ? f : amenSet.has('pay hotel available');
+    }
+
+    if (valueLower === 'couple friendly') {
+      const f = flag(card, 'coupleFriendly');
+      return (f !== null) ? f : amenSet.has('couple friendly');
+    }
+
+    if (valueLower === 'free breakfast') {
+      const f = flag(card, 'hasFreeBreakfast');
+      return (f !== null) ? f : amenSet.has('free breakfast');
+    }
+
+    if (valueLower === 'pet friendly') {
+      const f = flag(card, 'petFriendly');
+      return (f !== null) ? f : amenSet.has('pet friendly');
+    }
+
+    if (valueLower === 'airport shuttle') {
+      const f = flag(card, 'airportShuttle');
+      return (f !== null) ? f : amenSet.has('airport shuttle');
+    }
+
+    // fallback generic
+    return amenSet.has(valueLower);
   }
 
   function computeTierBounds(minP, maxP) {
@@ -89,6 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
       lookingForCount.textContent = String(n);
       lookingForCount.style.display = n ? '' : 'none';
     }
+  }
+
+  function updateResultsCount(n) {
+    const el = document.querySelector('.toolbar-count a');
+    if (el) el.textContent = `${n} results`;
   }
 
   // ================== FILTER + SORT STATE ==================
@@ -149,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getSelectedPopularFilters() {
-    return Array.from(filterCheckboxes)
+    return popularCheckboxes
       .filter(cb => cb.checked)
       .map(cb => cb.value.trim().toLowerCase());
   }
@@ -159,17 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasPopular      = selectedPopular.length > 0;
 
     const bounds = computeTierBounds(globalMinPrice, globalMaxPrice);
-
-    // tier labels (optional)
-    const b1 = formatPrice(bounds.t1);
-    const b2 = formatPrice(bounds.t2);
-    const elB = document.getElementById('tierBudget');
-    const elM = document.getElementById('tierMid');
-    const elL = document.getElementById('tierLuxury');
-    if (elB) elB.textContent = `Budget (≤ ${b1})`;
-    if (elM) elM.textContent = `Mid-range (${b1} – ${b2})`;
-    if (elL) elL.textContent = `Luxury (≥ ${b2})`;
-
     const visibleCards = [];
 
     hotelCards.forEach(card => {
@@ -188,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let match = price >= currentMinPrice && price <= currentMaxPrice;
       if (!match) { card.style.display = 'none'; return; }
 
-      // category tier (based on price bounds)
+      // category tier
       if (selectedCategory !== 'any') {
         if (selectedCategory === 'budget') match = price <= bounds.t1;
         else if (selectedCategory === 'mid') match = price > bounds.t1 && price <= bounds.t2;
@@ -200,17 +240,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // popular filters (AND)
       if (hasPopular) {
-        const ok = selectedPopular.every(v => amenSet.has(v));
+        const ok = selectedPopular.every(v => matchPopularValue(v, card, amenSet));
         if (!ok) { card.style.display = 'none'; return; }
       }
 
       // looking for (AND)
       if (selectedLookingFor.size) {
-        const ok = Array.from(selectedLookingFor).every(key =>
-          matchLookingForKey(key, card, amenSet)
-        );
-        if (!ok) { card.style.display = 'none'; return; }
+      const ok = Array.from(selectedLookingFor).every(key =>
+       matchLookingForKey(key, card)
+       );
+       if (!ok) { card.style.display = 'none'; return; }
       }
+
 
       card.style.display = '';
       visibleCards.push(card);
@@ -222,10 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
     hotelsList.innerHTML = '';
     visibleCards.forEach(card => hotelsList.appendChild(card));
 
-    // keep hidden at end (optional)
+    // append hidden at end to keep nodes in DOM
     hotelCards.forEach(card => {
       if (card.style.display === 'none') hotelsList.appendChild(card);
     });
+
+    updateResultsCount(visibleCards.length);
   }
 
   // ================== EVENTS ==================
@@ -264,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Category radios
   if (categoryRadios.length) {
-    // set initial from checked radio
     const init = categoryRadios.find(r => r.checked);
     if (init) selectedCategory = init.value || 'any';
 
@@ -278,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Popular filter checkboxes
-  filterCheckboxes.forEach(cb => cb.addEventListener('change', applyAllFilters));
+  popularCheckboxes.forEach(cb => cb.addEventListener('change', applyAllFilters));
 
   // Price slider init
   if (sliderTrack && sliderFill && leftThumb && rightThumb && prices.length) {
@@ -644,14 +686,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ========= INIT =========
-  // ensure category initial value if radios exist
   if (categoryRadios.length) {
     const init = categoryRadios.find(r => r.checked);
     if (init) selectedCategory = init.value || 'any';
   }
   updateLookingForUI();
 
-  // slider init labels
   currentMinPrice = globalMinPrice;
   currentMaxPrice = globalMaxPrice;
   updateSliderLabels();
