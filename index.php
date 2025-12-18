@@ -950,7 +950,7 @@ $testimonials = $stmt->fetchAll();
           </p>
 
           <div class="linksfoot">
-            <a href="#">Tulkarm, PS</a>
+            <a href="#">Westbank, PS</a>
             <a href="#">+972 59-260-2379</a>
             <a href="#">traveloa9@gmail.com</a>
           </div>

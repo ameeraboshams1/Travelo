@@ -725,6 +725,10 @@ require __DIR__ . '/db.php';
       <a class="nav-link" href="#calendar" data-page="calendar">
         <i class="bi bi-calendar-event me-2"></i>Calendar
       </a>
+      <a class="nav-link" href="#faqs" data-page="faqs">
+  <i class="bi bi-question-circle me-2"></i>FAQs
+</a>
+
     </nav>
 
     <hr />
@@ -1324,6 +1328,38 @@ require __DIR__ . '/db.php';
         </div>
       </div>
     </section>
+ <!-- ✅ FAQS -->
+<section id="faqs" class="section">
+  <div class="card p-3">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="fw-bold">FAQs</div>
+      <div class="toolbar d-flex gap-2">
+        <button class="btn btn-sm btn-primary" id="addFaq">
+          <i class="bi bi-plus-lg me-1"></i>Add
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+     <table id="faqsTable" class="table table-hover align-middle" style="width:100%">
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Question</th>
+      <th>Answer</th>   <!-- ✅ ضيفيه -->
+      <th>Popular</th>
+      <th>Active</th>
+      <th>Sort</th>
+      <th>Updated</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+    </div>
+  </div>
+</section>
 
   </main>
 </div>
@@ -2297,6 +2333,7 @@ require __DIR__ . '/db.php';
   });
 })();
 </script>
+<script src="./assets/js/faqs_admin.js"></script>
 
 </body>
 </html>
