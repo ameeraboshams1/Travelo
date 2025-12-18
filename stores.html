@@ -1,674 +1,1370 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Travelo · Traveler Stories</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
-        rel="stylesheet">
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Travelo · Traveler Stories</title>
 
-    <style>
-        :root {
-            --ink: #0f172a;
-            --muted: #64748b;
-            --accent: #872bff;
-            --accent2: #6c63ff;
-            --border: #eceff5;
-            --halo: rgba(135, 43, 255, .14);
-        }
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-        * {
-            box-sizing: border-box
-        }
+  <style>
+    :root{
+      --ink:#0f172a;
+      --muted:#64748b;
+      --accent:#7c3aed;
+      --accent2:#6c63ff;
+      --bg:#f7f8fb;
+      --card:#ffffff;
+      --border:#e8eaf3;
+      --halo: rgba(124,58,237,.14);
+      --shadow: 0 18px 55px rgba(15,23,42,.12);
+      --shadow2: 0 26px 80px rgba(15,23,42,.16);
+      --r16:16px;
+      --r22:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{
+      font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 420px at 85% 5%, rgba(124,58,237,.14), transparent 60%),
+        radial-gradient(700px 360px at 10% 10%, rgba(108,99,255,.12), transparent 60%),
+        var(--bg);
+      overflow-x:hidden;
+    }
+    a{color:inherit}
 
-        html,
-        body {
-            margin: 0
-        }
+    /* progress */
+    .progress{
+      position:fixed; inset:0 0 auto 0;
+      height:4px; width:0;
+      z-index:9999;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 0 10px rgba(124,58,237,.35);
+    }
 
-        body {
-            font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-            color: var(--ink);
-            background: #fff;
-            overflow-x: hidden;
-        }
+    /* container */
+    .container{
+      width:min(1200px, calc(100% - 32px));
+      margin-inline:auto;
+    }
 
-                .progress {
-            position: fixed;
-            inset: 0 0 auto 0;
-            height: 4px;
-            width: 0;
-            z-index: 9999;
-            background: linear-gradient(90deg, var(--accent), var(--accent2));
-            box-shadow: 0 0 10px rgba(135, 43, 255, .35)
-        }
+    /* topbar */
+    .topbar{
+      position:fixed; inset:0 0 auto 0;
+      height:68px;
+      z-index:100;
+      display:flex;
+      align-items:center;
+      transition:.25s ease;
+      background: rgba(255,255,255,0);
+      border-bottom: 1px solid rgba(255,255,255,0);
+    }
+    .topbar.is-solid{
+      background: rgba(255,255,255,.72);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(232,234,243,.95);
+      box-shadow: 0 12px 28px rgba(15,23,42,.06);
+    }
+    .topbar-row{
+      height:68px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      text-decoration:none;
+      font-weight:900;
+    }
+    .logo{width:28px; height:28px}
+    .brand span{color:var(--accent); letter-spacing:.2px}
+    .top-actions{display:flex; align-items:center; gap:10px}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(232,234,243,.95);
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 32px rgba(15,23,42,.06);
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--muted);
+      user-select:none;
+    }
 
-                .hero {
-            position: relative;
-            height: 380px;
-            display: grid;
-            place-items: center;
-            text-align: center;
-            color: #fff;
-            overflow: hidden
-        }
+    /* hero */
+    .hero{
+      position:relative;
+      min-height: 420px;
+      padding-top:68px;
+      display:grid;
+      align-items:end;
+      overflow:hidden;
+    }
+    .hero::before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(920px 520px at 12% 12%, rgba(124,58,237,.50), transparent 62%),
+        radial-gradient(920px 520px at 88% 88%, rgba(108,99,255,.40), transparent 62%),
+        linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.62)),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80");
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.03);
+      filter: saturate(1.08) contrast(1.06);
+    }
+    .hero-inner{
+      position:relative; z-index:1;
+      padding: 28px 0 26px;
+      color:#fff;
+    }
+    .hero h1{
+      margin:0;
+      font-size: 56px;
+      line-height: 1.03;
+      letter-spacing:.2px;
+      text-shadow: 0 18px 55px rgba(0,0,0,.35);
+      font-weight: 900;
+    }
+    .hero p{
+      margin:10px 0 0;
+      font-size: 15px;
+      opacity:.92;
+      font-weight: 750;
+      max-width: 58ch;
+    }
+    @media (max-width:720px){
+      .hero{min-height: 360px;}
+      .hero h1{font-size: 38px;}
+      .hero p{font-size: 14px;}
+    }
 
-        .hero::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(900px 540px at 10% 10%, rgba(135, 43, 255, .33), transparent 60%),
-                radial-gradient(900px 540px at 90% 90%, rgba(108, 99, 255, .28), transparent 60%),
-                linear-gradient(180deg, rgba(0, 0, 0, .12), rgba(0, 0, 0, .55)),
-                url("https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=1680&q=80");
-            background-size: cover;
-            background-position: center
-        }
+    /* main layout */
+    main{padding: 18px 0 60px}
 
-        .hero .wrap {
-            position: relative;
-            z-index: 1;
-            padding: 0 18px
-        }
+    .toolbar{
+      margin-top: -14px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
 
-        .hero h1 {
-            margin: 0;
-            font-size: 54px;
-            line-height: 1.04;
-            letter-spacing: .2px
-        }
+    .search{
+      flex: 1 1 320px;
+      position:relative;
+      border-radius: 999px;
+      border: 1px solid rgba(232,234,243,.95);
+      background: rgba(255,255,255,.86);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 16px 40px rgba(15,23,42,.08);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+    }
+    .search i{color:var(--muted)}
+    .search input{
+      border:0; outline:0; background:transparent;
+      width:100%;
+      font-weight: 800;
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .x{
+      border:0;
+      background:transparent;
+      cursor:pointer;
+      font-weight:900;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      display:none;
+    }
+    .x.show{display:inline-flex}
+    .x:hover{background: rgba(124,58,237,.10); color: var(--ink);}
 
-        .hero p {
-            margin: 10px 0 0;
-            font-size: 18px;
-            opacity: .96
-        }
+    .chips{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .chip{
+      border: 1px solid rgba(232,234,243,.95);
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(10px);
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-weight: 900;
+      font-size: 12px;
+      cursor:pointer;
+      color: var(--ink);
+      transition: .18s ease;
+      user-select:none;
+    }
+    .chip:hover{
+      box-shadow: 0 0 0 6px var(--halo);
+      border-color: rgba(124,58,237,.35);
+      transform: translateY(-1px);
+    }
+    .chip.is-active{
+      background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(108,99,255,.10));
+      border-color: rgba(124,58,237,.35);
+    }
 
-        @media (max-width:720px) {
-            .hero {
-                height: 320px
-            }
+    .stats{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .stat{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(232,234,243,.95);
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 14px 32px rgba(15,23,42,.06);
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dot{
+      width:8px; height:8px; border-radius:99px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 14px 35px rgba(124,58,237,.22);
+    }
 
-            .hero h1 {
-                font-size: 36px
-            }
-        }
+    /* featured */
+    .featured{
+      margin-top: 18px;
+      border-radius: 26px;
+      overflow:hidden;
+      border: 1px solid rgba(232,234,243,.95);
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow2);
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 0;
+      min-height: 340px;
+    }
+    @media (max-width: 980px){
+      .featured{grid-template-columns:1fr;}
+    }
+    .f-media{
+      position:relative;
+      min-height: 320px;
+      background:#000;
+    }
+    .f-media img{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      transform: scale(1.02);
+      filter: saturate(1.08) contrast(1.05);
+    }
+    .f-media::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.58));
+    }
+    .f-badge{
+      position:absolute;
+      top:16px; left:16px;
+      z-index:2;
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.20);
+      backdrop-filter: blur(10px);
+      color:#fff;
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .f-info{
+      position:absolute;
+      inset:auto 18px 18px 18px;
+      z-index:2;
+      color:#fff;
+    }
+    .f-title{
+      margin: 10px 0 6px;
+      font-size: 34px;
+      line-height: 1.08;
+      font-weight: 900;
+      text-shadow: 0 16px 55px rgba(0,0,0,.25);
+    }
+    .f-meta{
+      display:flex; gap:10px; flex-wrap:wrap;
+      font-weight: 850;
+      font-size: 12px;
+      opacity: .95;
+    }
 
-                main {
-            max-width: 1280px;
-            margin: 42px auto;
-            padding: 0 18px
-        }
+    .f-side{
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .f-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 900;
+      font-size: 12px;
+      color:#3f47a1;
+    }
+    .f-excerpt{
+      color:#1f2937;
+      line-height:1.8;
+      font-weight: 650;
+      font-size: 14px;
+      overflow:hidden;
+      display:-webkit-box;
+      -webkit-line-clamp: 7;
+      -webkit-box-orient: vertical;
+    }
+    .f-actions{
+      margin-top:auto;
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .btn{
+      appearance:none;
+      border:0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
+      font-size: 12px;
+      cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      transition: .18s ease;
+      user-select:none;
+    }
+    .btn.primary{
+      color:#fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 14px 30px rgba(124,58,237,.20);
+    }
+    .btn.primary:hover{ filter: brightness(1.03); transform: translateY(-1px); }
+    .btn.ghost{
+      background:#fff;
+      border:1px solid #e7eaf4;
+      color: var(--ink);
+    }
+    .btn.ghost:hover{
+      border-color: rgba(124,58,237,.35);
+      box-shadow: 0 0 0 6px var(--halo);
+      transform: translateY(-1px);
+    }
+    .btn:active{ transform: translateY(1px); }
 
-        .stream {
-            display: flex;
-            flex-direction: column
-        }
+    /* grid cards */
+    .grid{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+    .card{
+      grid-column: span 4;
+      border-radius: var(--r22);
+      overflow:hidden;
+      border: 1px solid rgba(232,234,243,.95);
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      cursor:pointer;
+      position:relative;
+      min-height: 320px;
+      display:flex;
+      flex-direction:column;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      border-color: rgba(124,58,237,.35);
+      box-shadow: 0 0 0 6px var(--halo), var(--shadow2);
+    }
+    .card.wide{ grid-column: span 6; }
+    @media (max-width: 1100px){
+      .card{grid-column: span 6;}
+      .card.wide{grid-column: span 12;}
+    }
+    @media (max-width: 720px){
+      .card{grid-column: span 12;}
+    }
+    .c-media{
+      position:relative;
+      height: 160px;
+      background:#000;
+    }
+    .c-media img{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      filter: saturate(1.08) contrast(1.05);
+      transform: scale(1.02);
+    }
+    .c-media::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55));
+    }
+    .c-pill{
+      position:absolute;
+      z-index:2;
+      top: 12px; left: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.20);
+      backdrop-filter: blur(10px);
+      color:#fff;
+      font-weight: 900;
+      font-size: 12px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+    }
+    .c-body{
+      padding: 14px 14px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      flex: 1 1 auto;
+    }
+    .c-title{
+      margin:0;
+      font-size: 16px;
+      line-height:1.25;
+      font-weight: 900;
+      letter-spacing:.1px;
+    }
+    .c-meta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .c-excerpt{
+      margin: 2px 0 0;
+      color:#1f2937;
+      line-height:1.75;
+      font-weight: 650;
+      font-size: 13px;
+      overflow:hidden;
+      display:-webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+    }
+    .c-actions{
+      margin-top: auto;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(232,234,243,.95);
+    }
+    .iconrow{display:flex; gap:8px; align-items:center}
+    .ibtn{
+      width: 40px; height: 40px;
+      border-radius: 14px;
+      border: 1px solid #e7eaf4;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .ibtn:hover{
+      border-color: rgba(124,58,237,.35);
+      box-shadow: 0 0 0 6px var(--halo);
+      transform: translateY(-1px);
+    }
+    .ibtn.is-on{
+      border-color: rgba(124,58,237,.45);
+      background: linear-gradient(135deg, rgba(124,58,237,.10), rgba(108,99,255,.08));
+    }
+    .countlike{
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--muted);
+      padding-right: 6px;
+      user-select:none;
+    }
 
-                .row {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1.15fr .85fr;
-            gap: 36px;
-            align-items: center;
-            padding: 40px 0;
-            border-bottom: 1px solid var(--border);
-        }
+    /* modal reader */
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:99999;
+      display:none;
+      background: rgba(2,6,23,.55);
+      backdrop-filter: blur(8px);
+      padding: 18px;
+    }
+    .modal.show{display:block}
+    .m-card{
+      width:min(980px, 100%);
+      height: min(84vh, 780px);
+      margin: 0 auto;
+      border-radius: 26px;
+      overflow:hidden;
+      border: 1px solid rgba(232,234,243,.35);
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 26px 90px rgba(0,0,0,.28);
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+    }
+    @media (max-width: 980px){
+      .m-card{grid-template-columns:1fr; height: min(88vh, 860px);}
+    }
+    .m-media{
+      position:relative;
+      background:#000;
+      min-height: 260px;
+    }
+    .m-media img{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      filter: saturate(1.08) contrast(1.05);
+    }
+    .m-media::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.62));
+    }
+    .m-top{
+      position:absolute;
+      inset: 14px 14px auto 14px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      z-index:2;
+      align-items:flex-start;
+    }
+    .m-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.20);
+      backdrop-filter: blur(10px);
+      color:#fff;
+      font-weight: 900;
+      font-size: 12px;
+      max-width: 70%;
+    }
+    .m-close{
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.14);
+      color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .m-close:hover{transform: translateY(-1px); filter: brightness(1.05);}
 
-        .row:last-child {
-            border-bottom: none
-        }
+    .m-body{
+      padding: 16px 16px 12px;
+      display:flex;
+      flex-direction:column;
+      min-height: 0;
+    }
+    .m-title{
+      margin: 2px 0 6px;
+      font-size: 20px;
+      font-weight: 900;
+      line-height:1.2;
+      letter-spacing:.1px;
+    }
+    .m-meta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 12px;
+      align-items:center;
+    }
+    .m-text{
+      margin-top: 12px;
+      padding-right: 6px;
+      overflow:auto;
+      color:#1f2937;
+      line-height: 1.9;
+      font-weight: 650;
+      font-size: 14px;
+      white-space: pre-wrap;
+      flex: 1 1 auto;
+    }
+    .m-actions{
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(232,234,243,.95);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
 
-                .row:nth-child(even) .media {
-            order: 2
-        }
+    .navbtns{display:flex; gap:8px; align-items:center}
+    .navbtn{
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      border: 1px solid #e7eaf4;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .navbtn:hover{
+      border-color: rgba(124,58,237,.35);
+      box-shadow: 0 0 0 6px var(--halo);
+      transform: translateY(-1px);
+    }
 
-        .row:nth-child(even) .text {
-            order: 1
-        }
+    /* Ask AI Button (same) */
+    .ask-ai-btn{
+      position: fixed;
+      left: 22px;
+      bottom: 40px;
+      width: 60px;
+      height: 60px;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 40%),
+                  linear-gradient(135deg, #7c3aed, #6c63ff);
+      box-shadow: 0 16px 40px rgba(124,58,237,.35);
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      overflow: visible;
+      padding: 0;
+    }
+    .ask-ai-btn i{
+      font-size: 24px;
+      color: #fff;
+      line-height: 1;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.18));
+    }
+    .ask-ai-btn:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 22px 55px rgba(124,58,237,.45);
+      filter: brightness(1.03);
+    }
+    .ask-ai-btn::after{
+      content:"";
+      position:absolute;
+      inset:-8px;
+      border-radius:999px;
+      background: radial-gradient(circle, rgba(124,58,237,.35), transparent 60%);
+      opacity: 0;
+      transform: scale(.9);
+      transition: .25s ease;
+      pointer-events: none;
+    }
+    .ask-ai-btn:hover::after{ opacity: 1; transform: scale(1); }
 
-        @media (max-width:1024px) {
-            .row {
-                grid-template-columns: 1fr;
-                gap: 18px
-            }
+    .ask-ai-bubble{
+      position: absolute;
+      left: calc(100% + 12px);
+      top: 50%;
+      transform: translateY(-50%) translateX(-6px);
+      background: rgba(124, 58, 237, 0.30);
+      color: #0f172a;
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+      box-shadow: 0 14px 30px rgba(15,23,42,.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+    }
+    .ask-ai-bubble::before{
+      content:"";
+      position:absolute;
+      left:-6px;
+      top:50%;
+      width:10px;
+      height:10px;
+      background: rgba(124, 58, 237, 0.30);
+      transform: translateY(-50%) rotate(45deg);
+      border-radius: 2px;
+    }
+    .ask-ai-btn:hover .ask-ai-bubble,
+    .ask-ai-btn:focus-visible .ask-ai-bubble{
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+    .ask-ai-bubble{ opacity:0 !important; }
+    .ask-ai-btn:hover .ask-ai-bubble{ opacity:1 !important; }
 
-            .row:nth-child(even) .media,
-            .row:nth-child(even) .text {
-                order: initial
-            }
-        }
-
-                .media {
-            position: relative;
-            min-height: 400px;
-            border-radius: 22px;
-            overflow: hidden;
-            isolation: isolate
-        }
-
-        .media img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scale(1.06);
-            filter: saturate(1.02) contrast(1.03);
-            opacity: 0;
-            transition: opacity .6s ease, transform 1.1s ease;
-            will-change: transform, opacity
-        }
-
-        .media.loaded img {
-            opacity: 1;
-            transform: scale(1)
-        }
-
-                .media::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .13) 100%);
-            pointer-events: none
-        }
-
-                .text {
-            padding: 0 2px
-        }
-
-        .kicker {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 900;
-            letter-spacing: .25px;
-            color: #3f47a1
-        }
-
-        .title {
-            margin: 6px 0 8px;
-            font-size: 32px;
-            line-height: 1.15;
-            font-weight: 800;
-            letter-spacing: .2px
-        }
-
-        .meta {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            color: #667085;
-            font-size: 12px;
-            font-weight: 800
-        }
-
-        .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent2))
-        }
-
-        .excerpt {
-            margin: 14px 0 0;
-            color: #1f2937;
-            line-height: 1.75;
-            font-size: 17px;
-            display: -webkit-box;
-            line-clamp: 9;
-            -webkit-box-orient: vertical;
-            overflow: hidden
-        }
-
-        .excerpt[data-expanded="true"] {
-            line-clamp: unset
-        }
-
-        .actions {
-            margin-top: 14px;
-            display: flex;
-            gap: 10px;
-            align-items: center
-        }
-
-        .btn {
-            appearance: none;
-            border: 1px solid #e7eaf4;
-            background: #fff;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all .2s ease
-        }
-
-        .btn:hover {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 6px var(--halo)
-        }
-
-                .reveal {
-            opacity: 0;
-            transform: translateY(22px);
-            transition: opacity .7s ease, transform .7s ease
-        }
-
-        .reveal.in {
-            opacity: 1;
-            transform: translateY(0)
-        }
-
-        .parallax {
-            will-change: transform
-        }
-
-        @media (prefers-reduced-motion:reduce) {
-            * {
-                animation: none !important;
-                transition: none !important
-            }
-        }
-
-          /* =========================
-   Ask AI Floating Button + Bubble
-   ========================= */
-
-.ask-ai-btn{
-  position: fixed;
-  left: 22px;
-  bottom: 40px;
-  width: 60px;
-  height: 60px;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  z-index: 99999;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 40%),
-              linear-gradient(135deg, #7c3aed, #6c63ff);
-  box-shadow: 0 16px 40px rgba(124,58,237,.35);
-  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-
-  overflow: visible;   /* مهم للبابل */
-  padding: 0;
-}
-
-.ask-ai-btn i{
-  font-size: 24px;
-  color: #fff;
-  line-height: 1;
-  filter: drop-shadow(0 6px 10px rgba(0,0,0,.18));
-}
-
-.ask-ai-btn:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 22px 55px rgba(124,58,237,.45);
-  filter: brightness(1.03);
-}
-
-/* glow */
-.ask-ai-btn::after{
-  content:"";
-  position:absolute;
-  inset:-8px;
-  border-radius:999px;
-  background: radial-gradient(circle, rgba(124,58,237,.35), transparent 60%);
-  opacity: 0;
-  transform: scale(.9);
-  transition: .25s ease;
-  pointer-events: none;
-}
-.ask-ai-btn:hover::after{
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* bubble */
-.ask-ai-bubble{
-  position: absolute;
-  left: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%) translateX(-6px);
-
-  background: rgba(124, 58, 237, 0.30);
-  color: #0f172a;
-  padding: 10px 12px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 13px;
-  white-space: nowrap;
-
-  box-shadow: 0 14px 30px rgba(15,23,42,.18);
-  opacity: 0;
-  pointer-events: none;
-  transition: .2s ease;
-}
-
-.ask-ai-bubble::before{
-  content:"";
-  position:absolute;
-  left:-6px;
-  top:50%;
-  width:10px;
-  height:10px;
-  background: rgba(124, 58, 237, 0.30);
-  transform: translateY(-50%) rotate(45deg);
-  border-radius: 2px;
-}
-
-.ask-ai-btn:hover .ask-ai-bubble,
-.ask-ai-btn:focus-visible .ask-ai-bubble{
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
-}
-
-.ask-ai-bubble{ opacity:0 !important; }
-.ask-ai-btn:hover .ask-ai-bubble{ opacity:1 !important; }
-
-.topbar {
-    position: fixed;
-    inset: 0 0 auto 0;
-    height: 68px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0);
-    border-bottom: 1px solid rgba(255, 255, 255, 0);
-}
-
-
-.topbar-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px
-}
-
-.brand {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    text-decoration: none
-}
-
-.logo {
-    width: 28px;
-    height: 28px
-}
-
-.brand span {
-    font-weight: 900;
-    color: var(--accent)
-}
-.top-actions {
-    display: flex;
-    gap: 8px
-}
-
-    </style>
+    @media (prefers-reduced-motion:reduce){
+      *{animation:none !important; transition:none !important;}
+    }
+  </style>
 </head>
 
 <body>
+  <div class="progress" id="progress"></div>
 
-    <header class="topbar">
+  <header class="topbar" id="topbar">
     <div class="container topbar-row">
       <a class="brand" href="index.php" aria-label="Go to Travelo home">
         <img src="./assets/images/logo.svg" alt="Travelo" class="logo">
         <span>Travelo</span>
       </a>
+      <div class="top-actions">
+        <span class="pill"><span class="dot"></span><span id="savedCount">Saved: 0</span></span>
+        <span class="pill"><span class="dot"></span><span id="likeCount">Likes: 0</span></span>
+      </div>
     </div>
-    <div class="glow"></div>
   </header>
 
-    <div class="progress" id="progress"></div>
+  <section class="hero" aria-label="Traveler Stories">
+    <div class="container hero-inner">
+      <h1>Traveler Stories</h1>
+      <p>Search, filter, read, like, save, and share by email.</p>
+    </div>
+  </section>
 
-    <header class="hero" aria-label="Traveler Stories">
-        <div class="wrap">
-            <h1>Traveler Stories</h1>
-            <p>Short, human moments that change how we move through the world.</p>
+  <main class="container">
+    <div class="toolbar">
+      <div class="search" role="search" aria-label="Search stories">
+        <i class="bi bi-search"></i>
+        <input id="q" type="search" placeholder="Search (e.g., train, rain, market, sunrise)..." />
+        <button id="clearQ" class="x" type="button" aria-label="Clear search">✕</button>
+      </div>
+
+      <div class="chips" id="chips" aria-label="Filters"></div>
+    </div>
+
+    <div class="stats">
+      <span class="stat"><span class="dot"></span><span id="resultText">0 stories</span></span>
+      <span class="stat"><span class="dot"></span><span id="activeFilterText">All</span></span>
+    </div>
+
+    <section class="featured" id="featured" aria-label="Featured story"></section>
+    <section class="grid" id="grid" aria-label="Story grid"></section>
+  </main>
+
+  <!-- reader modal -->
+  <div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="m-card" role="document">
+      <div class="m-media">
+        <div class="m-top">
+          <div class="m-pill" id="mPill">—</div>
+          <button class="m-close" id="mClose" type="button" aria-label="Close"><i class="bi bi-x-lg"></i></button>
         </div>
-    </header>
+        <img id="mImg" alt="" />
+      </div>
 
-    <main>
-        <div class="stream" id="stream"></div>
-    </main>
+      <div class="m-body">
+        <div>
+          <h3 class="m-title" id="mTitle">—</h3>
+          <div class="m-meta" id="mMeta">—</div>
+        </div>
 
-    <script>
+        <div class="m-text" id="mText"></div>
 
-        const STORIES = [
-            {
-                kicker: "City · Rome",
-                title: "Dawn gave me back my voice",
-                meta: ["4 min read", "Spanish Steps · Trevi"],
-                img: "https://images.unsplash.com/photo-1505764706515-aa95265c5abc?auto=format&fit=crop&w=1600&q=80",
-                text: `At 6:00 a.m., Rome apologized for the noise. A woman watered geraniums above me; the street smelled
-            like fresh cornetti and soap. I put my phone away and let the city breathe for me. That hour didn’t
-            solve anything back home—but it reminded me I still know how to listen.`
-            },
-            {
-                kicker: "Beach · Crete",
-                title: "A child’s gift at the shoreline",
-                meta: ["3 min read", "Chania harbor"],
-                img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
-                text: `A boy pressed two loose buttons into my palm and said, “Dad fixed these—now his shirt has another day.”
-            We laughed, then I almost cried. The tide taught the same lesson: small repairs can save a season.
-            We don’t always need new—just kinder hands.`
-            },
-            {
-                kicker: "Nature · Alps",
-                title: "The window that kept my secret",
-                meta: ["2 min read", "Interlaken → Lauterbrunnen"],
-                img: "https://images.unsplash.com/photo-1508264165352-258a6f6b4b38?auto=format&fit=crop&w=1600&q=80",
-                text: `Left-side seats hold the valley like a promise. I didn’t take a photo. The mountain answered a question
-            I was afraid to ask out loud. Not every proof belongs on a screen; some truths are stronger when they
-            stay unposted.`
-            },
-            {
-                kicker: "Airports · Work",
-                title: "Ninety minutes fixed a year",
-                meta: ["3 min read", "Any terminal"],
-                img: "https://images.unsplash.com/photo-1517959105821-eaf2591984c2?auto=format&fit=crop&w=1600&q=80",
-                text: `In a noisy gate, I deleted the photos that weren’t me and drafted a message I didn’t send.
-            Clarity can be enough. A layover isn’t waiting; it’s a small, rented room where you can put
-            your life back in order—one folder at a time.`
-            },
-            {
-                kicker: "City · Tokyo",
-                title: "Rain taught me how to arrive",
-                meta: ["4 min read", "Shimokitazawa"],
-                img: "https://images.unsplash.com/photo-1505062616-30ca95af1d2f?auto=format&fit=crop&w=1600&q=80",
-                text: `Neon softened into puddles. I sat at a tiny counter, steam fogging my glasses while the chef
-            handed me a bowl like a quiet apology. We didn’t share a language, but gratitude translated
-            perfectly. I left slower, finally caught up with myself.`
-            },
-            {
-                kicker: "Family · Zanzibar",
-                title: "The tide that made an island",
-                meta: ["3 min read", "Indian Ocean"],
-                img: "https://images.unsplash.com/photo-1543244937-6d2b63a64e30?auto=format&fit=crop&w=1600&q=80",
-                text: `Low tide painted watercolors on sand. We picnicked where ocean would return and promised to keep
-            only what we could carry. When the sea walked back, it took our footprints and left the lesson:
-            travel light, love heavy.`
-            }
-        ];
+        <div class="m-actions">
+          <div class="iconrow">
+            <button class="ibtn" id="mLike" type="button" aria-label="Like"><i class="bi bi-heart-fill"></i></button>
+            <button class="ibtn" id="mSave" type="button" aria-label="Save"><i class="bi bi-bookmark-fill"></i></button>
+            <button class="ibtn" id="mMail" type="button" aria-label="Share via email"><i class="bi bi-envelope-fill"></i></button>
+          </div>
 
-        const FALLBACK = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80";
+          <div class="navbtns">
+            <button class="navbtn" id="mPrev" type="button" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>
+            <button class="navbtn" id="mNext" type="button" aria-label="Next"><i class="bi bi-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        const stream = document.getElementById('stream');
+  <button id="askAiBtn" class="ask-ai-btn" type="button" aria-label="Ask AI">
+    <i class="bi bi-airplane-fill" aria-hidden="true"></i>
+    <span class="ask-ai-bubble">Ask AI</span>
+  </button>
 
-        STORIES.forEach((s, i) => {
-            const row = document.createElement('section');
-            row.className = 'row reveal';
+  <script>
+    // ====== STATIC STORIES (filled) ======
+    const STORIES = [
+      { id:"s1", type:"City", place:"Rome", read:"4 min", date:"2025-03-18",
+        title:"Dawn gave me back my voice",
+        img:"https://images.unsplash.com/photo-1505764706515-aa95265c5abc?auto=format&fit=crop&w=1600&q=80",
+        text:`At 6:00 a.m., Rome apologized for the noise. The street smelled like warm bread and soap, and the air felt new.
+I stopped taking photos. I stopped narrating. I just walked.
 
-            const media = document.createElement('figure');
-            media.className = 'media parallax';
-            media.dataset.parallax = (0.08 + (i % 3) * 0.02).toFixed(2);
+Near Trevi, a shop owner lifted a shutter and nodded without asking anything. I realized I didn’t need to explain myself to a city.
+That hour didn’t solve anything back home—لكن it reminded me I still know how to listen.` },
 
-            const img = document.createElement('img');
-            img.setAttribute('alt', s.title);
-            img.setAttribute('loading', 'lazy');
-            img.setAttribute('decoding', 'async');
-            img.dataset.src = s.img;
-            img.onerror = () => { img.src = FALLBACK; };
-            media.appendChild(img);
+      { id:"s2", type:"Beach", place:"Crete", read:"3 min", date:"2025-04-02",
+        title:"A child’s gift at the shoreline",
+        img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+        text:`A boy pressed two loose buttons into my palm and said, “Dad fixed these—now his shirt has another day.”
+We laughed, then I almost cried. The tide kept rewriting the sand like it had infinite patience.
 
-            const text = document.createElement('article');
-            text.className = 'text';
+That day I stopped buying “new” just to feel “better”.
+Small repairs can save a season. Small kindness can save a person.` },
 
-            const kicker = document.createElement('span');
-            kicker.className = 'kicker';
-            kicker.textContent = s.kicker;
+      { id:"s3", type:"Nature", place:"Alps", read:"2 min", date:"2025-01-12",
+        title:"The window that kept my secret",
+        img:"https://images.unsplash.com/photo-1508264165352-258a6f6b4b38?auto=format&fit=crop&w=1600&q=80",
+        text:`Left-side seats hold the valley like a promise. I didn’t take a photo. I didn’t want proof.
+The mountain answered a question I was afraid to ask out loud.
 
-            const title = document.createElement('h2');
-            title.className = 'title';
-            title.textContent = s.title;
+Not every truth belongs on a screen.
+Some truths get stronger when they stay unposted.` },
 
-            const meta = document.createElement('div');
-            meta.className = 'meta';
-            meta.innerHTML = `<span class="dot"></span><span>${s.meta[0]}</span><span>•</span><span>${s.meta[1]}</span>`;
+      { id:"s4", type:"Airport", place:"Any terminal", read:"3 min", date:"2025-02-09",
+        title:"Ninety minutes fixed a year",
+        img:"https://images.unsplash.com/photo-1517959105821-eaf2591984c2?auto=format&fit=crop&w=1600&q=80",
+        text:`In a noisy gate, I deleted the photos that weren’t me and drafted a message I didn’t send.
+Clarity can be enough. A layover isn’t waiting; it’s a rented room where you can reorder your life—one folder at a time.
 
-            const excerpt = document.createElement('p');
-            excerpt.className = 'excerpt';
-            excerpt.id = `ex-${i}`;
-            excerpt.textContent = s.text;
+When boarding was called, I felt lighter.
+Same luggage. Different person.` },
 
-            const actions = document.createElement('div');
-            actions.className = 'actions';
-            const btn = document.createElement('button');
-            btn.className = 'btn';
-            btn.textContent = 'Read more';
-            btn.addEventListener('click', () => {
-                const open = excerpt.getAttribute('data-expanded') === 'true';
-                excerpt.setAttribute('data-expanded', open ? 'false' : 'true');
-                btn.textContent = open ? 'Read more' : 'Show less';
-            });
-            actions.appendChild(btn);
+      { id:"s5", type:"City", place:"Tokyo", read:"4 min", date:"2025-05-21",
+        title:"Rain taught me how to arrive",
+        img:"https://images.unsplash.com/photo-1505062616-30ca95af1d2f?auto=format&fit=crop&w=1600&q=80",
+        text:`Neon softened into puddles. I sat at a tiny counter while steam fogged my glasses.
+The chef handed me a bowl like a quiet apology. We didn’t share a language, but gratitude translated perfectly.
 
-            text.append(kicker, title, meta, excerpt, actions);
+I left slower. Not sad—just finally caught up with myself.
+Sometimes arriving is not a place. It’s a pace.` },
 
-            row.append(media, text);
-            stream.appendChild(row);
+      { id:"s6", type:"Family", place:"Zanzibar", read:"3 min", date:"2025-06-03",
+        title:"The tide that made an island",
+        img:"https://images.unsplash.com/photo-1543244937-6d2b63a64e30?auto=format&fit=crop&w=1600&q=80",
+        text:`Low tide painted watercolors on sand. We picnicked where ocean would return and promised to keep only what we could carry.
+When the sea walked back, it took our footprints and left the lesson:
+
+Travel light, love heavy.
+And never negotiate with sunsets.` },
+
+      { id:"s7", type:"Train", place:"Lauterbrunnen", read:"3 min", date:"2025-02-22",
+        title:"A train seat that changed my week",
+        img:"https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1600&q=80",
+        text:`I sat beside an old man who folded a paper map like it was a ritual. No phone. No rush.
+He traced a route with his finger, then smiled: “Here is the part where you breathe.”
+
+I copied him. I stared out. I let the landscape do the talking.
+Later, I realized I hadn’t checked notifications in hours— ولم ينقصني شيء.` },
+
+      { id:"s8", type:"Market", place:"Marrakesh", read:"4 min", date:"2025-03-06",
+        title:"The market taught me boundaries",
+        img:"https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1600&q=80",
+        text:`In the souk, everything wanted my attention: colors, perfumes, voices, bargains.
+I kept saying yes out of politeness—until I realized my “yes” was making me tired.
+
+So I practiced a gentle “no”.
+The vendor still smiled. The world didn’t break. And I walked away with exactly what I wanted, not what I was pushed to want.` },
+
+      { id:"s9", type:"Food", place:"Istanbul", read:"3 min", date:"2025-04-17",
+        title:"A soup bowl and an unexpected friend",
+        img:"https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=1600&q=80",
+        text:`It was late and cold. I found a small place with one neon sign and warm windows.
+A stranger pointed to the menu with certainty: “That one. Trust me.”
+
+The soup arrived like comfort with steam.
+We didn’t exchange numbers. We didn’t need to. Some friendships are only meant to last one bowl—وهذا كفاية.` },
+
+      { id:"s10", type:"Desert", place:"Wadi Rum", read:"4 min", date:"2025-01-28",
+        title:"Silence has a texture",
+        img:"https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80",
+        text:`The desert didn’t feel empty. It felt accurate.
+Every sound became important: a step, a breath, a zipper, a laugh.
+
+At night, the sky looked too big to be real.
+I promised myself I’d stop filling quiet with noise.
+Silence is not lack. It’s space.` },
+
+      { id:"s11", type:"Night", place:"Paris", read:"3 min", date:"2025-05-02",
+        title:"A bridge at midnight",
+        img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80",
+        text:`I crossed the bridge with no plan. The river carried city lights like floating jewelry.
+A street musician played the same chord again and again, like he was turning the night into a loop.
+
+I stood there until I felt my thoughts slow down.
+Sometimes the best itinerary is “stay” for five more minutes.` },
+
+      { id:"s12", type:"Museum", place:"Florence", read:"2 min", date:"2025-06-14",
+        title:"One painting, one decision",
+        img:"https://images.unsplash.com/photo-1520694478161-00aa9f1b7c8f?auto=format&fit=crop&w=1600&q=80",
+        text:`I didn’t understand the painting. Not fully.
+But something about the colors felt like permission.
+
+Outside the museum, I made a decision I had been delaying for months.
+It wasn’t dramatic. It was quiet.
+And that’s how real change often looks.` },
+
+      { id:"s13", type:"Roadtrip", place:"Amalfi", read:"3 min", date:"2025-03-30",
+        title:"The wrong turn was the best view",
+        img:"https://images.unsplash.com/photo-1526481280695-3c687fd5432c?auto=format&fit=crop&w=1600&q=80",
+        text:`We missed the exit and ended up on a cliff road with nothing but sea and sky.
+At first we panicked. Then we laughed. Then we stopped the car.
+
+The view didn’t care that it wasn’t on the plan.
+Sometimes the map is wrong, and the day is still right.` },
+
+      { id:"s14", type:"Island", place:"Santorini", read:"3 min", date:"2025-06-24",
+        title:"Blue doors and soft endings",
+        img:"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+        text:`I followed the blue doors like breadcrumbs through white streets.
+Every corner looked like a postcard, but the best part was the quiet between the views.
+
+I sat on a step and watched people pass without needing anything from them.
+A soft ending to a loud season.` },
+
+      { id:"s15", type:"Snow", place:"Reykjavik", read:"4 min", date:"2025-02-03",
+        title:"Winter made me honest",
+        img:"https://images.unsplash.com/photo-1482192505345-5655af888cc4?auto=format&fit=crop&w=1600&q=80",
+        text:`The cold didn’t allow pretending. My face showed what I felt.
+In a café window, I watched snow erase footsteps and understood:
+You can start over without drama.
+
+I wrote three lines in my notes app.
+Not goals. Just truths.` },
+
+      { id:"s16", type:"Festival", place:"Barcelona", read:"3 min", date:"2025-04-28",
+        title:"A street festival and a reset",
+        img:"https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1600&q=80",
+        text:`Music spilled into alleys like light. People danced like they had no deadlines.
+I joined for five seconds… then five minutes… then an hour.
+
+On the walk back, I felt reset.
+Not because everything changed, but because I remembered joy is a skill you can practice.` }
+    ];
+
+    const FALLBACK = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80";
+
+    // ====== state / storage ======
+    const LS_LIKES = "travelo_story_likes_v1";
+    const LS_SAVED = "travelo_story_saved_v1";
+
+    const getObj = (k) => { try{ return JSON.parse(localStorage.getItem(k)||"{}"); }catch{ return {}; } };
+    const setObj = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v||{})); }catch{} };
+
+    let likes = getObj(LS_LIKES);   // {id: true}
+    let saved = getObj(LS_SAVED);   // {id: true}
+
+    const $ = (id) => document.getElementById(id);
+    const chipsEl = $("chips");
+    const gridEl = $("grid");
+    const featuredEl = $("featured");
+    const qEl = $("q");
+    const clearQ = $("clearQ");
+    const resultText = $("resultText");
+    const activeFilterText = $("activeFilterText");
+    const savedCount = $("savedCount");
+    const likeCount = $("likeCount");
+
+    const modal = $("modal");
+    const mClose = $("mClose");
+    const mImg = $("mImg");
+    const mTitle = $("mTitle");
+    const mMeta = $("mMeta");
+    const mText = $("mText");
+    const mPill = $("mPill");
+    const mLike = $("mLike");
+    const mSave = $("mSave");
+    const mMail = $("mMail");
+    const mPrev = $("mPrev");
+    const mNext = $("mNext");
+
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+    const excerpt = (t, n=220) => {
+      const s = String(t||"").replace(/\s+/g," ").trim();
+      return s.length<=n ? s : s.slice(0,n).trim()+"…";
+    };
+
+    // types from data
+    const TYPES = ["All", ...Array.from(new Set(STORIES.map(s => s.type)))];
+
+    let state = {
+      type: "All",
+      q: "",
+      openId: null
+    };
+
+    function updateCounters(){
+      const sCount = Object.values(saved).filter(Boolean).length;
+      const lCount = Object.values(likes).filter(Boolean).length;
+      if (savedCount) savedCount.textContent = `Saved: ${sCount}`;
+      if (likeCount) likeCount.textContent = `Likes: ${lCount}`;
+    }
+
+    function buildChips(){
+      if (!chipsEl) return;
+      chipsEl.innerHTML = "";
+      TYPES.forEach(t => {
+        const b = document.createElement("button");
+        b.className = "chip" + (state.type===t ? " is-active" : "");
+        b.type = "button";
+        b.textContent = t;
+        b.addEventListener("click", () => {
+          state.type = t;
+          buildChips();
+          render();
+        });
+        chipsEl.appendChild(b);
+      });
+    }
+
+    function filterStories(){
+      const q = (state.q||"").trim().toLowerCase();
+      return STORIES.filter(s => {
+        if (state.type !== "All" && s.type !== state.type) return false;
+        if (!q) return true;
+        const bag = `${s.title} ${s.place} ${s.type} ${s.text}`.toLowerCase();
+        return bag.includes(q);
+      });
+    }
+
+    function renderFeatured(list){
+      if (!featuredEl) return;
+      const s = list[0];
+      if (!s){ featuredEl.innerHTML = ""; return; }
+
+      featuredEl.innerHTML = `
+        <div class="f-media" role="img" aria-label="${esc(s.title)}">
+          <img src="${esc(s.img)}" alt="${esc(s.title)}">
+          <div class="f-badge"><span class="dot"></span><span>Featured</span></div>
+          <div class="f-info">
+            <div class="f-meta"><span>${esc(s.type)} · ${esc(s.place)}</span><span>•</span><span>${esc(s.read)}</span><span>•</span><span>${esc(s.date)}</span></div>
+            <h2 class="f-title">${esc(s.title)}</h2>
+          </div>
+        </div>
+
+        <div class="f-side">
+          <div class="f-kicker"><span class="dot"></span><span>${esc(s.type)} · ${esc(s.place)}</span></div>
+          <div class="f-excerpt">${esc(excerpt(s.text, 380))}</div>
+
+          <div class="f-actions">
+            <button class="btn primary" type="button" data-open="${esc(s.id)}"><i class="bi bi-book-open"></i> Read</button>
+            <button class="btn ghost" type="button" data-save="${esc(s.id)}"><i class="bi bi-bookmark-fill"></i> ${saved[s.id] ? "Saved" : "Save"}</button>
+            <button class="btn ghost" type="button" data-like="${esc(s.id)}"><i class="bi bi-heart-fill"></i> ${likes[s.id] ? "Liked" : "Like"}</button>
+          </div>
+        </div>
+      `;
+
+      // featured handlers
+      featuredEl.querySelector('[data-open]')?.addEventListener("click", (e) => openStory(e.currentTarget.getAttribute("data-open")));
+      featuredEl.querySelector('[data-save]')?.addEventListener("click", (e) => toggleSave(e.currentTarget.getAttribute("data-save")));
+      featuredEl.querySelector('[data-like]')?.addEventListener("click", (e) => toggleLike(e.currentTarget.getAttribute("data-like")));
+      featuredEl.querySelector("img").onerror = () => featuredEl.querySelector("img").src = FALLBACK;
+    }
+
+    function renderGrid(list){
+      if (!gridEl) return;
+      gridEl.innerHTML = "";
+
+      // skip featured in grid
+      const rest = list.slice(1);
+
+      rest.forEach((s, idx) => {
+        const card = document.createElement("article");
+        card.className = "card" + ((idx % 5 === 0) ? " wide" : "");
+        card.setAttribute("data-open", s.id);
+
+        card.innerHTML = `
+          <div class="c-media">
+            <img src="${esc(s.img)}" alt="${esc(s.title)}" loading="lazy" decoding="async">
+            <div class="c-pill"><span class="dot"></span><span>${esc(s.type)} · ${esc(s.place)}</span></div>
+          </div>
+
+          <div class="c-body">
+            <h3 class="c-title">${esc(s.title)}</h3>
+            <div class="c-meta">
+              <span>${esc(s.read)}</span><span>•</span><span>${esc(s.date)}</span>
+            </div>
+            <p class="c-excerpt">${esc(excerpt(s.text))}</p>
+
+            <div class="c-actions">
+              <div class="iconrow">
+                <button class="ibtn ${likes[s.id] ? "is-on":""}" type="button" data-like="${esc(s.id)}" aria-label="Like">
+                  <i class="bi bi-heart-fill"></i>
+                </button>
+                <button class="ibtn ${saved[s.id] ? "is-on":""}" type="button" data-save="${esc(s.id)}" aria-label="Save">
+                  <i class="bi bi-bookmark-fill"></i>
+                </button>
+                <button class="ibtn" type="button" data-mail="${esc(s.id)}" aria-label="Share via email">
+                  <i class="bi bi-envelope-fill"></i>
+                </button>
+              </div>
+              <span class="countlike">${likes[s.id] ? "Liked" : ""}</span>
+            </div>
+          </div>
+        `;
+
+        const img = card.querySelector("img");
+        img.onerror = () => { img.src = FALLBACK; };
+
+        // open
+        card.addEventListener("click", (e) => {
+          if (e.target.closest("button")) return;
+          openStory(s.id);
         });
 
-                const progress = document.getElementById('progress');
-        const setProgress = () => { const h = document.documentElement; const s = h.scrollTop / (h.scrollHeight - h.clientHeight); progress.style.width = (s * 100) + '%'; };
-        document.addEventListener('scroll', setProgress, { passive: true }); setProgress();
+        card.querySelector('[data-like]')?.addEventListener("click", (e) => { e.stopPropagation(); toggleLike(e.currentTarget.getAttribute("data-like")); });
+        card.querySelector('[data-save]')?.addEventListener("click", (e) => { e.stopPropagation(); toggleSave(e.currentTarget.getAttribute("data-save")); });
+        card.querySelector('[data-mail]')?.addEventListener("click", (e) => { e.stopPropagation(); shareEmail(e.currentTarget.getAttribute("data-mail")); });
 
-                const io = new IntersectionObserver((es) => {
-            es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-        }, { threshold: .18 });
-        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-                const lazy = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                const img = entry.target;
-                img.src = img.dataset.src;
-                img.onload = () => img.closest('.media')?.classList.add('loaded');
-                lazy.unobserve(img);
-            });
-        }, { rootMargin: '250px 0px' });
-        document.querySelectorAll('.media img').forEach(img => lazy.observe(img));
-
-                const mediaEls = [...document.querySelectorAll('.parallax')];
-        const parallax = () => {
-            const wh = window.innerHeight;
-            mediaEls.forEach(el => {
-                const speed = parseFloat(el.dataset.parallax || 0.08);
-                const r = el.getBoundingClientRect();
-                if (r.bottom < 0 || r.top > wh) return;
-                const center = r.top + r.height / 2 - wh / 2;
-                el.style.transform = `translateY(${(-center * speed).toFixed(1)}px)`;
-            });
-        };
-        document.addEventListener('scroll', parallax, { passive: true });
-        window.addEventListener('resize', parallax);
-        parallax();
-    </script>
-
-    <button id="askAiBtn" class="ask-ai-btn" type="button" aria-label="Ask AI">
-  <i class="bi bi-airplane-fill" aria-hidden="true"></i>
-  <span class="ask-ai-bubble">Ask AI</span>
-</button>
-
-
-<script>
-(() => {
-  const AGENT_ID = "019b189a507c7f0e98a0580ad136880f79ad";
-  const SRC = `https://cdn.jotfor.ms/agent/embedjs/${AGENT_ID}/embed.js`;
-
-  function loadWidget(){
-    return new Promise((resolve, reject) => {
-      // لو محمّل قبل لا تعيديه
-      if (document.querySelector(`script[src="${SRC}"]`)) return resolve();
-
-      const s = document.createElement("script");
-      s.src = SRC;
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = () => reject(new Error("Failed to load widget"));
-      document.body.appendChild(s);
-    });
-  }
-
-  function openLauncherWhenReady(timeoutMs = 8000){
-    return new Promise((resolve) => {
-      const start = Date.now();
-
-      const tryOpen = () => {
-        // لانشر Jotform (جربي عدة سلكترات)
-        const launcher =
-          document.querySelector('button[aria-label*="Ask AI" i]') ||
-          document.querySelector('button[aria-label*="Chat" i]') ||
-          document.querySelector('[data-testid*="launcher" i]') ||
-          document.querySelector('.jotform-ai-launcher, .agent-launcher, .chat-launcher');
-
-        if (launcher) { launcher.click(); resolve(true); return true; }
-
-        if (Date.now() - start > timeoutMs) { resolve(false); return true; }
-        return false;
-      };
-
-      if (tryOpen()) return;
-
-      const obs = new MutationObserver(() => {
-        if (tryOpen()) obs.disconnect();
+        gridEl.appendChild(card);
       });
-      obs.observe(document.documentElement, { childList:true, subtree:true });
-    });
-  }
+    }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("askAiBtn");
-    if (!btn) return;
+    function render(){
+      const list = filterStories();
 
-    btn.addEventListener("click", async () => {
-      // ✅ اخفي زرّك فورًا بعد أول كبسة
-      btn.style.display = "none";
+      if (resultText) resultText.textContent = `${list.length} stor${list.length===1?"y":"ies"}`;
+      if (activeFilterText) activeFilterText.textContent = (state.type === "All") ? "All" : state.type;
 
-      try{
-        await loadWidget();           // ✅ حمّلي الشات بوت الآن (كان مخفي قبل)
-        await openLauncherWhenReady(); // ✅ افتحيه تلقائيًا
-      }catch(e){
-        console.error(e);
-        // لو صار خطأ، رجّعي الزر حتى ما يختفي على الفاضي
-        btn.style.display = "";
-        alert("AI widget failed to load.");
+      renderFeatured(list);
+      renderGrid(list);
+      updateCounters();
+    }
+
+    function toggleLike(id){
+      if (!id) return;
+      likes[id] = !likes[id];
+      setObj(LS_LIKES, likes);
+      render(); // refresh UI
+      if (state.openId === id) syncModalToggles();
+    }
+
+    function toggleSave(id){
+      if (!id) return;
+      saved[id] = !saved[id];
+      setObj(LS_SAVED, saved);
+      render();
+      if (state.openId === id) syncModalToggles();
+    }
+
+    function shareEmail(id){
+      const s = STORIES.find(x => x.id === id);
+      if (!s) return;
+      const subject = `Travelo Story: ${s.title}`;
+      const body =
+        `${s.title}\n${s.type} · ${s.place} · ${s.read} · ${s.date}\n\n` +
+        `${s.text}\n\n` +
+        `${location.origin}${location.pathname}#${s.id}`;
+      const href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      location.href = href;
+    }
+
+    // ===== Modal reader =====
+    function openStory(id){
+      const list = filterStories();
+      const idx = list.findIndex(x => x.id === id);
+      const s = list[idx] || STORIES.find(x => x.id === id);
+      if (!s) return;
+
+      state.openId = s.id;
+
+      if (mImg) mImg.src = s.img;
+      if (mTitle) mTitle.textContent = s.title;
+      if (mText) mText.textContent = s.text;
+      if (mPill) mPill.textContent = `${s.type} · ${s.place}`;
+      if (mMeta) mMeta.innerHTML = `<span>${esc(s.read)}</span><span>•</span><span>${esc(s.date)}</span>`;
+
+      mImg.onerror = () => { mImg.src = FALLBACK; };
+      syncModalToggles();
+
+      if (modal){
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden","false");
+        // reset scroll
+        if (mText) mText.scrollTop = 0;
+        // hash
+        history.replaceState(null,"",`#${s.id}`);
       }
-    }, { once:true }); // ✅ يمنع تعدد الكبس/تكرار
-  });
-})();
-</script>
-</body>
+    }
 
+    function closeModal(){
+      if (!modal) return;
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden","true");
+      state.openId = null;
+    }
+
+    function syncModalToggles(){
+      const id = state.openId;
+      if (!id) return;
+      mLike?.classList.toggle("is-on", !!likes[id]);
+      mSave?.classList.toggle("is-on", !!saved[id]);
+    }
+
+    function modalNav(step){
+      const list = filterStories();
+      if (!state.openId || !list.length) return;
+      const i = list.findIndex(x => x.id === state.openId);
+      const next = list[(i + step + list.length) % list.length];
+      if (next) openStory(next.id);
+    }
+
+    mClose?.addEventListener("click", closeModal);
+    modal?.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    mLike?.addEventListener("click", () => state.openId && toggleLike(state.openId));
+    mSave?.addEventListener("click", () => state.openId && toggleSave(state.openId));
+    mMail?.addEventListener("click", () => state.openId && shareEmail(state.openId));
+    mPrev?.addEventListener("click", () => modalNav(-1));
+    mNext?.addEventListener("click", () => modalNav(1));
+
+    document.addEventListener("keydown", (e) => {
+      if (!modal?.classList.contains("show")) return;
+      if (e.key === "Escape") closeModal();
+      if (e.key === "ArrowLeft") modalNav(-1);
+      if (e.key === "ArrowRight") modalNav(1);
+    });
+
+    // ===== Search =====
+    function onSearch(){
+      state.q = (qEl?.value || "");
+      clearQ?.classList.toggle("show", !!state.q.trim());
+      render();
+    }
+    qEl?.addEventListener("input", onSearch);
+    clearQ?.addEventListener("click", () => {
+      if (!qEl) return;
+      qEl.value = "";
+      state.q = "";
+      clearQ.classList.remove("show");
+      render();
+      qEl.focus();
+    });
+
+    // deep link (open by hash)
+    function openFromHash(){
+      const h = (location.hash || "").replace("#","").trim();
+      if (!h) return;
+      const exists = STORIES.some(s => s.id === h);
+      if (exists) openStory(h);
+    }
+
+    // init
+    buildChips();
+    render();
+    openFromHash();
+
+    // progress bar
+    const progress = document.getElementById('progress');
+    function setProgress(){
+      const h = document.documentElement;
+      const s = h.scrollTop / Math.max(1,(h.scrollHeight - h.clientHeight));
+      progress.style.width = (s * 100) + '%';
+    }
+    document.addEventListener('scroll', setProgress, { passive:true });
+    setProgress();
+
+    // topbar solid
+    const topbar = document.getElementById("topbar");
+    function topbarSolid(){
+      const on = (window.scrollY || 0) > 14;
+      topbar?.classList.toggle("is-solid", on);
+    }
+    document.addEventListener("scroll", topbarSolid, { passive:true });
+    topbarSolid();
+  </script>
+
+  <!-- Ask AI widget (same) -->
+  <script>
+  (() => {
+    const AGENT_ID = "019b189a507c7f0e98a0580ad136880f79ad";
+    const SRC = `https://cdn.jotfor.ms/agent/embedjs/${AGENT_ID}/embed.js`;
+
+    function loadWidget(){
+      return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${SRC}"]`)) return resolve();
+        const s = document.createElement("script");
+        s.src = SRC;
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error("Failed to load widget"));
+        document.body.appendChild(s);
+      });
+    }
+
+    function openLauncherWhenReady(timeoutMs = 8000){
+      return new Promise((resolve) => {
+        const start = Date.now();
+        const tryOpen = () => {
+          const launcher =
+            document.querySelector('button[aria-label*="Ask AI" i]') ||
+            document.querySelector('button[aria-label*="Chat" i]') ||
+            document.querySelector('[data-testid*="launcher" i]') ||
+            document.querySelector('.jotform-ai-launcher, .agent-launcher, .chat-launcher');
+          if (launcher) { launcher.click(); resolve(true); return true; }
+          if (Date.now() - start > timeoutMs) { resolve(false); return true; }
+          return false;
+        };
+        if (tryOpen()) return;
+        const obs = new MutationObserver(() => { if (tryOpen()) obs.disconnect(); });
+        obs.observe(document.documentElement, { childList:true, subtree:true });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("askAiBtn");
+      if (!btn) return;
+
+      btn.addEventListener("click", async () => {
+        btn.style.display = "none";
+        try{
+          await loadWidget();
+          await openLauncherWhenReady();
+        }catch(e){
+          console.error(e);
+          btn.style.display = "";
+          alert("AI widget failed to load.");
+        }
+      }, { once:true });
+    });
+  })();
+  </script>
+</body>
 </html>
