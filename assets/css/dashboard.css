@@ -312,5 +312,219 @@ table.table {
     z-index: 900
   }
 }
+/* ===== BLOGS OVERRIDE (PASTE LAST) ===== */
+#blogs .blogs-admin-list{
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 18px !important;
+}
+
+#blogs .blog-card{
+  min-height: 430px !important;
+  border-radius: 22px !important;
+  box-shadow: 0 24px 70px rgba(15,23,42,.10) !important;
+  border: 1px solid rgba(124,58,237,.12) !important;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, filter .22s ease !important;
+}
+#blogs .blog-card:hover{
+  transform: translateY(-5px) !important;
+  box-shadow: 0 32px 90px rgba(15,23,42,.14) !important;
+  border-color: rgba(124,58,237,.24) !important;
+}
+
+#blogs .blog-cover-wrap{ height: 200px !important; }
+#blogs .blog-cover{ transform: scale(1.04) !important; transition: transform .55s ease !important; }
+#blogs .blog-card:hover .blog-cover{ transform: scale(1.10) !important; }
+
+#blogs .blog-actions{ gap: 12px !important; padding: 14px 16px 16px !important; }
+#blogs .blog-actions .btn{
+  padding: .64rem 1.05rem !important;
+  border-radius: 999px !important;
+  font-weight: 900 !important;
+}
+
+#blogs .btn-del,
+#blogs .btn-danger{
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,.14) !important;
+}
+#blogs .btn-del:hover,
+#blogs .btn-danger:hover{
+  background: rgba(239,68,68,.10) !important;
+  border-color: rgba(239,68,68,.50) !important;
+  color: #ef4444 !important;
+}
+/* ================================
+   BLOGS – Soft Pro Override (PASTE LAST)
+   ================================ */
+
+#blogs{
+  /* خط أخف (اختياري) */
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* grid: خلي الكروت أكبر ومريحة */
+#blogs .blogs-admin-list{
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
+  gap: 18px !important;
+}
+
+/* card */
+#blogs .blog-card{
+  border-radius: 24px !important;
+  border: 1px solid rgba(15,23,42,.08) !important;
+  background: rgba(255,255,255,.92) !important;
+  overflow: hidden !important;
+
+  min-height: 420px !important;
+  box-shadow:
+    0 22px 60px rgba(15,23,42,.08) !important,
+    0 1px 0 rgba(255,255,255,.70) inset !important;
+
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease !important;
+}
+
+#blogs .blog-card:hover{
+  transform: translateY(-4px) !important;
+  border-color: rgba(124,58,237,.18) !important;
+  box-shadow:
+    0 30px 85px rgba(15,23,42,.12) !important,
+    0 1px 0 rgba(255,255,255,.75) inset !important;
+}
+
+/* cover */
+#blogs .blog-cover-wrap{
+  height: 210px !important;
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
+}
+
+#blogs .blog-cover{
+  transform: scale(1.03) !important;
+  transition: transform .55s ease !important;
+  filter: saturate(1.02) contrast(1.02);
+}
+#blogs .blog-card:hover .blog-cover{
+  transform: scale(1.08) !important;
+}
+
+#blogs .blog-badges{ gap: 10px !important; }
+
+/* badges: أخف */
+#blogs .badge-pill{
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  padding: .32rem .66rem !important;
+  background: rgba(15,23,42,.46) !important;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  backdrop-filter: blur(10px);
+}
+#blogs .badge-status{
+  background: rgba(124,58,237,.82) !important;
+}
+
+/* body spacing */
+#blogs .blog-body{
+  padding: 16px 16px 12px !important;
+  gap: 10px !important;
+}
+
+/* title: شيل البولد الزايد وخليه ناعم */
+#blogs .blog-title{
+  font-weight: 750 !important;       /* بدل 1000 */
+  font-size: 16px !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.35 !important;
+  color: #0f172a !important;
+}
+
+/* excerpt: أخف */
+#blogs .blog-excerpt{
+  font-weight: 500 !important;
+  font-size: 13.6px !important;
+  color: rgba(71,85,105,.92) !important;
+  line-height: 1.75 !important;
+}
+
+/* meta */
+#blogs .blog-meta{
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+  color: rgba(100,116,139,.95) !important;
+  border-top: 1px solid rgba(15,23,42,.08) !important;
+  padding-top: 12px !important;
+}
+
+/* actions area */
+#blogs .blog-actions{
+  padding: 14px 16px 16px !important;
+  gap: 12px !important;
+  border-top: 1px solid rgba(15,23,42,.06) !important;
+  background: linear-gradient(180deg, rgba(124,58,237,.035), rgba(255,255,255,0) 65%) !important;
+}
+
+/* buttons: شكل عصري وناعم */
+#blogs .blog-actions .btn{
+  border-radius: 999px !important;
+  padding: .70rem 1.10rem !important;
+  font-weight: 700 !important;      /* بدل 900 */
+  letter-spacing: -0.01em !important;
+  box-shadow: none !important;
+  transition: transform .18s ease, filter .18s ease, background .18s ease, border-color .18s ease, color .18s ease !important;
+}
+
+#blogs .blog-actions .btn:hover{
+  transform: translateY(-1px) !important;
+}
+
+/* View: جراديانت أهدى */
+#blogs .btn-viewdetails{
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(108,99,255,.95)) !important;
+  box-shadow: 0 16px 36px rgba(124,58,237,.18) !important;
+}
+#blogs .btn-viewdetails:hover{
+  filter: brightness(1.04) !important;
+  box-shadow: 0 22px 48px rgba(124,58,237,.22) !important;
+}
+
+/* Delete: أبيض + hover أحمر (زي ما بدك) */
+#blogs .btn-del,
+#blogs .btn-danger{
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,.12) !important;
+}
+#blogs .btn-del:hover,
+#blogs .btn-danger:hover{
+  background: rgba(239,68,68,.10) !important;
+  border-color: rgba(239,68,68,.50) !important;
+  color: #ef4444 !important;
+}
+
+/* focus rings */
+#blogs .btn-viewdetails:focus{
+  box-shadow: 0 0 0 4px rgba(124,58,237,.16) !important;
+}
+#blogs .btn-del:focus,
+#blogs .btn-danger:focus{
+  box-shadow: 0 0 0 4px rgba(239,68,68,.14) !important;
+}
+
+/* Dark mode tweaks */
+html.dark #blogs .blog-card{
+  background: rgba(15,18,34,.72) !important;
+  border-color: rgba(233,236,255,.10) !important;
+}
+html.dark #blogs .blog-title{ color: rgba(233,236,255,.96) !important; }
+html.dark #blogs .blog-excerpt{ color: rgba(233,236,255,.70) !important; }
+html.dark #blogs .btn-del,
+html.dark #blogs .btn-danger{
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(233,236,255,.14) !important;
+  color: rgba(233,236,255,.92) !important;
+}
+
 
 

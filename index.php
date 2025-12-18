@@ -330,6 +330,282 @@ $topDestinations = $stmtTop->fetchAll();
       padding: 18px;
       box-shadow: var(--shadow);
     }
+ /* =====================================
+   BLOGS (Admin Cards) - Bigger + Modern
+   ===================================== */
+
+#blogs .blogs-admin-list{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* ✅ أكبر + مرن */
+  gap: 18px;
+  align-items: stretch;
+}
+
+#blogs .blog-card{
+  position: relative;
+  border-radius: 22px;
+  border: 1px solid rgba(124,58,237,.12);
+  background: var(--tbl-bg);
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 430px;        /* ✅ كارد أطول وأفخم */
+  box-shadow:
+    0 24px 70px rgba(15,23,42,.10),
+    0 1px 0 rgba(255,255,255,.65) inset;
+
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, filter .22s ease;
+  animation: blogPop .35s ease both;
+}
+
+@keyframes blogPop{
+  from{ opacity:0; transform: translateY(10px) scale(.985); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
+}
+
+#blogs .blog-card:hover{
+  transform: translateY(-5px);
+  border-color: rgba(124,58,237,.24);
+  box-shadow:
+    0 32px 90px rgba(15,23,42,.14),
+    0 1px 0 rgba(255,255,255,.7) inset;
+  filter: saturate(1.03);
+}
+
+/* Cover */
+#blogs .blog-cover-wrap{
+  position: relative;
+  height: 200px; /* ✅ صورة أكبر */
+  background: var(--tbl-head-bg);
+  overflow: hidden;
+}
+
+#blogs .blog-cover{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.04);
+  transition: transform .55s ease;
+}
+#blogs .blog-card:hover .blog-cover{ transform: scale(1.10); }
+
+#blogs .blog-cover-wrap::after{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 30% 15%, rgba(124,58,237,.18), transparent 55%),
+    linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.38) 100%);
+  pointer-events:none;
+}
+
+/* Badges */
+#blogs .blog-badges{
+  position:absolute;
+  left: 14px;
+  bottom: 14px;
+  display:flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  z-index: 2;
+}
+
+#blogs .badge-pill{
+  display:inline-flex;
+  align-items:center;
+  gap: 6px;
+  padding: .34rem .68rem;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12.2px;
+  color:#fff;
+  background: rgba(15,23,42,.55);
+  border: 1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(10px);
+}
+
+#blogs .badge-status{
+  background: linear-gradient(135deg, rgba(124,58,237,.98), rgba(108,99,255,.95));
+  border-color: rgba(255,255,255,.22);
+}
+
+/* Body */
+#blogs .blog-body{
+  padding: 16px 16px 12px; /* ✅ مساحة أريح */
+  flex: 1;
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+#blogs .blog-title{
+  margin: 0;
+  font-weight: 1000;
+  font-size: 16px; /* ✅ أكبر */
+  color: var(--tbl-head-text);
+  letter-spacing: -0.015em;
+
+  display:-webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:hidden;
+  min-height: calc(1.35em * 2);
+  line-height: 1.35;
+}
+
+#blogs .blog-excerpt{
+  margin: 0;
+  color: var(--p-muted);
+  font-weight: 650;
+  font-size: 13.8px; /* ✅ أكبر وأنعم */
+  line-height: 1.8;
+
+  display:-webkit-box;
+  -webkit-line-clamp: 4;  /* ✅ مساحة نص أكثر لأن الكارد أكبر */
+  -webkit-box-orient: vertical;
+  overflow:hidden;
+  min-height: calc(1.8em * 4);
+}
+
+/* Meta */
+#blogs .blog-meta{
+  margin-top:auto;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(124,58,237,.10);
+
+  font-size: 13px;     /* ✅ أكبر */
+  font-weight: 800;
+  color: var(--p-muted);
+}
+
+#blogs .blog-meta .m{
+  display:flex;
+  align-items:center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+/* Actions */
+#blogs .blog-actions{
+  display:flex;
+  gap: 12px;
+  padding: 14px 16px 16px;
+
+  border-top: 1px solid rgba(124,58,237,.08);
+  background: linear-gradient(180deg, rgba(124,58,237,.05), transparent 65%);
+}
+
+/* Buttons (modern + bigger) */
+#blogs .blog-actions .btn{
+  border-radius: 999px !important;
+  font-weight: 900 !important;
+  padding: .64rem 1.05rem !important; /* ✅ أكبر */
+  flex: 1;
+  box-shadow: none !important;
+  transition: transform .18s ease, filter .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+}
+#blogs .blog-actions .btn:hover{ transform: translateY(-1px); }
+
+/* View Button (premium) */
+#blogs .btn-viewdetails{
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, rgba(124,58,237,1), rgba(108,99,255,1)) !important;
+  box-shadow: 0 16px 34px rgba(124,58,237,.20) !important;
+}
+#blogs .btn-viewdetails:hover{
+  filter: brightness(1.05);
+  box-shadow: 0 20px 46px rgba(124,58,237,.26) !important;
+}
+
+/* Delete Button (white bg + red hover) */
+#blogs .btn-del,
+#blogs .btn-danger{
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,.14) !important;
+}
+#blogs .btn-del:hover,
+#blogs .btn-danger:hover{
+  background: rgba(239,68,68,.10) !important;
+  border-color: rgba(239,68,68,.50) !important;
+  color: #ef4444 !important;
+}
+
+/* Focus rings */
+#blogs .blog-actions .btn:focus{
+  box-shadow: 0 0 0 4px rgba(124,58,237,.16) !important;
+}
+#blogs .btn-del:focus,
+#blogs .btn-danger:focus{
+  box-shadow: 0 0 0 4px rgba(239,68,68,.16) !important;
+}
+
+/* Dark mode tweaks */
+html.dark #blogs .blog-card{
+  border-color: rgba(124,58,237,.18);
+  box-shadow: 0 22px 70px rgba(0,0,0,.42);
+}
+html.dark #blogs .blog-actions{
+  border-top-color: rgba(233,236,255,.10);
+  background: linear-gradient(180deg, rgba(124,58,237,.07), transparent 65%);
+}
+html.dark #blogs .btn-del,
+html.dark #blogs .btn-danger{
+  background: rgba(15,18,34,.55) !important;
+  color: var(--p-ink) !important;
+  border-color: rgba(233,236,255,.16) !important;
+}
+/* ===== BLOGS OVERRIDE (PASTE LAST) ===== */
+#blogs .blogs-admin-list{
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 18px !important;
+}
+
+#blogs .blog-card{
+  min-height: 430px !important;
+  border-radius: 22px !important;
+  box-shadow: 0 24px 70px rgba(15,23,42,.10) !important;
+  border: 1px solid rgba(124,58,237,.12) !important;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, filter .22s ease !important;
+}
+#blogs .blog-card:hover{
+  transform: translateY(-5px) !important;
+  box-shadow: 0 32px 90px rgba(15,23,42,.14) !important;
+  border-color: rgba(124,58,237,.24) !important;
+}
+
+#blogs .blog-cover-wrap{ height: 200px !important; }
+#blogs .blog-cover{ transform: scale(1.04) !important; transition: transform .55s ease !important; }
+#blogs .blog-card:hover .blog-cover{ transform: scale(1.10) !important; }
+
+#blogs .blog-actions{ gap: 12px !important; padding: 14px 16px 16px !important; }
+#blogs .blog-actions .btn{
+  padding: .64rem 1.05rem !important;
+  border-radius: 999px !important;
+  font-weight: 900 !important;
+}
+
+#blogs .btn-del,
+#blogs .btn-danger{
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,.14) !important;
+}
+#blogs .btn-del:hover,
+#blogs .btn-danger:hover{
+  background: rgba(239,68,68,.10) !important;
+  border-color: rgba(239,68,68,.50) !important;
+  color: #ef4444 !important;
+}
+
+
   </style>
 
   <!-- TRAVELO user info للـ JS (زي hotel.php) -->
@@ -977,7 +1253,7 @@ $testimonials = $stmt->fetchAll();
             <h3>Other</h3>
             <a href="./about.html">About Travelo</a>
             <a href="./stores.html">Traveler Stories</a>
-            <a href="./blogs.html">Blog</a>
+            <a href="./blogs.php">Blog</a>
             <a href="./faqs.html">FAQ</a>
           </div>
         </div>

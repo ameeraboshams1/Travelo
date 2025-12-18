@@ -690,6 +690,213 @@ require __DIR__ . '/db.php';
       font-weight: 800;
     }
     .btn-travelo:hover{ filter: brightness(1.03); }
+ /* =====================================
+   BLOGS (Admin Cards) - 4 per row
+   ===================================== */
+#blogs .blogs-admin-list{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1200px){
+  #blogs .blogs-admin-list{ grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 900px){
+  #blogs .blogs-admin-list{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px){
+  #blogs .blogs-admin-list{ grid-template-columns: 1fr; }
+}
+
+#blogs .blog-card{
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid var(--tbl-border);
+  background: var(--tbl-bg);
+  overflow: hidden;
+
+  box-shadow: 0 14px 34px rgba(15,23,42,.08);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  animation: blogPop .35s ease both;
+
+  min-height: 320px;        /* ✅ طول ثابت مرتب */
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes blogPop{
+  from{ opacity:0; transform: translateY(10px) scale(.98); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
+}
+
+#blogs .blog-card:hover{
+  transform: translateY(-3px);
+  border-color: rgba(124,58,237,.22);
+  box-shadow: 0 20px 55px rgba(15,23,42,.12);
+}
+
+#blogs .blog-cover-wrap{
+  position: relative;
+  height: 150px; /* ✅ ارتفاع الصورة */
+  background: var(--tbl-head-bg);
+  overflow: hidden;
+}
+
+#blogs .blog-cover{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  transition: transform .35s ease;
+}
+
+#blogs .blog-card:hover .blog-cover{
+  transform: scale(1.06);
+}
+
+/* Gradient overlay */
+#blogs .blog-cover-wrap::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,.00), rgba(0,0,0,.30));
+  pointer-events:none;
+}
+
+#blogs .blog-badges{
+  position:absolute;
+  left: 12px;
+  bottom: 12px;
+  display:flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  z-index: 2;
+}
+
+#blogs .badge-pill{
+  display:inline-flex;
+  align-items:center;
+  gap: 6px;
+  padding: .25rem .55rem;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(15,23,42,.55);
+  border: 1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(6px);
+}
+
+#blogs .badge-status{
+  background: rgba(124,58,237,.80);
+  border-color: rgba(255,255,255,.20);
+}
+
+#blogs .blog-body{
+  padding: 12px 12px 10px;
+  flex: 1;
+  display:flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+#blogs .blog-title{
+  margin: 0;
+  font-weight: 1000;
+  font-size: 14.8px;
+  color: var(--tbl-head-text);
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;     /* ✅ سطرين */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.35em * 2);
+  line-height: 1.35;
+}
+
+#blogs .blog-excerpt{
+  margin: 0;
+  color: var(--p-muted);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.7;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;   /* ✅ 3 أسطر */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.7em * 3);
+}
+
+#blogs .blog-meta{
+  margin-top: auto;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--tbl-border);
+
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--p-muted);
+}
+
+#blogs .blog-meta .m{
+  display:flex;
+  align-items:center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+#blogs .blog-actions{
+  display:flex;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+
+#blogs .blog-actions .btn{
+  border-radius: 999px !important;
+  font-weight: 900 !important;
+  padding: .42rem .0 !important;
+  flex: 1;
+}
+
+#blogs .btn-viewdetails{
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, rgba(124,58,237,1), rgba(108,99,255,1)) !important;
+  box-shadow: 0 14px 26px rgba(124,58,237,.16) !important;
+}
+#blogs .btn-viewdetails:hover{ filter: brightness(1.03); }
+
+#blogs .btn-edit{
+  background: rgba(108,99,255,.10) !important;
+  border: 1px solid rgba(108,99,255,.22) !important;
+  color: rgba(108,99,255,.98) !important;
+}
+#blogs .btn-edit:hover{
+  background: rgba(108,99,255,.14) !important;
+  border-color: rgba(108,99,255,.40) !important;
+}
+
+#blogs .btn-delete{
+  background: transparent !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239,68,68,.45) !important;
+}
+#blogs .btn-delete:hover{
+  background: rgba(239,68,68,.10) !important;
+  border-color: rgba(239,68,68,.65) !important;
+}
+
+/* ✅ خلي مودال التفاصيل يسكرول من جوّا */
+#blogDetailsModal .modal-dialog{ max-height: calc(100vh - 2rem); }
+#blogDetailsModal .modal-content{ max-height: calc(100vh - 2rem); }
+#blogDetailsModal .modal-body{ overflow:auto; max-height: 70vh; }
+
   </style>
 </head>
 
@@ -728,6 +935,10 @@ require __DIR__ . '/db.php';
       <a class="nav-link" href="#faqs" data-page="faqs">
   <i class="bi bi-question-circle me-2"></i>FAQs
 </a>
+<a class="nav-link" href="#blogs" data-page="blogs">
+  <i class="bi bi-journal-text me-2"></i>Blogs
+</a>
+
 
     </nav>
 
@@ -1360,6 +1571,40 @@ require __DIR__ . '/db.php';
     </div>
   </div>
 </section>
+<!-- ✅ BLOGS -->
+<section id="blogs" class="section">
+  <div class="card p-3">
+    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+      <div>
+        <div class="fw-bold">Blogs</div>
+        <div class="small text-muted">Manage published & draft blog posts</div>
+      </div>
+
+      <div class="d-flex gap-2 align-items-center">
+        <select class="form-select form-select-sm" id="blogsStatusFilter" style="max-width:170px;">
+          <option value="">All</option>
+          <option value="published" selected>Published</option>
+          <option value="draft">Draft</option>
+        </select>
+
+        <div class="input-group input-group-sm" style="max-width:360px;">
+          <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
+          <input class="form-control" id="blogsSearch" placeholder="Search title / category..." />
+        </div>
+
+        <button class="btn btn-sm btn-purple" id="refreshBlogs">
+          <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+
+        <button class="btn btn-sm btn-primary" id="addBlogBtn">
+          <i class="bi bi-plus-lg me-1"></i>New Blog
+        </button>
+      </div>
+    </div>
+
+    <div class="blogs-admin-list" id="blogsList"></div>
+  </div>
+</section>
 
   </main>
 </div>
@@ -1483,6 +1728,23 @@ require __DIR__ . '/db.php';
         <button class="btn btn-danger" id="rejectSubmitBtn">
           <i class="bi bi-x me-1"></i>Reject
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ✅ BLOG DETAILS MODAL -->
+<div class="modal fade" id="blogDetailsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Blog Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" id="blogDetailsBody"></div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -2334,6 +2596,7 @@ require __DIR__ . '/db.php';
 })();
 </script>
 <script src="./assets/js/faqs_admin.js"></script>
+<script src="./assets/js/blogs_admin.js"></script>
 
 </body>
 </html>
