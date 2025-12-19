@@ -567,8 +567,11 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
+    #btnCover{
+      opacity: 0;
+    }
   </style>
-
+  
   <script>
     window.TRAVELO = window.TRAVELO || {};
     window.TRAVELO.isLoggedIn = true;
