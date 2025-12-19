@@ -1,4 +1,4 @@
-// ================== BOOKING WIZARD ==================
+// ================== BOOKING WIZARD (FULL) ==================
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
 
@@ -45,6 +45,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}`;
   }
 
+  function diffDays(dateA, dateB) {
+    const a = toDateOnly(dateA);
+    const b = toDateOnly(dateB);
+    if (!a || !b) return 0;
+    const d1 = new Date(a + "T00:00:00");
+    const d2 = new Date(b + "T00:00:00");
+    const diff = (d2 - d1) / (1000 * 60 * 60 * 24);
+    if (!Number.isFinite(diff)) return 0;
+    return Math.max(0, Math.round(diff));
+  }
+
   function displayDT(v) {
     const s = String(v || "").trim();
     if (!s) return "—";
@@ -75,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
   }
 
-  // --------- Core booking params (URL OR resumeBooking) ---------
+  // ================== Core booking params (URL OR resumeBooking) ==================
   const bookingType = isResume
     ? (resumeBooking.booking_type || "flight")
     : (params.get("booking_type") || "flight");
@@ -97,9 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ? String(window.TRAVELO.userId || "")
     : (params.get("user_id") || "");
 
-  // IDs
-  const flightId  = isResume ? str(resumeBooking.flight_id, "")  : (params.get("flight_id") || "");
-  const hotelId   = isResume ? str(resumeBooking.hotel_id, "")   : (params.get("hotel_id") || "");
+  // IDs (IMPORTANT: let, because package may fill them from API)
+  let flightId  = isResume ? str(resumeBooking.flight_id, "")  : (params.get("flight_id") || "");
+  let hotelId   = isResume ? str(resumeBooking.hotel_id, "")   : (params.get("hotel_id") || "");
   const packageId = isResume ? str(resumeBooking.package_id, "") : (params.get("package_id") || "");
 
   // --------- Flight display-only info (URL only) ---------
@@ -108,12 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const fromAirport   = params.get("from_airport_code")  || "";
   const toAirport     = params.get("to_airport_code")    || "";
 
-  const departureTime = params.get("departure_time")     || params.get("depart_time") || "";
-  const arrivalTime   = params.get("arrival_time")       || "";
-  const returnTime    = params.get("return_time")        || params.get("return_departure_time") || arrivalTime || "";
+  // These might be overwritten for package from flights API
+  let departureTime = params.get("departure_time") || params.get("depart_time") || "";
+  let arrivalTime   = params.get("arrival_time")   || "";
+  let returnTime    = params.get("return_time")    || params.get("return_departure_time") || arrivalTime || "";
 
-  const airline       = params.get("airline")            || "";
-  const flightNumber  = params.get("flight_number")      || "";
+  let airline       = params.get("airline")       || "";
+  let flightNumber  = params.get("flight_number") || "";
 
   // ✅ IMPORTANT: real dates (ignore time-only)
   const depDateParam = pickValidDateParam([
@@ -147,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------- Package display-only info (URL only) ---------
   const packageTitle      = params.get("package_title") || "";
   const packageCity       = params.get("package_city")  || "";
-  const packageNightsStr  = params.get("pkg_nights")    || params.get("stay_nights") || "";
+  const packageNightsStr  = params.get("duration_days") || params.get("pkg_nights") || params.get("stay_nights") || "";
   const packageCombo      = params.get("pkg_combo")     || "";
 
   // travellers
@@ -264,15 +276,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let n = 0;
     if (bookingType === "hotel") n = Number(hotelNightsStr || "0");
     else if (bookingType === "package") n = Number(packageNightsStr || "0");
-    else if (tripStart && tripEnd) {
-      const d1 = new Date(toDateOnly(tripStart) + "T00:00:00");
-      const d2 = new Date(toDateOnly(tripEnd) + "T00:00:00");
-      const diff = (d2 - d1) / (1000 * 60 * 60 * 24);
-      if (!Number.isNaN(diff) && diff > 0) n = diff;
-    }
+    else if (tripStart && tripEnd) n = diffDays(tripStart, tripEnd);
     if (!Number.isFinite(n) || n < 0) n = 0;
     return Math.round(n);
   }
+
   let stayNights = computeStayNights();
 
   function updateDatesUI() {
@@ -291,57 +299,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function syncHiddenDatesOnly() {
+  function syncHiddenCore() {
     if (!metaForm) return;
     metaForm.querySelector("#hfTripStart") && (metaForm.querySelector("#hfTripStart").value = tripStart);
     metaForm.querySelector("#hfTripEnd")   && (metaForm.querySelector("#hfTripEnd").value = tripEnd);
     metaForm.querySelector("#hfStayNights") && (metaForm.querySelector("#hfStayNights").value = String(stayNights));
+
+    metaForm.querySelector("#hfFlightId") && (metaForm.querySelector("#hfFlightId").value = flightId);
+    metaForm.querySelector("#hfHotelId")  && (metaForm.querySelector("#hfHotelId").value  = hotelId);
+    metaForm.querySelector("#hfPackageId")&& (metaForm.querySelector("#hfPackageId").value= packageId);
   }
 
-  // ================== AUTO FIX FOR DATES (NO USER INPUT FOR PACKAGE) ==================
+  // ================== Package helpers: load package + flight ==================
+  async function fetchJson(url) {
+    const r = await fetch(url, { headers: { "Accept": "application/json" } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  }
+
+  async function loadPackageRowById(id) {
+    if (!id) return null;
+    const list = await fetchJson(`./API/packages.php?action=list`);
+    const pid = String(id);
+    return Array.isArray(list) ? (list.find(x => String(x.id) === pid) || null) : null;
+  }
+
+  async function loadFlightRowById(id) {
+    if (!id) return null;
+    const list = await fetchJson(`./API/flights.php?action=list`);
+    const fid = String(id);
+    return Array.isArray(list) ? (list.find(x => String(x.id) === fid) || null) : null;
+  }
+
+  function normalizeTime(t) {
+    const s = String(t || "").trim();
+    if (!s) return "";
+    return s.slice(0, 5); // HH:MM
+  }
+
+  function asDate(v) {
+    return toDateOnly(v);
+  }
+
+  // ================== AUTO FIX FOR DATES ==================
+  // Remove time-only junk
   if (!isResume) {
-    // remove time-only junk if any
     if (isTimeOnly(tripStart)) tripStart = "";
     if (isTimeOnly(tripEnd)) tripEnd = "";
-
-    if (bookingType === "flight") {
-      const startDateOnly = toDateOnly(tripStart) || toDateOnly(depDateParam);
-      const endDateOnly   = toDateOnly(tripEnd)   || toDateOnly(retDateParam) || startDateOnly;
-
-      if (startDateOnly) tripStart = combineDateTime(startDateOnly, departureTime);
-      if (endDateOnly)   tripEnd   = combineDateTime(endDateOnly, returnTime || departureTime);
-
-      if (!tripEnd && tripStart) tripEnd = tripStart;
-    }
-
-    if (bookingType === "package") {
-      // ✅ إذا ما في تاريخ جاي من اللينك: خلّيه ثابت تلقائي
-      const nights = Math.max(1, Number(packageNightsStr || stayNights || 1));
-      stayNights = nights;
-
-      const startDateOnly =
-        toDateOnly(tripStart) ||
-        toDateOnly(depDateParam) ||
-        todayDate();
-
-      const endDateOnly =
-        toDateOnly(tripEnd) ||
-        toDateOnly(retDateParam) ||
-        addDays(startDateOnly, nights);
-
-      tripStart = combineDateTime(startDateOnly, departureTime);
-      tripEnd   = combineDateTime(endDateOnly, returnTime || departureTime);
-
-      // ✅ ما بدنا فورم تواريخ للبكج
-      if (hotelDatesForm) hotelDatesForm.hidden = true;
-    }
-
-    if (bookingType === "hotel") {
-      // hotel has its own picker (as you already built)
-    }
   }
 
-  // ================== Fill header & meta ==================
+  // ================== Fill header & base UI ==================
   if (headerUserName)  headerUserName.textContent  = userName;
   if (headerUserEmail) headerUserEmail.textContent = userEmail;
 
@@ -351,14 +358,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (ticketTotalAmount) ticketTotalAmount.textContent = formatMoney(totalAmount);
   if (amountTotalValue)  amountTotalValue.textContent  = formatMoney(totalAmount);
 
-  updateDatesUI();
-
+  // ================== traveller label ==================
   const travellerPieces = [];
   if (Number(travellersAdults) > 0) travellerPieces.push(`${travellersAdults} adult${travellersAdults === "1" ? "" : "s"}`);
   if (Number(travellersChildren) > 0) travellerPieces.push(`${travellersChildren} child`);
   if (Number(travellersInfants) > 0)  travellerPieces.push(`${travellersInfants} infant`);
   const travellersLabel = travellerPieces.join(" · ") || "1 adult";
 
+  // ================== Booking type specific rendering (initial) ==================
   if (ticketMetaLine) {
     let typeLabel = "";
     if (bookingType === "flight") typeLabel = "Flight";
@@ -367,106 +374,16 @@ document.addEventListener("DOMContentLoaded", () => {
     ticketMetaLine.textContent = `${typeLabel} · ${travellersLabel}`;
   }
 
-  // ---- booking type specific ticket ----
-  if (bookingType === "flight") {
-    if (ticketTypeBadge) ticketTypeBadge.textContent = "Flight ticket";
-    if (ticketTitle) ticketTitle.textContent = (fromCity || toCity) ? `${fromCity || "Your city"} → ${toCity || "Destination"}` : "Flight booking";
-    if (ticketSubtitle) ticketSubtitle.textContent = (airline && flightNumber) ? `${airline} · Flight ${flightNumber}` : "Review your flight details before paying.";
-
-    if (ticketRouteMain) {
-      if (fromCity || toCity || fromAirport || toAirport) {
-        const fromLabel = fromAirport ? `${fromCity || "Origin"} (${fromAirport})` : (fromCity || "Origin");
-        const toLabel   = toAirport   ? `${toCity || "Destination"} (${toAirport})` : (toCity || "Destination");
-        ticketRouteMain.textContent = `${fromLabel} → ${toLabel}`;
-      } else ticketRouteMain.textContent = "Flight route";
-    }
-
-    if (ticketExtraRow) {
-      ticketExtraRow.innerHTML = `
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Departure</div>
-          <div class="ticket-extra-value">${departureTime || "--:--"}</div>
-        </div>
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Return</div>
-          <div class="ticket-extra-value">${returnTime || "--:--"}</div>
-        </div>
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Airline</div>
-          <div class="ticket-extra-value">${airline || "TBA"}</div>
-        </div>
-      `;
-    }
-  } else if (bookingType === "hotel") {
-    if (ticketTypeBadge) ticketTypeBadge.textContent = "Hotel booking";
-    if (ticketTitle) ticketTitle.textContent = hotelName || "Your hotel";
-    if (ticketSubtitle) ticketSubtitle.textContent = (hotelCity || hotelLocation) ? `${hotelCity || hotelLocation} · ${roomType || "Room"}` : "Review your stay details.";
-    if (ticketRouteMain) ticketRouteMain.textContent = hotelCity || hotelLocation || "Destination";
-
-    if (ticketExtraRow) {
-      ticketExtraRow.innerHTML = `
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Nights</div>
-          <div class="ticket-extra-value">${hotelNightsStr || "-"}</div>
-        </div>
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Room type</div>
-          <div class="ticket-extra-value">${roomType || "Standard room"}</div>
-        </div>
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Board</div>
-          <div class="ticket-extra-value">${boardType || "Room only"}</div>
-        </div>
-      `;
-    }
-  } else if (bookingType === "package") {
-    if (ticketTypeBadge) ticketTypeBadge.textContent = "Package booking";
-    if (ticketTitle) ticketTitle.textContent = packageTitle || "Travel package";
-    if (ticketSubtitle) ticketSubtitle.textContent = (packageCity || packageCombo) ? `${packageCity || ""}${packageCombo ? " · " + packageCombo : ""}` : "Review your package details.";
-    if (ticketRouteMain) ticketRouteMain.textContent = packageCity || "Destination";
-
-    if (ticketExtraRow) {
-      ticketExtraRow.innerHTML = `
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Nights</div>
-          <div class="ticket-extra-value">${packageNightsStr || stayNights || "-"}</div>
-        </div>
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Combo</div>
-          <div class="ticket-extra-value">${packageCombo || "Flight + Hotel"}</div>
-        </div>
-        <div class="ticket-extra-col">
-          <div class="ticket-extra-label">Travelers</div>
-          <div class="ticket-extra-value">${travellersLabel}</div>
-        </div>
-      `;
-    }
-  }
-
-  if (ticketNotes) {
-    ticketNotes.textContent =
-      "Please review trip dates, travellers and total amount carefully. After payment, changes may require contacting Travelo support.";
-  }
-
-  // ---- fill hidden meta form ----
+  // ================== Fill hidden meta (base) ==================
   if (metaForm) {
     metaForm.querySelector("#hfBookingType") && (metaForm.querySelector("#hfBookingType").value = bookingType);
     metaForm.querySelector("#hfUserId")      && (metaForm.querySelector("#hfUserId").value = userId);
     metaForm.querySelector("#hfUserName")    && (metaForm.querySelector("#hfUserName").value = userName);
     metaForm.querySelector("#hfUserEmail")   && (metaForm.querySelector("#hfUserEmail").value = userEmail);
 
-    metaForm.querySelector("#hfFlightId")    && (metaForm.querySelector("#hfFlightId").value = flightId);
-    metaForm.querySelector("#hfHotelId")     && (metaForm.querySelector("#hfHotelId").value = hotelId);
-    metaForm.querySelector("#hfPackageId")   && (metaForm.querySelector("#hfPackageId").value = packageId);
-
-    metaForm.querySelector("#hfTripStart")   && (metaForm.querySelector("#hfTripStart").value = tripStart);
-    metaForm.querySelector("#hfTripEnd")     && (metaForm.querySelector("#hfTripEnd").value = tripEnd);
-
     metaForm.querySelector("#hfAdults")      && (metaForm.querySelector("#hfAdults").value = travellersAdults);
     metaForm.querySelector("#hfChildren")    && (metaForm.querySelector("#hfChildren").value = travellersChildren);
     metaForm.querySelector("#hfInfants")     && (metaForm.querySelector("#hfInfants").value = travellersInfants);
-
-    metaForm.querySelector("#hfStayNights")  && (metaForm.querySelector("#hfStayNights").value = String(stayNights));
 
     metaForm.querySelector("#hfAmountFlight")  && (metaForm.querySelector("#hfAmountFlight").value = amountFlight.toString());
     metaForm.querySelector("#hfAmountHotel")   && (metaForm.querySelector("#hfAmountHotel").value = amountHotel.toString());
@@ -485,11 +402,220 @@ document.addEventListener("DOMContentLoaded", () => {
     ensureHidden("booking_status", bookingStatus);
   }
 
-  // ensure hidden after everything
-  syncHiddenDatesOnly();
-  updateDatesUI();
+  // ================== Hotel date picker logic ==================
+  function showHotelPicker(show) {
+    if (!hotelDatesForm) return;
+    hotelDatesForm.hidden = !show;
+  }
 
-  // ================== Fill amounts (step 1 + 2) ==================
+  function updateHotelEndFromStart() {
+    if (!hotelStartInput || !hotelEndInput) return;
+
+    const start = hotelStartInput.value;
+    const nights = Number(stayNights || hotelNightsStr || 0);
+
+    if (!start) {
+      hotelEndInput.value = "";
+      if (hotelDatesHint) hotelDatesHint.textContent = "";
+      return;
+    }
+
+    const end = nights > 0 ? addDays(start, nights) : start;
+    hotelEndInput.value = end;
+
+    tripStart = start;
+    tripEnd = end;
+
+    if (hotelDatesHint) {
+      hotelDatesHint.textContent = nights > 0
+        ? `${nights} night(s) · Check-out is automatically calculated`
+        : `Same-day stay`;
+    }
+
+    updateDatesUI();
+    syncHiddenCore();
+  }
+
+  if (bookingType === "hotel" && !isResume) {
+    showHotelPicker(true);
+
+    if (hotelStartInput) {
+      // start default
+      const startDefault = toDateOnly(tripStart) || todayDate();
+      hotelStartInput.value = startDefault;
+      hotelStartInput.min = todayDate();
+
+      // nights default
+      const n = Number(hotelNightsStr || 1);
+      stayNights = Number.isFinite(n) && n > 0 ? Math.round(n) : 1;
+
+      hotelStartInput.addEventListener("change", updateHotelEndFromStart);
+      updateHotelEndFromStart();
+    }
+  } else {
+    showHotelPicker(false);
+  }
+
+  // ================== FIX dates for flight (non-resume) ==================
+  if (!isResume && bookingType === "flight") {
+    const startDateOnly = toDateOnly(tripStart) || toDateOnly(depDateParam);
+    const endDateOnly   = toDateOnly(tripEnd)   || toDateOnly(retDateParam) || startDateOnly;
+
+    if (startDateOnly) tripStart = combineDateTime(startDateOnly, departureTime);
+    if (endDateOnly)   tripEnd   = combineDateTime(endDateOnly, returnTime || departureTime);
+    if (!tripEnd && tripStart) tripEnd = tripStart;
+  }
+
+  // ================== PACKAGE: fill flight/hotel IDs + dates from APIs ==================
+  async function hydratePackageFromApis() {
+    if (bookingType !== "package" || isResume) return;
+
+    // 1) Load package row (has hotel_id, flight_id, duration_days)
+    const pkgRow = await loadPackageRowById(packageId);
+    if (pkgRow) {
+      // fill IDs if empty
+      if (!flightId && pkgRow.flight_id != null) flightId = String(pkgRow.flight_id);
+      if (!hotelId  && pkgRow.hotel_id  != null) hotelId  = String(pkgRow.hotel_id);
+
+      // nights/days (if exists)
+      const pkgDays = Number(pkgRow.duration_days || packageNightsStr || 0);
+      if (Number.isFinite(pkgDays) && pkgDays > 0) stayNights = Math.round(pkgDays);
+    }
+
+    // 2) Load flight row (has departure_date/return_date + times + duration)
+    const flRow = await loadFlightRowById(flightId);
+    if (flRow) {
+      const depDate = asDate(flRow.departure_date);
+      const retDate = asDate(flRow.return_date) || depDate;
+
+      // overwrite display info (optional)
+      departureTime = normalizeTime(flRow.departure_time) || departureTime;
+      arrivalTime   = normalizeTime(flRow.arrival_time)   || arrivalTime;
+      returnTime    = normalizeTime(flRow.departure_time) || returnTime; // for return we only have departure_time in table
+
+      airline = flRow.airline_name || airline;
+      flightNumber = flRow.flight_number || flightNumber;
+
+      // ✅ Set tripStart/tripEnd from flight dates + departure_time
+      if (depDate) tripStart = combineDateTime(depDate, departureTime);
+      if (retDate) tripEnd   = combineDateTime(retDate, departureTime);
+
+      // ✅ duration_days from dates
+      const dDays = diffDays(depDate, retDate);
+      if (dDays > 0) stayNights = dDays;
+      else if (!stayNights || stayNights <= 0) stayNights = 1;
+    } else {
+      // fallback if no flight row: at least guarantee date range
+      const startDateOnly = toDateOnly(tripStart) || todayDate();
+      const endDateOnly   = toDateOnly(tripEnd) || addDays(startDateOnly, Math.max(1, Number(stayNights || packageNightsStr || 1)));
+      tripStart = combineDateTime(startDateOnly, departureTime);
+      tripEnd   = combineDateTime(endDateOnly, departureTime);
+      if (!stayNights || stayNights <= 0) stayNights = diffDays(startDateOnly, endDateOnly) || 1;
+    }
+
+    // update hidden after hydrate
+    if (metaForm) {
+      metaForm.querySelector("#hfFlightId")  && (metaForm.querySelector("#hfFlightId").value = flightId);
+      metaForm.querySelector("#hfHotelId")   && (metaForm.querySelector("#hfHotelId").value  = hotelId);
+      metaForm.querySelector("#hfPackageId") && (metaForm.querySelector("#hfPackageId").value= packageId);
+
+      metaForm.querySelector("#hfTripStart") && (metaForm.querySelector("#hfTripStart").value = tripStart);
+      metaForm.querySelector("#hfTripEnd")   && (metaForm.querySelector("#hfTripEnd").value   = tripEnd);
+      metaForm.querySelector("#hfStayNights")&& (metaForm.querySelector("#hfStayNights").value= String(stayNights));
+    }
+
+    updateDatesUI();
+  }
+
+  // ================== Render ticket per type ==================
+  function renderTicket() {
+    if (bookingType === "flight") {
+      if (ticketTypeBadge) ticketTypeBadge.textContent = "Flight ticket";
+      if (ticketTitle) ticketTitle.textContent = (fromCity || toCity) ? `${fromCity || "Your city"} → ${toCity || "Destination"}` : "Flight booking";
+      if (ticketSubtitle) ticketSubtitle.textContent = (airline && flightNumber) ? `${airline} · Flight ${flightNumber}` : "Review your flight details before paying.";
+
+      if (ticketRouteMain) {
+        if (fromCity || toCity || fromAirport || toAirport) {
+          const fromLabel = fromAirport ? `${fromCity || "Origin"} (${fromAirport})` : (fromCity || "Origin");
+          const toLabel   = toAirport   ? `${toCity || "Destination"} (${toAirport})` : (toCity || "Destination");
+          ticketRouteMain.textContent = `${fromLabel} → ${toLabel}`;
+        } else ticketRouteMain.textContent = "Flight route";
+      }
+
+      if (ticketExtraRow) {
+        ticketExtraRow.innerHTML = `
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Departure</div>
+            <div class="ticket-extra-value">${departureTime || "--:--"}</div>
+          </div>
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Arrival</div>
+            <div class="ticket-extra-value">${arrivalTime || "--:--"}</div>
+          </div>
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Airline</div>
+            <div class="ticket-extra-value">${airline || "TBA"}</div>
+          </div>
+        `;
+      }
+    }
+
+    if (bookingType === "hotel") {
+      if (ticketTypeBadge) ticketTypeBadge.textContent = "Hotel booking";
+      if (ticketTitle) ticketTitle.textContent = hotelName || "Your hotel";
+      if (ticketSubtitle) ticketSubtitle.textContent = (hotelCity || hotelLocation) ? `${hotelCity || hotelLocation} · ${roomType || "Room"}` : "Review your stay details.";
+      if (ticketRouteMain) ticketRouteMain.textContent = hotelCity || hotelLocation || "Destination";
+
+      if (ticketExtraRow) {
+        ticketExtraRow.innerHTML = `
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Nights</div>
+            <div class="ticket-extra-value">${String(stayNights || hotelNightsStr || "-")}</div>
+          </div>
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Room type</div>
+            <div class="ticket-extra-value">${roomType || "Standard room"}</div>
+          </div>
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Board</div>
+            <div class="ticket-extra-value">${boardType || "Room only"}</div>
+          </div>
+        `;
+      }
+    }
+
+    if (bookingType === "package") {
+      if (ticketTypeBadge) ticketTypeBadge.textContent = "Package booking";
+      if (ticketTitle) ticketTitle.textContent = packageTitle || "Travel package";
+      if (ticketSubtitle) ticketSubtitle.textContent = (packageCity || packageCombo) ? `${packageCity || ""}${packageCombo ? " · " + packageCombo : ""}` : "Review your package details.";
+      if (ticketRouteMain) ticketRouteMain.textContent = packageCity || "Destination";
+
+      if (ticketExtraRow) {
+        ticketExtraRow.innerHTML = `
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Days</div>
+            <div class="ticket-extra-value">${String(stayNights || packageNightsStr || "-")}</div>
+          </div>
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Flight</div>
+            <div class="ticket-extra-value">${airline ? airline : "Included"} ${flightNumber ? "· " + flightNumber : ""}</div>
+          </div>
+          <div class="ticket-extra-col">
+            <div class="ticket-extra-label">Hotel</div>
+            <div class="ticket-extra-value">${hotelId ? ("Hotel ID #" + hotelId) : "Included"}</div>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // ================== Notes + initial UI ==================
+  if (ticketNotes) {
+    ticketNotes.textContent =
+      "Please review trip dates, travellers and total amount carefully. After payment, changes may require contacting Travelo support.";
+  }
+
+  // ================== Amounts ==================
   if (rowAmountFlight)  rowAmountFlight.style.display  = amountFlight  > 0 ? "flex" : "none";
   if (rowAmountHotel)   rowAmountHotel.style.display   = amountHotel   > 0 ? "flex" : "none";
   if (rowAmountPackage) rowAmountPackage.style.display = amountPackage > 0 ? "flex" : "none";
@@ -528,7 +654,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Done step initial static info
+  // Done step static info
   if (doneUserName)    doneUserName.textContent    = userName;
   if (doneBookingCode) doneBookingCode.textContent = bookingCode;
   if (doneUserEmail)   doneUserEmail.textContent   = userEmail;
@@ -539,6 +665,40 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (bookingType === "hotel") doneTripLine.textContent = hotelName || hotelCity || hotelLocation || "Hotel";
     else doneTripLine.textContent = packageTitle || packageCity || "Package";
   }
+
+  // ================== Render initial dates + ticket ==================
+  updateDatesUI();
+  renderTicket();
+
+  // ================== Hydrate package then re-render ==================
+  (async () => {
+    try {
+      if (bookingType === "package" && !isResume) {
+        // for package, hide hotel picker
+        if (hotelDatesForm) hotelDatesForm.hidden = true;
+
+        await hydratePackageFromApis();
+        // re-render after API fills flight/hotel/dates
+        stayNights = computeStayNights();
+        syncHiddenCore();
+        updateDatesUI();
+        renderTicket();
+      } else {
+        // for flight/hotel normal
+        stayNights = computeStayNights();
+        syncHiddenCore();
+        updateDatesUI();
+        renderTicket();
+      }
+    } catch (e) {
+      console.error("Package hydration failed:", e);
+      // still render whatever we have
+      stayNights = computeStayNights();
+      syncHiddenCore();
+      updateDatesUI();
+      renderTicket();
+    }
+  })();
 
   // ================== Stepper logic ==================
   const stepItems  = Array.from(document.querySelectorAll(".step-item"));
@@ -643,7 +803,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const method = getPaymentMethod();
 
-      // ✅ للبكج/فلايت لازم يكون في تاريخ
+      // ✅ لازم يكون في تاريخ للبكج/فلايت
       if ((bookingType === "flight" || bookingType === "package") && (!toDateOnly(tripStart) || !toDateOnly(tripEnd))) {
         return showPaymentError("Trip dates are missing. Please try again from search.");
       }
@@ -673,6 +833,11 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.set("trip_start_date", tripStart || "");
       formData.set("trip_end_date", tripEnd || tripStart || "");
       formData.set("stay_nights", String(stayNights || 0));
+
+      // ✅ ensure IDs are synced (important for package hydration)
+      formData.set("flight_id", flightId || "");
+      formData.set("hotel_id", hotelId || "");
+      formData.set("package_id", packageId || "");
 
       if (method !== "cashcard") {
         const rawNumber = cardNumberInput.value.replace(/\s+/g, "");
