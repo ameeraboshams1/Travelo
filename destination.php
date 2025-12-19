@@ -4,13 +4,42 @@
 require __DIR__ . '/db.php';   // يجلب $pdo من db.php
 session_start();
 
-// جلب الديستناشنز الفعّالة فقط
+// ===== Pagination settings =====
+$perPage = 3;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+
+// ===== Count total active destinations =====
+$countStmt = $pdo->query("SELECT COUNT(*) FROM destinations WHERE is_active = 1");
+$total = (int)$countStmt->fetchColumn();
+
+$totalPages = (int)ceil($total / $perPage);
+if ($totalPages < 1) $totalPages = 1;
+if ($page > $totalPages) $page = $totalPages;
+
+$offset = ($page - 1) * $perPage;
+
+// ===== Fetch only 9 destinations for current page =====
 $sql = "SELECT id, name, city, country, category, image_url, short_desc, base_price
         FROM destinations
         WHERE is_active = 1
-        ORDER BY created_at DESC";
-$stmt = $pdo->query($sql);
-$destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل الوجهات
+        ORDER BY created_at DESC
+        LIMIT :limit OFFSET :offset";
+
+$stmt = $pdo->prepare($sql);
+$stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
+
+$destinations = $stmt->fetchAll();
+
+// ===== Helper: keep query params while changing page =====
+function pageUrl(int $p): string {
+  $params = $_GET;
+  $params['page'] = $p;
+  return '?' . http_build_query($params);
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -250,6 +279,109 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
     0 0 0 1px rgba(124, 58, 237, 0.1) inset;
   background: rgba(255, 255, 255, 1);
 }
+
+
+
+
+/* =========================
+   Travelo Premium Pagination
+   ========================= */
+.travelo-pagination{
+  margin-top: 26px !important;
+}
+
+.travelo-pagination .pagination{
+  gap: 14px;
+  align-items: center;
+}
+
+/* كل زر */
+.travelo-pagination .page-link{
+  width: 62px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+
+  border-radius: 16px;
+  border: 1px solid rgba(124, 58, 237, .14);
+  background: rgba(255,255,255,.92);
+
+  color: #4c1d95;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+
+  box-shadow:
+    0 16px 36px rgba(15,23,42,.10),
+    0 0 0 1px rgba(255,255,255,.40) inset;
+
+  backdrop-filter: blur(14px) saturate(160%);
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+}
+
+/* إزالة حواف bootstrap الافتراضية */
+.travelo-pagination .page-item:first-child .page-link,
+.travelo-pagination .page-item:last-child .page-link{
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+/* Hover فخم */
+.travelo-pagination .page-link:hover{
+  transform: translateY(-2px);
+  border-color: rgba(124, 58, 237, .28);
+  background: rgba(255,255,255,.98);
+  box-shadow:
+    0 22px 52px rgba(15,23,42,.14),
+    0 0 0 1px rgba(124, 58, 237, .10) inset;
+}
+
+/* Active (الصفحة الحالية) */
+.travelo-pagination .page-item.active .page-link{
+  background: linear-gradient(135deg, #7c3aed, #6c63ff);
+  border-color: transparent;
+  color: #fff;
+
+  box-shadow:
+    0 24px 60px rgba(124, 58, 237, .30),
+    0 10px 30px rgba(108, 99, 255, .18);
+  transform: translateY(-1px);
+}
+
+/* Prev/Next */
+.travelo-pagination .page-item .page-link[aria-label="Previous"],
+.travelo-pagination .page-item .page-link[aria-label="Next"]{
+  font-size: 20px;
+  font-weight: 900;
+}
+
+/* Disabled */
+.travelo-pagination .page-item.disabled .page-link{
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow:
+    0 10px 22px rgba(15,23,42,.08),
+    0 0 0 1px rgba(255,255,255,.35) inset;
+}
+
+/* نقاط ... */
+.travelo-pagination .page-item.disabled .page-link{
+  background: rgba(255,255,255,.78);
+}
+
+/* موبايل */
+@media (max-width: 576px){
+  .travelo-pagination .pagination{ gap: 10px; }
+  .travelo-pagination .page-link{
+    width: 52px; height: 48px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+}
+
   </style>
 
   <!-- TRAVELO user info للـ JS (زي hotel.php) -->
@@ -434,6 +566,56 @@ $destinations = $stmt->fetchAll();   // مصفوفة تحتوي على كل ال
           </div>
         <?php endif; ?>
       </div>
+
+      <?php if ($totalPages > 1): ?>
+  <nav class="travelo-pagination mt-4 d-flex justify-content-center" aria-label="Destinations pagination">
+    <ul class="pagination pagination-lg">
+
+      <!-- Prev -->
+      <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+        <a class="page-link" href="<?= ($page <= 1) ? '#' : htmlspecialchars(pageUrl($page - 1)) ?>" aria-label="Previous">
+          &laquo;
+        </a>
+      </li>
+
+      <?php
+        // عرض صفحات بشكل مرتب مع ...
+        $window = 2; // كم صفحة حول الصفحة الحالية
+        $start = max(1, $page - $window);
+        $end   = min($totalPages, $page + $window);
+
+        // أول صفحة + نقاط إذا بعيد
+        if ($start > 1) {
+          echo '<li class="page-item"><a class="page-link" href="'.htmlspecialchars(pageUrl(1)).'">1</a></li>';
+          if ($start > 2) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+        }
+
+        // صفحات الوسط
+        for ($i = $start; $i <= $end; $i++) {
+          $active = ($i === $page) ? 'active' : '';
+          echo '<li class="page-item '.$active.'">';
+          echo '<a class="page-link" href="'.htmlspecialchars(pageUrl($i)).'">'.$i.'</a>';
+          echo '</li>';
+        }
+
+        // آخر صفحة + نقاط إذا بعيد
+        if ($end < $totalPages) {
+          if ($end < $totalPages - 1) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+          echo '<li class="page-item"><a class="page-link" href="'.htmlspecialchars(pageUrl($totalPages)).'">'.$totalPages.'</a></li>';
+        }
+      ?>
+
+      <!-- Next -->
+      <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
+        <a class="page-link" href="<?= ($page >= $totalPages) ? '#' : htmlspecialchars(pageUrl($page + 1)) ?>" aria-label="Next">
+          &raquo;
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+<?php endif; ?>
+
     </div>
 
     <!-- MODAL -->
