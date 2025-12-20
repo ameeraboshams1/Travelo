@@ -314,20 +314,80 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===============================
 // User menu toggle (avatar dropdown)
 // ===============================
+// ===============================
+// User menu toggle (robust) + toggle on 2nd click
+// ===============================
 document.addEventListener("DOMContentLoaded", () => {
-  const toggle = document.getElementById("userMenuToggle");
-  const menu = document.getElementById("userMenu");
+  const navUser = document.querySelector(".nav-user");
+  const toggle  = document.getElementById("userMenuToggle");
+  const menu    = document.getElementById("userMenu");
 
-  if (toggle && menu) {
-    toggle.addEventListener("click", (e) => {
+  // إذا مش مسجل دخول ما رح تلاقيهم
+  if (!toggle || !menu) return;
+
+  // ✅ يمنع تكرار الربط لو الملف انحمّل مرتين
+  if (window.__TRAVELO_USERMENU_BOUND__) return;
+  window.__TRAVELO_USERMENU_BOUND__ = true;
+
+  let ignoreOutside = false;
+
+  const isOpen = () => menu.classList.contains("show");
+
+  const open = () => {
+    menu.classList.add("show");
+    navUser?.classList.add("open");
+    toggle.setAttribute("aria-expanded", "true");
+  };
+
+  const close = () => {
+    menu.classList.remove("show");
+    navUser?.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+  };
+
+  const toggleMenu = () => (isOpen() ? close() : open());
+
+  // ✅ استخدمي pointerdown + capture عشان ما حدا يسرق الكليك
+  toggle.addEventListener(
+    "pointerdown",
+    (e) => {
+      e.preventDefault();
       e.stopPropagation();
-      menu.classList.toggle("show");
-    });
+      e.stopImmediatePropagation();
 
-    document.addEventListener("click", () => {
-      menu.classList.remove("show");
-    });
-  }
+      ignoreOutside = true;        // امنعي close بنفس اللمسة
+      toggleMenu();
+      setTimeout(() => (ignoreOutside = false), 120);
+    },
+    true
+  );
+
+  // ✅ كليك داخل القائمة ما يسكرها
+  menu.addEventListener(
+    "pointerdown",
+    (e) => {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    },
+    true
+  );
+
+  // ✅ سكري بس إذا كبستي برا
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (ignoreOutside) return;
+      if (!isOpen()) return;
+      if (navUser?.contains(e.target)) return;
+      close();
+    },
+    true
+  );
+
+  // ✅ ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
 });
 
 
@@ -583,3 +643,78 @@ function toggleDarkMode() {
 function getDarkModeStatus() {
     return window.darkMode ? window.darkMode.isDarkMode() : false;
 }
+// ===============================
+// User menu dropdown (FINAL FIX) - cleans old listeners + toggle
+// Put this at VERY END of home.js
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+  let navUser = document.querySelector(".nav-user");
+  let toggle = document.getElementById("userMenuToggle");
+  const menu = document.getElementById("userMenu");
+
+  if (!toggle || !menu) return;
+
+  // ✅ prevent running twice
+  if (window.__TRAVELO_USERMENU_FIXED__) return;
+  window.__TRAVELO_USERMENU_FIXED__ = true;
+
+  // ✅ remove ALL old event listeners on the toggle by cloning it
+  // (this is the nuclear option that fixes "it opens/closes instantly" + "does nothing")
+  const cloned = toggle.cloneNode(true);
+  toggle.parentNode.replaceChild(cloned, toggle);
+  toggle = cloned;
+
+  const isOpen = () => menu.classList.contains("show");
+
+  const open = () => {
+    menu.classList.add("show");
+    navUser && navUser.classList.add("open");
+    toggle.setAttribute("aria-expanded", "true");
+  };
+
+  const close = () => {
+    menu.classList.remove("show");
+    navUser && navUser.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+  };
+
+  const toggleMenu = () => (isOpen() ? close() : open());
+
+  // ✅ use pointerdown + capture to beat any other listeners
+  toggle.addEventListener(
+    "pointerdown",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      toggleMenu();
+    },
+    true
+  );
+
+  // ✅ clicking inside menu shouldn't close it
+  menu.addEventListener(
+    "pointerdown",
+    (e) => {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    },
+    true
+  );
+
+  // ✅ close on outside click only
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!isOpen()) return;
+      if (navUser && navUser.contains(e.target)) return;
+      close();
+    },
+    true
+  );
+
+  // ✅ esc close
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
+});

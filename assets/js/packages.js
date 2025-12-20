@@ -3,7 +3,7 @@ class TourPage {
   constructor() {
     this.tours = [];
     this.filteredTours = [];
-    this.perPage = 7;
+    this.perPage = 9; // ✅ عرض 9
     this.currentPage = 1;
     this.totalPages = 1;
 
@@ -185,6 +185,21 @@ class TourPage {
 
     if (!this.tours.length) return;
     this.maxTourPrice = Math.max(...this.tours.map((t) => t.data.price));
+
+    // ✅ عنصر no results ثابت (بدون ما نغيّر تصميمك)
+    if (this.tourGrid && !this.noResultsEl) {
+      const div = document.createElement("div");
+      div.className = "no-results";
+      div.style.cssText =
+        "grid-column:1/-1;text-align:center;padding:60px 20px;color:#8a6fa3;display:none;";
+      div.innerHTML = `
+        <i class="fa-solid fa-compass" style="font-size:48px;margin-bottom:16px;opacity:0.6;"></i>
+        <h3 style="margin:0 0 8px;font-size:18px;">No tours found</h3>
+        <p style="margin:0 0 16px;font-size:14px;opacity:0.8;">Try adjusting your filters or search query.</p>
+      `;
+      this.noResultsEl = div;
+      this.tourGrid.appendChild(div);
+    }
   }
 
   // ================= PRICE SLIDER =================
@@ -525,8 +540,27 @@ class TourPage {
     if (resetPage || this.currentPage > this.totalPages) this.currentPage = 1;
 
     this.updateToursCount();
+
+    // ✅ ترتيب DOM حسب السورت/الفلتر بدون حذف/clone
+    this.syncDomOrder();
+
     this.renderTours();
     this.renderPagination();
+  }
+
+  syncDomOrder() {
+    if (!this.tourGrid) return;
+
+    const filteredSet = new Set(this.filteredTours.map((t) => t.element));
+    const frag = document.createDocumentFragment();
+
+    this.filteredTours.forEach((t) => frag.appendChild(t.element));
+    this.tours.forEach((t) => {
+      if (!filteredSet.has(t.element)) frag.appendChild(t.element);
+    });
+
+    if (this.noResultsEl) frag.appendChild(this.noResultsEl);
+    this.tourGrid.appendChild(frag);
   }
 
   updateToursCount() {
@@ -538,23 +572,19 @@ class TourPage {
   renderTours() {
     if (!this.tourGrid) return;
 
-    this.tourGrid.innerHTML = "";
+    // hide all
+    this.tours.forEach((t) => {
+      t.element.style.display = "none";
+      t.element.style.animation = "";
+    });
 
     if (this.filteredTours.length === 0) {
-      const div = document.createElement("div");
-      div.className = "no-results";
-      div.style.cssText =
-        "grid-column:1/-1;text-align:center;padding:60px 20px;color:#8a6fa3;";
-      div.innerHTML = `
-        <i class="fa-solid fa-compass" style="font-size:48px;margin-bottom:16px;opacity:0.6;"></i>
-        <h3 style="margin:0 0 8px;font-size:18px;">No tours found</h3>
-        <p style="margin:0 0 16px;font-size:14px;opacity:0.8;">Try adjusting your filters or search query.</p>
-      `;
-      this.tourGrid.appendChild(div);
+      if (this.noResultsEl) this.noResultsEl.style.display = "block";
       if (this.paginationContainer) this.paginationContainer.style.display = "none";
       return;
     }
 
+    if (this.noResultsEl) this.noResultsEl.style.display = "none";
     if (this.paginationContainer) this.paginationContainer.style.display = "flex";
 
     const start = (this.currentPage - 1) * this.perPage;
@@ -564,7 +594,6 @@ class TourPage {
     pageItems.forEach((t) => {
       t.element.style.display = "flex";
       t.element.style.animation = "fade-in 0.4s ease";
-      this.tourGrid.appendChild(t.element);
     });
   }
 
@@ -739,10 +768,8 @@ class TourPage {
     const combo = card.dataset.combo || "";
     const currency = card.dataset.currency || "USD";
 
-    // hotel
     const hotelName = (card.dataset.hotelName || "").trim();
 
-    // flight
     const flightAirline = (card.dataset.flightAirline || "").trim();
     const flightNo = (card.dataset.flightNo || "").trim();
     const flightFrom = (card.dataset.flightFrom || "").trim();
@@ -776,10 +803,10 @@ class TourPage {
     params.set("discount_amount", "0");
     params.set("currency", currency);
 
-    // ✅ pass hotel name
+    // pass hotel name
     if (hotelName) params.set("hotel_name", hotelName);
 
-    // ✅ pass flight details
+    // pass flight details
     if (flightAirline) params.set("flight_airline", flightAirline);
     if (flightNo) params.set("flight_no", flightNo);
     if (flightFrom) params.set("flight_from", flightFrom);
@@ -787,7 +814,7 @@ class TourPage {
     if (flightDepartAt) params.set("flight_depart_at", flightDepartAt);
     if (flightArriveAt) params.set("flight_arrive_at", flightArriveAt);
 
-    // ✅ also set trip dates from flight if available
+    // set trip dates
     if (flightDepartAt) params.set("trip_start_date", flightDepartAt);
     if (flightArriveAt) params.set("trip_end_date", flightArriveAt);
 
