@@ -115,6 +115,139 @@
 .ask-ai-btn:hover .ask-ai-bubble{ opacity:1 !important; }
 
   </style>
+  <style>
+  /* ========= Travelo Theme Tokens ========= */
+  :root{
+    --bg: #f7f8fb;
+    --surface: rgba(255,255,255,.82);
+    --surface2: rgba(255,255,255,.72);
+    --card: rgba(255,255,255,.86);
+    --border: rgba(232,234,243,.90);
+    --text: #0f172a;
+    --muted: #64748b;
+    --muted2: #94a3b8;
+
+    --accent: #7c3aed;
+    --accent2: #6c63ff;
+    --accentSoft: rgba(124,58,237,.12);
+
+    --shadow: 0 14px 40px rgba(15,23,42,.10);
+    --shadowHover: 0 22px 60px rgba(15,23,42,.16);
+
+    --ring: 0 0 0 4px rgba(124,58,237,.18);
+  }
+
+  /* ========= Dark ========= */
+  :root.dark{
+    --bg: #0b1020;
+    --surface: rgba(15,23,42,.72);
+    --surface2: rgba(15,23,42,.62);
+    --card: rgba(17,24,39,.72);
+    --border: rgba(148,163,184,.18);
+    --text: #e5e7eb;
+    --muted: rgba(226,232,240,.78);
+    --muted2: rgba(226,232,240,.62);
+
+    --shadow: 0 18px 60px rgba(0,0,0,.45);
+    --shadowHover: 0 26px 80px rgba(0,0,0,.55);
+
+    --ring: 0 0 0 4px rgba(124,58,237,.22);
+  }
+
+  /* ========= Global Overrides ========= */
+  body{
+    background:
+      radial-gradient(1200px 700px at 18% -10%, rgba(124,58,237,.18), transparent 60%),
+      radial-gradient(900px 520px at 92% 8%, rgba(108,99,255,.16), transparent 55%),
+      var(--bg) !important;
+    color: var(--text) !important;
+  }
+
+  .topbar{
+    background: var(--surface) !important;
+    border-bottom: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+  }
+
+  .brand span{ color: var(--text) !important; }
+  .brand .logo{ filter: drop-shadow(0 10px 22px rgba(0,0,0,.18)); }
+
+  .chip,
+  .side-box,
+  .content .hero,
+  .controls,
+  .pill,
+  .faq-list,
+  .cta,
+  .modal-card,
+  .site-footer{
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+    color: var(--text) !important;
+  }
+
+  .muted{ color: var(--muted) !important; }
+  .pill.muted{ color: var(--muted) !important; }
+
+  /* Inputs */
+  input, textarea, select{
+    background: var(--surface2) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+  }
+  input::placeholder, textarea::placeholder{ color: var(--muted2) !important; }
+  input:focus, textarea:focus, select:focus{
+    outline: none !important;
+    border-color: rgba(124,58,237,.55) !important;
+    box-shadow: var(--ring) !important;
+  }
+
+  /* Tabs */
+  .tab{
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--muted) !important;
+  }
+  .tab.is-active{
+    color: #fff !important;
+    border-color: rgba(124,58,237,.35) !important;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+  }
+
+  /* Buttons */
+  .btn, .soft, .ghost{
+    color: var(--text) !important;
+  }
+
+  /* Links */
+  a{ color: inherit; }
+  a:hover{ color: var(--accent) !important; }
+
+  /* FAQ items (لو CSS عندك مسميهم غير هيك ما بضر) */
+  .faq-item, .faq-card, .faq{
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+  }
+
+  /* Toast */
+  .toast{
+    background: rgba(15,23,42,.88) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+  }
+
+  /* Scrollbar (اختياري لطيف) */
+  :root.dark ::-webkit-scrollbar{ width: 10px; }
+  :root.dark ::-webkit-scrollbar-thumb{
+    background: rgba(148,163,184,.28);
+    border-radius: 999px;
+  }
+  :root.dark ::-webkit-scrollbar-thumb:hover{
+    background: rgba(148,163,184,.38);
+  }
+</style>
+
 </head>
 <body>
   
@@ -124,9 +257,14 @@
         <img src="./assets/images/logo.svg" alt="Travelo" class="logo">
         <span>Travelo</span>
       </a>
-      <div class="top-actions">
-        <button id="scrollTop" class="chip ghost" aria-label="Back to top" title="Back to top">↑</button>
-      </div>
+<div class="top-actions">
+  <button id="themeToggle" class="chip ghost" aria-label="Toggle theme" title="Toggle theme">
+    <i id="themeIcon" class="bi bi-moon-stars" aria-hidden="true"></i>
+  </button>
+
+  <button id="scrollTop" class="chip ghost" aria-label="Back to top" title="Back to top">↑</button>
+</div>
+
     </div>
     <div class="glow"></div>
   </header>
@@ -319,6 +457,49 @@
     }, { once:true }); // ✅ يمنع تعدد الكبس/تكرار
   });
 })();
+</script>
+<script>
+  (function(){
+    const KEY = "travelo-theme";
+    const root = document.documentElement;
+
+    function setIcon(){
+      const icon = document.getElementById("themeIcon");
+      if (!icon) return;
+      if (root.classList.contains("dark")) {
+        icon.classList.remove("bi-moon-stars");
+        icon.classList.add("bi-sun");
+      } else {
+        icon.classList.add("bi-moon-stars");
+        icon.classList.remove("bi-sun");
+      }
+    }
+
+    function applySavedTheme(){
+      const saved = localStorage.getItem(KEY);
+
+      if (saved === "dark") root.classList.add("dark");
+      else if (saved === "light") root.classList.remove("dark");
+      else {
+        // لو ما في خيار محفوظ: خليها حسب النظام
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        root.classList.toggle("dark", prefersDark);
+      }
+
+      setIcon();
+    }
+
+    function toggleTheme(){
+      root.classList.toggle("dark");
+      localStorage.setItem(KEY, root.classList.contains("dark") ? "dark" : "light");
+      setIcon();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applySavedTheme();
+      document.getElementById("themeToggle")?.addEventListener("click", toggleTheme);
+    });
+  })();
 </script>
 
 </body>

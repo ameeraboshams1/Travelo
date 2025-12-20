@@ -434,6 +434,71 @@
       .pill{ width:100%; justify-content:flex-start; }
       .btn{ width:100%; }
     }
+    /* ===================== THEME (Dark default) ===================== */
+:root{
+  /* Dark variables */
+  --ink:#eaf0ff;
+  --muted:#aab4d6;
+  --muted2:#8f9ac1;
+
+  --bg:#0b1020;
+  --card: rgba(18,24,44,.86);
+  --border: rgba(255,255,255,.10);
+
+  --shadow: 0 18px 50px rgba(0,0,0,.45);
+  --shadowHover: 0 26px 70px rgba(0,0,0,.55);
+}
+
+/* Light mode override */
+body.light{
+  --ink:#0f172a;
+  --muted:#64748b;
+  --muted2:#94a3b8;
+
+  --bg:#f7f8fb;
+  --card:#ffffff;
+  --border:#e8eaf3;
+
+  --shadow: 0 14px 40px rgba(15,23,42,.10);
+  --shadowHover: 0 22px 60px rgba(15,23,42,.16);
+}
+body{
+  background:
+    radial-gradient(1200px 700px at 18% -10%,
+      rgba(124,58,237, .22), transparent 60%),
+    radial-gradient(900px 520px at 92% 8%,
+      rgba(108,99,255, .18), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  line-height:1.65;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.theme-toggle{
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  color: var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow: var(--shadow);
+  transition: var(--t);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+.theme-toggle:hover{
+  transform: translateY(-4px);
+  border-color: rgba(124,58,237,.35);
+  box-shadow: var(--shadowHover);
+}
+
   </style>
 </head>
 
@@ -791,5 +856,32 @@
 
     document.addEventListener("DOMContentLoaded", init);
   </script>
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+  <i class="fa-solid fa-moon" id="themeIcon"></i>
+</button>
+<script>
+  (function initTheme(){
+    const saved = localStorage.getItem('travelo_theme') || 'dark';
+    if (saved === 'light') document.body.classList.add('light');
+    updateThemeIcon();
+  })();
+
+  function updateThemeIcon(){
+    const icon = document.getElementById('themeIcon');
+    if(!icon) return;
+    const isLight = document.body.classList.contains('light');
+    icon.classList.toggle('fa-sun', isLight);
+    icon.classList.toggle('fa-moon', !isLight);
+  }
+
+  document.getElementById('themeToggle')?.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    localStorage.setItem('travelo_theme',
+      document.body.classList.contains('light') ? 'light' : 'dark'
+    );
+    updateThemeIcon();
+  });
+</script>
+
 </body>
 </html>

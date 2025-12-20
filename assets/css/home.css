@@ -1146,7 +1146,9 @@ body {
     display: block;
 }
 
-
+.h-img{
+  border-radius: 30px;
+}
 .td-country {
   position: absolute;
   top: 0;

@@ -898,3 +898,451 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btnPrintTicket');
+  if (!btn) return;
+
+  const esc = (s) => String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+
+  function pickText(id, fallback = '—') {
+    const el = document.getElementById(id);
+    const t = el ? el.textContent.trim() : '';
+    return t || fallback;
+  }
+
+  function formatNow() {
+    const d = new Date();
+    return d.toLocaleString(undefined, {
+      year: 'numeric', month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function detectType(typeBadgeText) {
+    const t = (typeBadgeText || '').toLowerCase();
+    if (t.includes('hotel')) return { key: 'hotel', icon: '🏨', label: 'Hotel booking' };
+    if (t.includes('package')) return { key: 'package', icon: '🎁', label: 'Package booking' };
+    return { key: 'flight', icon: '✈', label: 'Flight ticket' };
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // ✅ اجمع بيانات التذكرة من الصفحة
+    const typeBadgeRaw = pickText('ticketTypeBadge', 'Ticket');
+    const typeMeta     = detectType(typeBadgeRaw);
+
+    const title       = pickText('ticketTitle', 'Your trip');
+    const subtitle    = pickText('ticketSubtitle', '');
+    const bookingCode = pickText('ticketBookingCode', 'TRV-XXXX');
+
+    const routeMain   = pickText('ticketRouteMain', '');
+    const metaLine    = pickText('ticketMetaLine', '');
+
+    const startView   = pickText('tripStartView', pickText('ticketDates', '—'));
+    const endView     = pickText('tripEndView', '—');
+
+    const traveler    = pickText('ticketUserName', (window.TRAVELO?.userName || 'Traveler'));
+    const email       = (window.TRAVELO?.userEmail || '').trim();
+
+    const totalAmount = pickText('ticketTotalAmount', pickText('amountTotalValue', '$0.00'));
+    const currency    = pickText('currencyLabel', 'USD');
+
+    const extraRaw = (document.getElementById('ticketExtraRow')?.innerText || '').trim();
+    const extraLines = extraRaw
+      .split('\n')
+      .map(x => x.trim())
+      .filter(Boolean)
+      .slice(0, 8);
+
+    const issuedAt = formatNow();
+
+    // ✅ افتح نافذة طباعة
+    const w = window.open('', 'TRAVELO_PRINT', 'width=980,height=720');
+    if (!w) {
+      alert('Popup blocked. Allow popups for this site then try again.');
+      return;
+    }
+
+    const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Travelo Ticket</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ✅ أهم تعديل: no min-height + margin مضبوط */
+    @page { size: A4; margin: 12mm; }
+
+    :root{
+      --ink:#0f172a;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --bg:#ffffff;
+      --accent:#872bff;
+      --accent2:#6c63ff;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{
+      margin:0;
+      background: var(--bg);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-family:"Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+    }
+
+    /* صفحة واحدة */
+    .page{
+      width: 100%;
+      margin: 0;
+    }
+
+    /* التذكرة */
+    .ticket{
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: hidden;
+      position: relative;
+      background:#fff;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Gradient header */
+    .topbar{
+      height: 12mm;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+
+    /* ثقوب داخلية (بدون ما تسبب أي overflow غريب) */
+    .ticket:before, .ticket:after{
+      content:"";
+      position:absolute;
+      top: 54%;
+      width: 13mm;
+      height: 13mm;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--border);
+      transform: translateY(-50%);
+      z-index: 3;
+      opacity: .95;
+    }
+    .ticket:before{ left: -6.5mm; }
+    .ticket:after{ right: -6.5mm; }
+
+    /* Header */
+    .head{
+      padding: 9mm 10mm 6mm;
+      display:flex;
+      justify-content: space-between;
+      gap: 8mm;
+      align-items: flex-start;
+    }
+
+    .brand{
+      display:flex;
+      align-items:flex-start;
+      gap: 10px;
+    }
+    .logo{
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-weight:900;
+      letter-spacing:.5px;
+      flex: 0 0 auto;
+    }
+    .brand h1{
+      font-size: 16.5pt;
+      margin:0;
+      line-height:1.05;
+    }
+    .brand p{
+      margin:4px 0 0;
+      color: var(--muted);
+      font-size: 10pt;
+      max-width: 105mm;
+      line-height: 1.35;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 10pt;
+      background: rgba(135,43,255,.10);
+      color: var(--accent);
+      border: 1px solid rgba(135,43,255,.18);
+      white-space: nowrap;
+      margin-top: 8px;
+    }
+
+    .codeBox{
+      text-align:right;
+      min-width: 60mm;
+    }
+    .codeLabel{
+      color: var(--muted);
+      font-size: 9.5pt;
+      margin-bottom: 5px;
+    }
+    .code{
+      font-size: 13pt;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+    }
+    .metaTiny{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 9pt;
+    }
+
+    .cut{
+      border-top: 2px dashed #e5e7eb;
+      margin: 0 10mm;
+    }
+
+    /* Body */
+    .body{
+      padding: 7mm 10mm 9mm;
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 8mm;
+      align-items:start;
+    }
+
+    .block{
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 8mm;
+      background: #fff;
+    }
+
+    .block h2{
+      margin:0 0 8px;
+      font-size: 12pt;
+      letter-spacing:.2px;
+    }
+
+    .route{
+      font-size: 13.5pt;
+      font-weight: 900;
+      margin: 0 0 6px;
+    }
+
+    .meta{
+      color: var(--muted);
+      font-size: 10pt;
+      margin: 0 0 10px;
+      line-height: 1.35;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 14px;
+      margin-top: 8px;
+    }
+    .kv .k{
+      font-size: 9pt;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .kv .v{
+      font-size: 11pt;
+      font-weight: 800;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .list{
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .list li{
+      padding: 7px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 10pt;
+      color: #111827;
+      line-height: 1.35;
+    }
+    .list li:last-child{ border-bottom:none; }
+
+    .total{
+      display:flex;
+      justify-content: space-between;
+      align-items:flex-end;
+      gap: 12px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #eef2f7;
+    }
+    .total .tlabel{
+      color: var(--muted);
+      font-size: 9.5pt;
+    }
+    .total .tval{
+      font-size: 20pt;
+      font-weight: 900;
+      letter-spacing: .2px;
+      white-space: nowrap;
+    }
+
+    .note{
+      margin-top: 7mm;
+      color: var(--muted);
+      font-size: 9pt;
+      line-height: 1.45;
+    }
+
+    /* Footer داخل التذكرة (حتى ما يزيد الطول ويعمل صفحة ثانية) */
+    .ticketFoot{
+      display:flex;
+      justify-content: space-between;
+      padding: 6mm 10mm;
+      border-top: 1px solid #eef2f7;
+      color: var(--muted);
+      font-size: 9pt;
+    }
+
+    /* تأكيد عدم الانقسام */
+    .head, .body, .block { break-inside: avoid; page-break-inside: avoid; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="ticket">
+      <div class="topbar"></div>
+
+      <div class="head">
+        <div>
+          <div class="brand">
+            <div class="logo">T</div>
+            <div>
+              <h1>Travelo Ticket</h1>
+              <p>${esc(title)}${subtitle ? ` — ${esc(subtitle)}` : ''}</p>
+            </div>
+          </div>
+
+          <div class="badge">${esc(typeMeta.icon)} ${esc(typeMeta.label)}</div>
+        </div>
+
+        <div class="codeBox">
+          <div class="codeLabel">Booking reference</div>
+          <div class="code">${esc(bookingCode)}</div>
+          <div class="metaTiny">Issued: ${esc(issuedAt)}</div>
+        </div>
+      </div>
+
+      <div class="cut"></div>
+
+      <div class="body">
+        <div class="block">
+          <h2>Trip details</h2>
+
+          ${routeMain ? `<div class="route">${esc(routeMain)}</div>` : ''}
+          ${metaLine ? `<div class="meta">${esc(metaLine)}</div>` : ''}
+
+          <div class="grid">
+            <div class="kv">
+              <div class="k">Start</div>
+              <div class="v">${esc(startView)}</div>
+            </div>
+            <div class="kv">
+              <div class="k">End</div>
+              <div class="v">${esc(endView)}</div>
+            </div>
+
+            <div class="kv">
+              <div class="k">Traveler</div>
+              <div class="v">${esc(traveler)}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Email</div>
+              <div class="v">${esc(email || '—')}</div>
+            </div>
+          </div>
+
+          ${extraLines.length ? `
+            <ul class="list">
+              ${extraLines.map(x => `<li>${esc(x)}</li>`).join('')}
+            </ul>
+          ` : ''}
+
+          <div class="note">
+            Please review trip dates, travellers and total amount carefully.
+            After payment, changes may require contacting Travelo support.
+          </div>
+        </div>
+
+        <div class="block">
+          <h2>Payment</h2>
+
+          <div class="kv" style="margin-top:8px;">
+            <div class="k">Currency</div>
+            <div class="v">${esc(currency)}</div>
+          </div>
+
+          <div class="total">
+            <div>
+              <div class="tlabel">Total amount</div>
+              <div class="metaTiny">Paid/Reserved based on method</div>
+            </div>
+            <div class="tval">${esc(totalAmount)}</div>
+          </div>
+
+          <div class="note">
+            Tip: enable “Background graphics” in print settings
+            to keep the Travelo gradient header.
+          </div>
+        </div>
+      </div>
+
+      <div class="ticketFoot">
+        <div>Travelo • e-Ticket</div>
+        <div>${esc(bookingCode)}</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (async function(){
+      try{
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
+      }catch(e){}
+      setTimeout(function(){
+        window.print();
+        setTimeout(() => window.close(), 250);
+      }, 220);
+    })();
+  <\/script>
+</body>
+</html>`;
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+  });
+});
