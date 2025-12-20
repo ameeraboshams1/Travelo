@@ -592,37 +592,63 @@ $memberSince = $user['created_at'] ? substr((string)$user['created_at'], 0, 10) 
 
         <div class="nav-links">
           <ul class="nav-links-ul">
-            <li><a href="index.php">Home</a></li>
+            <li><a href="index.php" class="active">Home</a></li>
             <li><a href="./fligths.php">Flights</a></li>
             <li><a href="./hotel.php">Hotels</a></li>
             <li><a href="./packages.php">Packages</a></li>
             <li><a href="./destination.php">Destinations</a></li>
+
           </ul>
         </div>
 
-        <div class="nav-button">
-          <div class="nav-user" id="navUser">
-            <button type="button" class="user-toggle" id="userMenuToggle" aria-haspopup="true" aria-expanded="false">
-              <span class="user-avatar"><?= h($avatarLetter) ?></span>
+<div class="nav-button">
+   <button id="darkModeToggle" class="dark-mode-toggle" type="button" aria-label="Toggle dark mode">
+    <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+  </button>
+  <?php if (isset($_SESSION['user_id'])): ?>
+    <!-- ====== Logged-in state ====== -->
+    <div class="nav-user">
+      <button type="button" class="user-toggle" id="userMenuToggle" aria-haspopup="true" aria-expanded="false">
+        <span class="user-avatar">
+          <?php
+            $name = $_SESSION['user_name'] ?? 'U';
+            echo strtoupper(mb_substr($name, 0, 1));
+          ?>
+        </span>
 
-              <span class="user-text">
-                Welcome back, <?= h($user['username'] ?? 'Traveler') ?>
-              </span>
+        <span class="user-text">
+          Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
+        </span>
 
-              <i class="bi bi-chevron-down user-caret" aria-hidden="true"></i>
-            </button>
+        <!-- السهم -->
+        <i class="bi bi-chevron-down user-caret" aria-hidden="true"></i>
+      </button>
 
-            <div class="user-menu" id="userMenu">
-              <a href="./profile.php"><i class="bi bi-person"></i> My profile</a>
-              <a href="./myBooking.php"><i class="bi bi-ticket-perforated"></i> My bookings</a>
-              <hr>
-              <form action="logout.php" method="post">
-                <button type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
-              </form>
-            </div>
-          </div>
-        </div>
+      <div class="user-menu" id="userMenu">
+        <a href="./myprofile.php"><i class="bi bi-person"></i> My profile</a>
 
+        <?php if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+          <a href="admin-dashboard.php"><i class="bi bi-speedometer2"></i> Admin dashboard</a>
+        <?php else: ?>
+          <a href="./myBooking.php"><i class="bi bi-ticket-perforated"></i> My bookings</a>
+        <?php endif; ?>
+
+        <hr>
+
+        <form action="logout.php" method="post">
+          <button type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
+        </form>
+      </div>
+    </div>
+  <?php else: ?>
+    <!-- ====== Guest state ====== -->
+    <button id="btnLogin" type="button" class="sign_in">Login</button>
+    <button id="btnLogin1" type="button" class="sign_up">Sign up</button>
+  <?php endif; ?>
+</div>
+
+
+        <button class="menu-toggle" aria-label="Open menu"><span></span></button>
       </nav>
     </div>
   </section>

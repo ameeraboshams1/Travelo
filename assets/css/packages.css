@@ -1896,3 +1896,863 @@ a {
     grid-template-columns: 1fr;
   }
 }
+/* =========================================================
+   DARK MODE — PACKAGES PAGE DETAILS ONLY
+   (Does NOT touch: body, nav, footer, hero-banner)
+   Paste at END of assets/css/packages.css
+   ========================================================= */
+
+html.dark{ color-scheme: dark; }
+
+/* ===== Hero search box (NOT the banner) ===== */
+html.dark .hero-search-box{
+  background: rgba(11,16,32,.78) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  box-shadow: 0 26px 90px rgba(0,0,0,.60) !important;
+  backdrop-filter: blur(14px) saturate(160%);
+}
+html.dark .hero-search-box .form-label{
+  color: rgba(232,236,255,.82) !important;
+}
+html.dark .hero-search-box .input-with-icon,
+html.dark .hero-search-box .select-with-icon{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  border-radius: 14px !important;
+}
+html.dark .hero-search-box .form-input,
+html.dark .hero-search-box .form-select{
+  background: transparent !important;
+  color: rgba(232,236,255,.92) !important;
+  border: 0 !important;
+}
+html.dark .hero-search-box .form-input::placeholder{
+  color: rgba(232,236,255,.55) !important;
+}
+html.dark .hero-search-box .input-with-icon i,
+html.dark .hero-search-box .select-with-icon i{
+  color: rgba(232,236,255,.65) !important;
+}
+html.dark .hero-search-box .form-button.hero-button{
+  background: linear-gradient(135deg,#8b5cf6,#6c63ff) !important;
+  border: 0 !important;
+  color:#fff !important;
+  box-shadow: 0 20px 55px rgba(139,92,246,.22) !important;
+}
+html.dark .hero-search-box .form-button.hero-button:hover{
+  filter: brightness(1.05);
+}
+
+/* date picker icon inside input (some browsers) */
+html.dark input[type="date"]::-webkit-calendar-picker-indicator{
+  filter: invert(1) brightness(1.1);
+  opacity: .85;
+}
+
+/* ===== Main layout containers ===== */
+html.dark .main .container,
+html.dark .main-layout{
+  background: transparent !important;
+}
+
+/* ===== Sidebar ===== */
+html.dark .sidebar{
+  background: rgba(11,16,32,.78) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  box-shadow: 0 26px 90px rgba(0,0,0,.60) !important;
+}
+html.dark .sidebar-title{
+  color:#fff !important;
+}
+html.dark .sidebar-title i{
+  color: rgba(232,236,255,.70) !important;
+}
+
+/* Search box */
+html.dark .sidebar .search-box{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+}
+html.dark .sidebar .search-box input{
+  background: transparent !important;
+  color: rgba(232,236,255,.92) !important;
+}
+html.dark .sidebar .search-box input::placeholder{
+  color: rgba(232,236,255,.55) !important;
+}
+html.dark .sidebar .search-box i{
+  color: rgba(232,236,255,.60) !important;
+}
+
+/* Price range */
+html.dark .sidebar-range,
+html.dark #priceRangeText{
+  color: rgba(232,236,255,.75) !important;
+}
+
+/* Range slider */
+html.dark input[type="range"]{
+  accent-color: #8b5cf6;
+}
+html.dark #priceSlider{
+  filter: saturate(1.05);
+}
+
+/* Apply button */
+html.dark .btn-apply{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  color: rgba(232,236,255,.85) !important;
+}
+html.dark .btn-apply:hover{
+  background: rgba(139,92,246,.14) !important;
+  border-color: rgba(139,92,246,.22) !important;
+  color:#fff !important;
+}
+
+/* Sidebar lists */
+html.dark .sidebar-list li{
+  border-color: rgba(233,236,255,.10) !important;
+}
+html.dark .sidebar-list label{
+  color: rgba(232,236,255,.82) !important;
+}
+html.dark .sidebar-list .count{
+  color: rgba(232,236,255,.55) !important;
+}
+html.dark .sidebar-list input[type="checkbox"]{
+  accent-color: #8b5cf6;
+}
+html.dark .sidebar-list i.fa-star{
+  color: #fbbf24 !important;
+}
+
+/* ===== List top bar ===== */
+html.dark .list-top-bar{
+  background: rgba(11,16,32,.70) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  box-shadow: 0 22px 80px rgba(0,0,0,.55) !important;
+  backdrop-filter: blur(14px) saturate(160%);
+}
+html.dark .list-top-bar h2{
+  color:#fff !important;
+}
+html.dark .list-top-bar h2 i{
+  color: rgba(232,236,255,.70) !important;
+}
+html.dark .list-top-meta{
+  color: rgba(232,236,255,.70) !important;
+}
+
+/* Sort select */
+html.dark #sortSelect{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  color: rgba(232,236,255,.90) !important;
+}
+html.dark #sortSelect option{
+  background: #0b1020;
+  color: rgba(232,236,255,.92);
+}
+
+/* ===== Tour cards ===== */
+html.dark .tour-card{
+  background: rgba(11,16,32,.78) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  box-shadow: 0 26px 90px rgba(0,0,0,.60) !important;
+}
+html.dark .tour-location{
+  color: rgba(232,236,255,.70) !important;
+}
+html.dark .tour-title{
+  color:#fff !important;
+}
+html.dark .tour-meta span{
+  color: rgba(232,236,255,.70) !important;
+}
+html.dark .tour-meta i{
+  color: rgba(232,236,255,.65) !important;
+}
+html.dark .tour-price{
+  color:#fff !important;
+}
+
+/* image overlay bits */
+html.dark .tour-heart{
+  background: rgba(0,0,0,.35) !important;
+  border: 1px solid rgba(233,236,255,.14) !important;
+  color: rgba(232,236,255,.90) !important;
+}
+html.dark .tour-heart:hover{
+  background: rgba(139,92,246,.18) !important;
+  border-color: rgba(139,92,246,.28) !important;
+  color:#fff !important;
+}
+
+/* badge */
+html.dark .tour-badge{
+  background: linear-gradient(135deg,#8b5cf6,#6c63ff) !important;
+  color:#fff !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow: 0 16px 50px rgba(139,92,246,.22) !important;
+}
+
+/* hotel line inside card (was inline color) */
+html.dark .tour-hotel-line{
+  color: rgba(232,236,255,.72) !important;
+}
+html.dark .tour-hotel-line i{
+  color: #b049f1 !important;
+  filter: brightness(1.08);
+}
+
+/* footer area inside card */
+html.dark .tour-footer{
+  border-top: 1px solid rgba(233,236,255,.10) !important;
+  color: rgba(232,236,255,.70) !important;
+}
+
+/* card buttons */
+html.dark .tour-footer-actions .view-details{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  color: rgba(232,236,255,.85) !important;
+}
+html.dark .tour-footer-actions .view-details:hover{
+  background: rgba(233,236,255,.10) !important;
+  color:#fff !important;
+}
+html.dark .tour-footer-actions .book-package-btn{
+  background: linear-gradient(135deg,#8b5cf6,#6c63ff) !important;
+  border: 0 !important;
+  color:#fff !important;
+  box-shadow: 0 18px 55px rgba(139,92,246,.22) !important;
+}
+html.dark .tour-footer-actions .book-package-btn:hover{
+  filter: brightness(1.05);
+}
+
+/* ===== Pagination ===== */
+html.dark .pagination{
+  background: transparent !important;
+}
+html.dark .pagination .page-link{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  color: rgba(232,236,255,.85) !important;
+}
+html.dark .pagination .page-link:hover{
+  background: rgba(139,92,246,.14) !important;
+  border-color: rgba(139,92,246,.22) !important;
+  color:#fff !important;
+}
+html.dark .pagination .page-link.active{
+  background: linear-gradient(135deg,#8b5cf6,#6c63ff) !important;
+  border-color: transparent !important;
+  color:#fff !important;
+  box-shadow: 0 16px 50px rgba(139,92,246,.22) !important;
+}
+
+/* ===== Toast (if your toast uses #toast/.toast) ===== */
+html.dark .toast{
+  box-shadow: 0 18px 60px rgba(0,0,0,.55) !important;
+}
+html.dark .toast:not(.error){
+  background: rgba(16,163,74,.92) !important;
+}
+html.dark .toast.error{
+  background: rgba(239,68,68,.92) !important;
+}
+/* ===== tour-footer (dark) ===== */
+html.dark .tour-footer{
+  background: rgba(8,12,26,.55) !important;
+  border-top: 1px solid rgba(233,236,255,.10) !important;
+  color: rgba(232,236,255,.74) !important;
+}
+
+html.dark .tour-footer > span{
+  color: rgba(232,236,255,.70) !important;
+}
+
+/* الأزرار داخل الفوتر */
+html.dark .tour-footer .tour-footer-actions .view-details{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  color: rgba(232,236,255,.86) !important;
+}
+html.dark .tour-footer .tour-footer-actions .view-details:hover{
+  background: rgba(233,236,255,.10) !important;
+  color:#fff !important;
+  transform: translateY(-1px);
+}
+
+html.dark .tour-footer .tour-footer-actions .book-package-btn{
+  background: linear-gradient(135deg,#8b5cf6,#6c63ff) !important;
+  border: 0 !important;
+  color:#fff !important;
+  box-shadow: 0 18px 55px rgba(139,92,246,.22) !important;
+}
+html.dark .tour-footer .tour-footer-actions .book-package-btn:hover{
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+/* ===== sidebar-section (dark) ===== */
+html.dark .sidebar .sidebar-section{
+  background: rgba(233,236,255,.04) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 16px !important;
+  padding: 14px !important;
+  box-shadow:
+    0 14px 45px rgba(0,0,0,.35),
+    0 1px 0 rgba(255,255,255,.04) inset !important;
+}
+
+/* عنوان كل سيكشن */
+html.dark .sidebar .sidebar-section .sidebar-title{
+  color: rgba(232,236,255,.92) !important;
+}
+html.dark .sidebar .sidebar-section .sidebar-title i{
+  color: rgba(232,236,255,.68) !important;
+}
+
+/* فواصل داخل السيكشن لو موجودة */
+html.dark .sidebar .sidebar-section + .sidebar-section{
+  margin-top: 12px;
+}
+/* ===== sidebar counts (dark) ===== */
+html.dark .sidebar .count{
+  color: rgba(232,236,255,.62) !important;
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 999px !important;
+  padding: 2px 10px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+html.dark .sidebar label:hover .count{
+  color: rgba(232,236,255,.85) !important;
+  border-color: rgba(139,92,246,.25) !important;
+  background: rgba(139,92,246,.12) !important;
+}
+
+/* لو في عنصر active/checked بتحبي يبين أوضح */
+html.dark .sidebar input:checked ~ .count,
+html.dark .sidebar input:checked + .count{
+  color:#fff !important;
+  background: linear-gradient(135deg,#8b5cf6,#6c63ff) !important;
+  border-color: transparent !important;
+  box-shadow: 0 14px 35px rgba(139,92,246,.18) !important;
+}
+/* ===========================
+   PACKAGES MODAL — DARK MODE
+   (does NOT touch nav/body/footer/banner)
+   =========================== */
+html.dark .tour-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+/* overlay */
+html.dark .tour-modal .tour-modal-overlay{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.62) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* dialog */
+html.dark .tour-modal .tour-modal-dialog{
+  position: relative;
+  width: min(1080px, calc(100% - 28px));
+  margin: 16px auto;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(8,12,26,.72) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  box-shadow:
+    0 40px 120px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.04) inset !important;
+  backdrop-filter: blur(18px) saturate(160%);
+}
+
+/* main column */
+html.dark .tour-modal .tour-modal-main-column{
+  background: transparent !important;
+}
+
+/* hero */
+html.dark .tour-modal .tour-modal-hero{
+  position: relative;
+  background: #0b1024 !important;
+}
+html.dark .tour-modal .tour-modal-hero img{
+  filter: brightness(.92) contrast(1.06);
+}
+html.dark .tour-modal .tour-modal-hero::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0 0;
+  height: 80px;
+  background: linear-gradient(to top, rgba(8,12,26,.95), rgba(8,12,26,0));
+  pointer-events:none;
+}
+
+/* badge */
+html.dark .tour-modal .tour-modal-hero-badge{
+  background: rgba(233,236,255,.10) !important;
+  border: 1px solid rgba(233,236,255,.16) !important;
+  color: rgba(232,236,255,.90) !important;
+  border-radius: 999px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+}
+html.dark .tour-modal .tour-modal-hero-badge i{
+  color: rgba(199,182,255,.95) !important;
+}
+
+/* close */
+html.dark .tour-modal .tour-modal-close{
+  background: rgba(10,14,28,.55) !important;
+  border: 1px solid rgba(233,236,255,.14) !important;
+  color: rgba(232,236,255,.92) !important;
+  border-radius: 999px;
+  box-shadow: 0 18px 45px rgba(0,0,0,.45);
+}
+html.dark .tour-modal .tour-modal-close:hover{
+  background: rgba(233,236,255,.10) !important;
+  border-color: rgba(233,236,255,.22) !important;
+}
+
+/* main content */
+html.dark .tour-modal .tour-modal-main{
+  background: transparent !important;
+  color: rgba(232,236,255,.80) !important;
+}
+
+/* headings + key text */
+html.dark .tour-modal :is(.tour-modal-title,h1,h2,h3,h4,h5,h6){
+  color: rgba(232,236,255,.95) !important;
+}
+html.dark .tour-modal :is(.tour-modal-location,.tour-modal-text,p,span,small,li,div){
+  color: rgba(232,236,255,.76) !important;
+}
+
+/* meta chips row */
+html.dark .tour-modal .tour-modal-meta{
+  color: rgba(232,236,255,.80) !important;
+}
+html.dark .tour-modal .tour-modal-meta span{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  border-radius: 999px;
+}
+html.dark .tour-modal .tour-modal-meta i{
+  color: rgba(199,182,255,.95) !important;
+}
+
+/* blocks */
+html.dark .tour-modal .pkg-block{
+  background: rgba(233,236,255,.05) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 18px;
+  box-shadow: 0 18px 55px rgba(0,0,0,.25);
+}
+html.dark .tour-modal .pkg-block-title{
+  color: rgba(232,236,255,.92) !important;
+}
+html.dark .tour-modal .pkg-block-title i{
+  color: rgba(199,182,255,.95) !important;
+}
+
+/* empty note */
+html.dark .tour-modal .pkg-empty-note{
+  background: rgba(233,236,255,.04) !important;
+  border: 1px dashed rgba(233,236,255,.16) !important;
+  color: rgba(232,236,255,.70) !important;
+  border-radius: 14px;
+}
+
+/* key-value grid (flight details) */
+html.dark .tour-modal .pkg-kv{
+  gap: 10px;
+}
+html.dark .tour-modal .pkg-kv > div{
+  background: rgba(10,14,28,.45) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 14px;
+}
+html.dark .tour-modal .pkg-kv span{
+  color: rgba(232,236,255,.55) !important;
+}
+html.dark .tour-modal .pkg-kv b{
+  color: rgba(232,236,255,.92) !important;
+}
+
+/* hotel head */
+html.dark .tour-modal .pkg-hotel-name{
+  color: rgba(232,236,255,.95) !important;
+}
+html.dark .tour-modal .pkg-hotel-sub{
+  color: rgba(232,236,255,.70) !important;
+}
+html.dark .tour-modal .pkg-hotel-sub i{
+  color: rgba(255,203,74,.95) !important;
+}
+html.dark .tour-modal .pkg-hotel-price{
+  color: rgba(232,236,255,.92) !important;
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+/* amenities */
+html.dark .tour-modal .pkg-amenities{
+  gap: 10px;
+}
+html.dark .tour-modal .pkg-amenity{
+  background: rgba(10,14,28,.45) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 14px;
+}
+html.dark .tour-modal .pkg-amenity i{
+  color: rgba(199,182,255,.95) !important;
+}
+html.dark .tour-modal .pkg-amenity span{
+  color: rgba(232,236,255,.80) !important;
+}
+
+/* included list */
+html.dark .tour-modal .tour-included-list{
+  gap: 10px;
+}
+html.dark .tour-modal .tour-included-item{
+  background: rgba(10,14,28,.45) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 14px;
+}
+html.dark .tour-modal .tour-included-item i{
+  color: rgba(199,182,255,.95) !important;
+}
+html.dark .tour-modal .tour-included-item span{
+  color: rgba(232,236,255,.82) !important;
+}
+
+/* itinerary */
+html.dark .tour-modal .tour-itinerary-item{
+  background: rgba(10,14,28,.45) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 16px;
+}
+html.dark .tour-modal .tour-itinerary-day{
+  color: rgba(232,236,255,.95) !important;
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  border-radius: 999px;
+}
+html.dark .tour-modal .tour-itinerary-text{
+  color: rgba(232,236,255,.74) !important;
+}
+
+/* ===========================
+   SIDE PANEL (tour-modal-side)
+   =========================== */
+html.dark .tour-modal .tour-modal-side{
+  background: rgba(8,12,26,.62) !important;
+  border-left: 1px solid rgba(233,236,255,.10) !important;
+  color: rgba(232,236,255,.82) !important;
+}
+
+/* price box */
+html.dark .tour-modal .tour-price-box{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.12) !important;
+  border-radius: 18px;
+  box-shadow: 0 18px 55px rgba(0,0,0,.25);
+}
+html.dark .tour-modal .tour-price-label{
+  color: rgba(232,236,255,.60) !important;
+}
+html.dark .tour-modal .tour-price-main .amount{
+  color: rgba(232,236,255,.96) !important;
+}
+html.dark .tour-modal .tour-price-main .per{
+  color: rgba(232,236,255,.60) !important;
+}
+
+/* side meta */
+html.dark .tour-modal .tour-side-meta{
+  background: transparent !important;
+}
+html.dark .tour-modal .tour-side-meta-item{
+  background: rgba(10,14,28,.45) !important;
+  border: 1px solid rgba(233,236,255,.10) !important;
+  border-radius: 16px;
+}
+html.dark .tour-modal .tour-side-meta-label{
+  color: rgba(232,236,255,.55) !important;
+}
+html.dark .tour-modal .tour-side-meta-value{
+  color: rgba(232,236,255,.92) !important;
+}
+
+/* side actions */
+html.dark .tour-modal .tour-modal-actions{
+  gap: 10px;
+}
+html.dark .tour-modal .tour-btn-primary{
+  border: 0 !important;
+  background: linear-gradient(135deg,#8b5cf6,#6c63ff) !important;
+  color: #fff !important;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(139,92,246,.24) !important;
+}
+html.dark .tour-modal .tour-btn-primary:hover{
+  filter: brightness(1.05);
+}
+html.dark .tour-modal .tour-btn-secondary{
+  background: rgba(233,236,255,.06) !important;
+  border: 1px solid rgba(233,236,255,.14) !important;
+  color: rgba(232,236,255,.86) !important;
+  border-radius: 14px;
+}
+html.dark .tour-modal .tour-btn-secondary:hover{
+  background: rgba(233,236,255,.10) !important;
+  border-color: rgba(233,236,255,.22) !important;
+}
+
+/* links inside modal (if any) */
+html.dark .tour-modal a{
+  color: #c7b6ff !important;
+}
+html.dark .tour-modal a:hover{
+  color: #ffffff !important;
+  text-decoration: underline;
+}
+
+/* selection/highlight safety */
+html.dark .tour-modal ::selection{
+  background: rgba(139,92,246,.35);
+}
+
+/* responsive polish */
+@media (max-width: 980px){
+  html.dark .tour-modal .tour-modal-dialog{
+    width: min(960px, calc(100% - 18px));
+  }
+  html.dark .tour-modal .tour-modal-side{
+    border-left: none !important;
+    border-top: 1px solid rgba(233,236,255,.10) !important;
+  }
+}
+/* ===========================
+   pkg-block-title — DARK MODE
+   =========================== */
+html.dark .pkg-block-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color: rgba(232,236,255,.94) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+html.dark .pkg-block-title i{
+  color: rgba(199,182,255,.98) !important;
+  filter: drop-shadow(0 10px 22px rgba(139,92,246,.18));
+}
+
+html.dark .pkg-block-title::after{
+  content:"";
+  flex: 1;
+  height: 1px;
+  margin-left: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(233,236,255,.16),
+    rgba(233,236,255,.06),
+    rgba(233,236,255,0)
+  ) !important;
+}
+/* ===========================
+   pkg-amenity — DARK MODE
+   =========================== */
+html.dark .pkg-amenities{
+  display: grid;
+  gap: 10px;
+}
+
+html.dark .pkg-amenity{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.20);
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+html.dark .pkg-amenity:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.075) !important;
+  border-color: rgba(168,85,247,.22) !important;
+}
+
+html.dark .pkg-amenity i{
+  width: 34px;
+  height: 34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 10px;
+  background: rgba(168,85,247,.14) !important;
+  color: rgba(225,214,255,.98) !important;
+  box-shadow: 0 10px 22px rgba(168,85,247,.12);
+  flex: 0 0 34px;
+}
+
+html.dark .pkg-amenity span{
+  color: rgba(232,236,255,.92) !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+/* ===========================
+   pkg-block-title — DARK MODE
+   =========================== */
+html.dark .pkg-block-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: rgba(238,242,255,.92) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 26px rgba(0,0,0,.18);
+}
+
+html.dark .pkg-block-title i{
+  width: 34px;
+  height: 34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 10px;
+  background: rgba(168,85,247,.14) !important;
+  border: 1px solid rgba(168,85,247,.22) !important;
+  color: rgba(225,214,255,.98) !important;
+  box-shadow: 0 10px 22px rgba(168,85,247,.12);
+}
+/* ===========================
+   tour-modal-text — DARK MODE
+   =========================== */
+html.dark .tour-modal-text{
+  color: rgba(226,232,240,.92) !important;   /* نص مريح */
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+html.dark .tour-modal-text b{
+  color: rgba(245,243,255,.98) !important;   /* إبراز أنظف */
+  font-weight: 700;
+}
+
+html.dark .tour-modal-text a{
+  color: rgba(196,181,253,.95) !important;
+  text-decoration-color: rgba(196,181,253,.45);
+}
+
+html.dark .tour-modal-text a:hover{
+  color: rgba(216,180,254,.98) !important;
+  text-decoration-color: rgba(216,180,254,.85);
+}
+/* ===========================
+   Tour Modal — DARK MODE ONLY
+   (no nav/body/footer/banner)
+   =========================== */
+
+html.dark .tour-modal .tour-modal-dialog{
+  background: #0b1220 !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 22px 70px rgba(0,0,0,.55) !important;
+}
+
+html.dark .tour-modal .tour-modal-main-column{
+  background: transparent !important;
+}
+
+/* البلوكات اللي فيها Overview وغيرها */
+html.dark .tour-modal .pkg-block{
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+
+html.dark .tour-modal .pkg-block-title{
+  color: rgba(241,245,249,.95) !important;
+}
+
+html.dark .tour-modal .pkg-block-title i{
+  color: rgba(196,181,253,.95) !important;
+}
+
+/* النص (اللي حكينا عنه) */
+html.dark .tour-modal .tour-modal-text{
+  color: rgba(226,232,240,.92) !important;
+}
+
+html.dark .tour-modal .tour-modal-text b{
+  color: rgba(245,243,255,.98) !important;
+}
+
+/* لو في empty-note / نصوص ثانوية داخل البلوكات */
+html.dark .tour-modal .pkg-empty-note{
+  color: rgba(203,213,225,.85) !important;
+}
+/* ===== Tour itinerary (inside modal) — DARK MODE ===== */
+html.dark .tour-modal .tour-itinerary{
+  display: grid;
+  gap: 10px;
+}
+
+html.dark .tour-modal .tour-itinerary-item{
+  background: rgba(255,255,255,.035) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 14px;
+  padding: 12px 12px;
+}
+
+html.dark .tour-modal .tour-itinerary-day{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(124,58,237,.14) !important;
+  color: rgba(237,233,254,.95) !important;
+  border: 1px solid rgba(124,58,237,.25) !important;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .2px;
+  margin-bottom: 8px;
+}
+
+html.dark .tour-modal .tour-itinerary-text{
+  color: rgba(226,232,240,.92) !important;
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+html.dark .tour-modal .tour-itinerary-text b{
+  color: rgba(245,243,255,.98) !important;
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  padding: 1px 6px;
+  border-radius: 999px;
+}

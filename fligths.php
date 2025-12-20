@@ -267,6 +267,7 @@ function formatDateLabel($dateStr)
     .user-menu.show {
       display: block;
     }
+    
   </style>
 
   <script>
@@ -281,7 +282,7 @@ function formatDateLabel($dateStr)
   </script>
 </head>
 <body>
-  <section class="nav-wrapper">
+   <section class="nav-wrapper">
     <div class="container">
       <nav class="nav">
         <div class="logo">
@@ -291,28 +292,35 @@ function formatDateLabel($dateStr)
 
         <div class="nav-links">
           <ul class="nav-links-ul">
-            <li><a href="./index.php">Home</a></li>
+            <li><a href="./index.php" >Home</a></li>
             <li><a href="./fligths.php" class="active">Flights</a></li>
             <li><a href="./hotel.php">Hotels</a></li>
             <li><a href="./packages.php">Packages</a></li>
             <li><a href="./destination.php">Destinations</a></li>
+
           </ul>
         </div>
 
-        <div class="nav-button">
-          <?php if (isset($_SESSION['user_id'])): ?>
-            <div class="nav-user">
-              <button type="button" class="user-toggle" id="userMenuToggle">
-                <span class="user-avatar">
-                  <?php
-                    $name = $_SESSION['user_name'] ?? 'U';
-                    echo strtoupper(mb_substr($name, 0, 1));
-                  ?>
-                </span>
-                <span class="user-text">
-                  Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
-                </span>
-              <!-- السهم -->
+<div class="nav-button">
+   <button id="darkModeToggle" class="dark-mode-toggle" type="button" aria-label="Toggle dark mode">
+    <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+  </button>
+  <?php if (isset($_SESSION['user_id'])): ?>
+    <!-- ====== Logged-in state ====== -->
+    <div class="nav-user">
+      <button type="button" class="user-toggle" id="userMenuToggle" aria-haspopup="true" aria-expanded="false">
+        <span class="user-avatar">
+          <?php
+            $name = $_SESSION['user_name'] ?? 'U';
+            echo strtoupper(mb_substr($name, 0, 1));
+          ?>
+        </span>
+
+        <span class="user-text">
+          Welcome back, <?= htmlspecialchars($_SESSION['user_name'] ?? 'Traveler') ?>
+        </span>
+
+        <!-- السهم -->
         <i class="bi bi-chevron-down user-caret" aria-hidden="true"></i>
       </button>
 

@@ -716,6 +716,223 @@ $userEmail = $_SESSION['user_email'] ?? '';
       z-index:9999;
     }
     .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+    /* ===================== MY BOOKINGS — DARK MODE (pixel-perfect) ===================== */
+html.dark{
+  color-scheme: dark;
+}
+
+/* ---- Body background (بدّل الأبيض) ---- */
+html.dark body{
+  color: rgba(226,232,240,.92) !important;
+  background:
+    radial-gradient(900px 420px at 28% 18%, rgba(124,58,237,.18), transparent 60%),
+    radial-gradient(900px 420px at 80% 40%, rgba(108,99,255,.14), transparent 60%),
+    #0b1220 !important;
+}
+
+/* ---- Nav links (عندك أحياناً بتضل سوداء) ---- */
+html.dark .nav-wrapper a,
+html.dark .nav-links-ul li a{
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .nav-links-ul li a:hover{
+  color: rgba(233,213,255,.98) !important;
+}
+
+/* ---- User chip dropdown (الدروب داون) ---- */
+html.dark .nav-button .user-toggle{
+  background: rgba(2,6,23,.55) !important;
+  color: rgba(226,232,240,.92) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08) inset !important;
+}
+html.dark .nav-button .user-toggle:hover{
+  background: rgba(2,6,23,.68) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.10) inset !important;
+}
+html.dark .user-text{ color: rgba(226,232,240,.92) !important; }
+html.dark .user-caret{ color: rgba(148,163,184,.95) !important; }
+
+html.dark .user-menu{
+  background: rgba(15,23,42,.92) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  box-shadow: 0 26px 80px rgba(0,0,0,.55) !important;
+}
+html.dark .user-menu a,
+html.dark .user-menu form button{
+  color: rgba(226,232,240,.88) !important;
+}
+html.dark .user-menu a i,
+html.dark .user-menu form button i{
+  color: rgba(148,163,184,.92) !important;
+}
+html.dark .user-menu a:hover,
+html.dark .user-menu form button:hover{
+  background: linear-gradient(90deg, rgba(124,58,237,.18), transparent) !important;
+  color: rgba(233,213,255,.98) !important;
+}
+html.dark .user-menu hr{
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent) !important;
+}
+
+/* ---- Page head text ---- */
+html.dark .title h1{ color: rgba(248,250,252,.96) !important; }
+html.dark .title p{ color: rgba(148,163,184,.95) !important; }
+
+/* ---- Toolbar (search + tabs) ---- */
+html.dark .input{
+  background: rgba(2,6,23,.55) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.35) !important;
+}
+html.dark .input i{ color: rgba(148,163,184,.92) !important; }
+html.dark .input input{
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .input input::placeholder{
+  color: rgba(148,163,184,.78) !important;
+}
+
+html.dark .tabs{
+  background: rgba(2,6,23,.55) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.35) !important;
+}
+html.dark .tab{ color: rgba(203,213,225,.92) !important; }
+html.dark .tab:hover{
+  background: rgba(255,255,255,.06) !important;
+}
+html.dark .tab.active{
+  color: #fff !important;
+  box-shadow: 0 18px 44px rgba(124,58,237,.28) !important;
+}
+
+/* ---- Ticket shell ---- */
+html.dark .ticket{
+  background: rgba(2,6,23,.48) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 26px 80px rgba(0,0,0,.40) !important;
+}
+html.dark .ticket:before{
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(124,58,237,.22), transparent 60%),
+    radial-gradient(700px 260px at 90% 30%, rgba(108,99,255,.18), transparent 60%) !important;
+}
+
+/* ---- Ticket left (كان أبيض قوي) ---- */
+html.dark .ticket-left{
+  background: rgba(15,23,42,.62) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+html.dark .ticket-left:after,
+html.dark .ticket-left:before{
+  background: #0b1220 !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+
+/* Top badge/refs */
+html.dark .ref small{ color: rgba(148,163,184,.92) !important; }
+html.dark .ref .code{
+  background: rgba(2,6,23,.55) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: rgba(248,250,252,.96) !important;
+}
+
+/* Titles/subtitles */
+html.dark .t-title{ color: rgba(248,250,252,.96) !important; }
+html.dark .t-sub{ color: rgba(148,163,184,.95) !important; }
+
+/* Divider dashed */
+html.dark .divider{
+  border-top: 1px dashed rgba(148,163,184,.35) !important;
+}
+
+/* Meta grid values */
+html.dark .kv small{
+  color: rgba(148,163,184,.92) !important;
+}
+html.dark .kv div{
+  color: rgba(226,232,240,.92) !important;
+}
+
+/* Note + total */
+html.dark .note{ color: rgba(148,163,184,.92) !important; }
+html.dark .total-mini small{ color: rgba(148,163,184,.92) !important; }
+html.dark .total-mini b{ color: rgba(233,213,255,.98) !important; }
+
+/* ---- Right pricebox ---- */
+html.dark .pricebox{
+  background: rgba(15,23,42,.62) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 26px 80px rgba(0,0,0,.38) !important;
+}
+html.dark .pricebox h3{ color: rgba(248,250,252,.96) !important; }
+html.dark .rowp{
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  color: rgba(203,213,225,.92) !important;
+}
+html.dark .rowp.total span:last-child{
+  color: rgba(233,213,255,.98) !important;
+}
+html.dark .pb-note{
+  color: rgba(148,163,184,.92) !important;
+}
+
+/* ---- Actions chips + buttons ---- */
+html.dark .chip{
+  background: rgba(2,6,23,.55) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .st-pending{
+  background: rgba(245,158,11,.12) !important;
+  border-color: rgba(245,158,11,.25) !important;
+  color: rgba(253,230,138,.95) !important;
+}
+html.dark .st-confirmed{
+  background: rgba(16,185,129,.12) !important;
+  border-color: rgba(16,185,129,.25) !important;
+  color: rgba(167,243,208,.95) !important;
+}
+html.dark .st-cancelled{
+  background: rgba(239,68,68,.12) !important;
+  border-color: rgba(239,68,68,.25) !important;
+  color: rgba(254,202,202,.95) !important;
+}
+
+/* Buttons */
+html.dark .btn-ghost{
+  background: rgba(2,6,23,.15) !important;
+  border: 1px solid rgba(148,163,184,.35) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .btn-ghost:hover{
+  background: rgba(255,255,255,.06) !important;
+}
+html.dark .btn-danger{
+  background: rgba(239,68,68,.12) !important;
+  border-color: rgba(239,68,68,.26) !important;
+  color: rgba(254,202,202,.95) !important;
+}
+html.dark .btn-danger:hover{
+  filter: brightness(1.05);
+}
+
+/* ---- Details panel (كان أبيض) ---- */
+html.dark .details-card{
+  background: rgba(15,23,42,.62) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .muted{ color: rgba(148,163,184,.92) !important; }
+html.dark .hr{ background: rgba(255,255,255,.08) !important; }
+
+/* ---- Toast ---- */
+html.dark .toast{
+  background: rgba(2,6,23,.86) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  box-shadow: 0 22px 70px rgba(0,0,0,.55) !important;
+}
+
   </style>
 
   <script>
@@ -731,7 +948,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
 </head>
 
 <body>
-    <section class="nav-wrapper">
+ <section class="nav-wrapper">
     <div class="container">
       <nav class="nav">
         <div class="logo">
@@ -751,6 +968,9 @@ $userEmail = $_SESSION['user_email'] ?? '';
         </div>
 
 <div class="nav-button">
+   <button id="darkModeToggle" class="dark-mode-toggle" type="button" aria-label="Toggle dark mode">
+    <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+  </button>
   <?php if (isset($_SESSION['user_id'])): ?>
     <!-- ====== Logged-in state ====== -->
     <div class="nav-user">

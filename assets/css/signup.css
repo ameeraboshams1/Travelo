@@ -730,3 +730,256 @@ html, body {
 
 #yesBtn { background-color: #6b16ff; color: #fff; }
 #noBtn { background-color: #ef4444; color: #fff; }
+/* =========================================================
+   TRAVELO SIGNUP — DARK MODE (MATCH LOGIN COLORS EXACTLY)
+   - colors only / no layout changes
+   - topbar transparent
+   - panel + curve same color (no white gap)
+   - seam line fix
+   - dark icon styles included
+   ========================================================= */
+
+/* ===== 1) TOKENS (match login vibe) ===== */
+html.dark{
+  --accent: #872BFF;
+
+  --bg: #070B18;            /* same deep navy */
+  --panel: #070B18;         /* panel same as bg */
+  --card: rgba(18,24,46,.72);
+  --card2: rgba(12,16,34,.68);
+
+  --text: #EAF0FF;
+  --muted: rgba(234,240,255,.68);
+
+  --border: rgba(255,255,255,.12);
+  --border2: rgba(255,255,255,.08);
+
+  --shadow: 0 20px 60px rgba(0,0,0,.55);
+}
+
+/* ===== 2) GLOBAL ===== */
+html.dark body{
+  background:
+    radial-gradient(1200px 600px at 70% 10%, rgba(135,43,255,.22), transparent 60%),
+    radial-gradient(900px 520px at 18% 80%, rgba(107,22,255,.18), transparent 60%),
+    var(--bg);
+  color: var(--text);
+}
+
+/* ===== 3) TOPBAR (transparent, no shadow) ===== */
+html.dark .topbar{
+  background: transparent !important;
+  border-bottom: 1px solid var(--border2) !important;
+  box-shadow: none !important;
+}
+
+html.dark .brand-name{ color: var(--text) !important; }
+
+/* links */
+html.dark .link{
+  color: rgba(234,240,255,.80) !important;
+  background: transparent !important;
+}
+html.dark .link:hover{
+  background: rgba(255,255,255,.06) !important;
+  color: #fff !important;
+}
+html.dark .link.active{
+  background: linear-gradient(135deg,#a855f7 0%,#872BFF 55%,#6b16ff 100%) !important;
+  color:#fff !important;
+  box-shadow: 0 12px 28px rgba(135,43,255,.25) !important;
+}
+
+/* ===== 4) SLIDER ===== */
+html.dark .slider{
+  background: var(--bg) !important; /* avoids any white area */
+}
+
+/* indicators */
+html.dark .indicators button{ background: rgba(255,255,255,.35) !important; }
+html.dark .indicators button.active{ background: var(--accent) !important; }
+
+/* ===== 5) PANEL + CURVE (remove white) ===== */
+html.dark .panel{
+  background: var(--panel) !important;
+}
+html.dark .panel::before{
+  background: var(--panel) !important;
+}
+
+/* seam line fix (anti-alias) */
+html.dark .panel,
+html.dark .slider{
+  border: 0 !important;
+  outline: 0 !important;
+}
+html.dark .panel::before{
+  left: calc(-1 * var(--curveW) - 2px) !important;
+  width: calc(var(--curveW) + 4px) !important;
+}
+
+/* ===== 6) CARD ===== */
+html.dark .card{
+  background: linear-gradient(180deg, var(--card), var(--card2)) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(14px);
+}
+
+html.dark .card h1{ color: rgba(234,240,255,.95) !important; }
+html.dark .subtitle{ color: var(--muted) !important; }
+
+/* ===== 7) INPUTS ===== */
+html.dark .input{
+  background: rgba(255,255,255,.05) !important;
+  border: 1.6px solid rgba(255,255,255,.12) !important;
+  color: rgba(234,240,255,.92) !important;
+}
+html.dark .input:focus{
+  border-color: rgba(135,43,255,.65) !important;
+  box-shadow: 0 0 0 4px rgba(135,43,255,.12) !important;
+}
+html.dark .field label{ color: rgba(234,240,255,.55) !important; }
+html.dark .input:focus + label,
+html.dark .input:not(:placeholder-shown) + label{
+  color: rgba(167,139,250,.95) !important;
+  background: rgba(12,16,34,.75) !important;
+  box-shadow: 0 0 0 2px rgba(12,16,34,.75) !important;
+}
+
+/* errors */
+html.dark .err{ color:#fb7185 !important; }
+html.dark .caps{ color:#fb7185 !important; }
+
+/* checkbox row + links */
+html.dark .remember{ color: var(--muted) !important; }
+html.dark .help{ color: rgba(167,139,250,.95) !important; }
+html.dark .help:hover{ color:#c4b5fd !important; }
+
+/* ===== 8) BUTTONS ===== */
+html.dark .btn{
+  background: linear-gradient(180deg,#8b5cf6 0%,#6b16ff 100%) !important;
+  box-shadow: 0 18px 40px rgba(135,43,255,.22) !important;
+}
+html.dark .btn:disabled{ opacity:.55 !important; }
+
+/* footer / ghost buttons (if exist in signup.css) */
+html.dark .ghost,
+html.dark .footer-action-btn{
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  color: rgba(234,240,255,.86) !important;
+}
+html.dark .ghost:hover,
+html.dark .footer-action-btn:hover{
+  background: rgba(255,255,255,.10) !important;
+}
+
+/* ===== 9) SIDE PANEL (match login gradient style) ===== */
+html.dark .side-panel{
+  background: linear-gradient(135deg,#a855f7 0%,#872BFF 50%,#6b16ff 100%) !important;
+  box-shadow: -10px 15px 45px rgba(0,0,0,.35) !important;
+}
+html.dark .side-panel-text{ color: rgba(255,255,255,.92) !important; }
+html.dark .side-panel-btn{
+  background: rgba(255,255,255,.92) !important;
+  color: #5b21b6 !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.25) !important;
+}
+html.dark .side-panel-btn:hover{ background:#fff !important; }
+
+/* ===== 10) TOAST ===== */
+html.dark #toast{
+  box-shadow: 0 14px 36px rgba(0,0,0,.35) !important;
+}
+
+/* ===== 11) DARK MODE ICON (same extracted style) ===== */
+html.dark .dark-mode-toggle{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+
+  border:1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  color: rgba(167,139,250,.95);
+
+  box-shadow:none;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+html.dark .dark-mode-toggle:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(167,139,250,.28);
+}
+html.dark #darkModeIcon{
+  font-size:18px;
+  line-height:1;
+}
+
+/* ===== 12) MODAL (if you use it) ===== */
+html.dark .modal{ background: rgba(0,0,0,.55) !important; }
+html.dark .modal-content{
+  background: linear-gradient(180deg, rgba(18,24,46,.92), rgba(12,16,34,.92)) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  color: rgba(234,240,255,.92) !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.55) !important;
+}
+html.dark .modal-buttons button{
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  color: rgba(234,240,255,.90) !important;
+}
+html.dark .modal-buttons button:hover{
+  background: rgba(255,255,255,.10) !important;
+}
+/* ===============================
+   Dark mode toggle (LIGHT + DARK)
+   put at the VERY END of css
+   =============================== */
+
+/* LIGHT (default) */
+.dark-mode-toggle{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(15,23,42,.12);
+  color: #0f172a;
+
+  box-shadow: none;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.dark-mode-toggle:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.90);
+  border-color: rgba(135,43,255,.22);
+  color: #872BFF;
+}
+
+#darkModeIcon{
+  font-size:18px;
+  line-height:1;
+  display:block;
+}
+
+/* DARK (override) */
+html.dark .dark-mode-toggle{
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.16);
+  color: rgba(167,139,250,.95);
+}
+
+html.dark .dark-mode-toggle:hover{
+  background: rgba(255,255,255,.10);
+  border-color: rgba(167,139,250,.28);
+}

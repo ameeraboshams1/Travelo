@@ -5,7 +5,7 @@ require __DIR__ . '/db.php';   // يجلب $pdo من db.php
 session_start();
 
 // ===== Pagination settings =====
-$perPage = 3;
+$perPage = 9;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 
@@ -381,7 +381,58 @@ function pageUrl(int $p): string {
     font-size: 16px;
   }
 }
+/* النسخة المصقولة جداً */
+.travelo-pagination {
+    margin: 24px 0 !important;
+}
 
+.travelo-pagination .pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.travelo-pagination .page-link {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+}
+
+.travelo-pagination .page-link:hover {
+    border-color: #94a3b8;
+}
+
+.travelo-pagination .page-item.active .page-link {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #ffffff;
+}
+
+.travelo-pagination .page-item.disabled .page-link {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .travelo-pagination .pagination {
+        padding: 8px;
+        gap: 6px;
+    }
+}
   </style>
 
   <!-- TRAVELO user info للـ JS (زي hotel.php) -->

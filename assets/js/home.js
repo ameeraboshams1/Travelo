@@ -375,3 +375,211 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+class DarkModeManager {
+    constructor() {
+        this.toggleBtn = document.getElementById('darkModeToggle');
+        this.icon = document.getElementById('darkModeIcon');
+        this.html = document.documentElement;
+        
+        this.init();
+    }
+    
+    init() {
+        // Check saved preference
+        const savedMode = localStorage.getItem('traveloDarkMode');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Set initial mode
+        if (savedMode === 'dark' || (!savedMode && prefersDark)) {
+            this.enableDarkMode(false);
+        }
+        
+        // Add event listener
+        this.toggleBtn.addEventListener('click', () => this.toggle());
+        
+        // System preference listener
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('traveloDarkMode')) {
+                e.matches ? this.enableDarkMode() : this.disableDarkMode();
+            }
+        });
+        
+        // Add keyboard shortcut
+        this.addKeyboardShortcut();
+    }
+    
+    toggle() {
+        // Prevent rapid clicking
+        if (this.toggleBtn.classList.contains('animating')) return;
+        
+        this.toggleBtn.classList.add('animating');
+        
+        // Add click animation
+        this.toggleBtn.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+            if (this.html.classList.contains('dark')) {
+                this.disableDarkMode();
+            } else {
+                this.enableDarkMode();
+            }
+            
+            this.toggleBtn.style.transform = '';
+            setTimeout(() => {
+                this.toggleBtn.classList.remove('animating');
+            }, 300);
+        }, 150);
+    }
+    
+    enableDarkMode(animate = true) {
+        if (!animate) {
+            this.html.style.transition = 'none';
+        }
+        
+        this.html.classList.add('dark');
+        this.updateIcon('sun');
+        localStorage.setItem('traveloDarkMode', 'dark');
+        
+        // Update meta theme color
+        this.updateMetaColor('#0f172a');
+        
+        // Show notification
+        this.showNotification('Dark mode activated');
+        
+        if (!animate) {
+            setTimeout(() => {
+                this.html.style.transition = '';
+            }, 10);
+        }
+    }
+    
+    disableDarkMode() {
+        this.html.classList.remove('dark');
+        this.updateIcon('moon');
+        localStorage.setItem('traveloDarkMode', 'light');
+        this.updateMetaColor('#f7f8fb');
+        this.showNotification('Light mode activated');
+    }
+    
+    updateIcon(type) {
+        this.icon.style.transform = 'rotate(360deg) scale(0.8)';
+        
+        setTimeout(() => {
+            if (type === 'sun') {
+                this.icon.classList.remove('bi-moon-fill');
+                this.icon.classList.add('bi-sun-fill');
+            } else {
+                this.icon.classList.remove('bi-sun-fill');
+                this.icon.classList.add('bi-moon-fill');
+            }
+            
+            this.icon.style.transform = 'rotate(0deg) scale(1)';
+        }, 150);
+    }
+    
+    updateMetaColor(color) {
+        let meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'theme-color';
+            document.head.appendChild(meta);
+        }
+        meta.content = color;
+    }
+    
+    addKeyboardShortcut() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Shift+D or Cmd+Shift+D
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                this.toggle();
+            }
+        });
+    }
+    
+    showNotification(message) {
+        // Use existing toast function if available
+        if (typeof showToast === 'function') {
+            showToast(message, 'success');
+            return;
+        }
+        
+        // Fallback notification
+        const notification = document.createElement('div');
+        notification.className = 'dark-mode-notification';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark-card);
+            color: var(--dark-text);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--dark-border);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            font-weight: 500;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 2000);
+    }
+    
+    isDarkMode() {
+        return this.html.classList.contains('dark');
+    }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.darkMode = new DarkModeManager();
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        .dark-mode-toggle i {
+            transition: transform 0.3s ease;
+        }
+    `;
+    document.head.appendChild(style);
+});
+
+// Global functions for external access
+function toggleDarkMode() {
+    if (window.darkMode) {
+        window.darkMode.toggle();
+    }
+}
+
+function getDarkModeStatus() {
+    return window.darkMode ? window.darkMode.isDarkMode() : false;
+}

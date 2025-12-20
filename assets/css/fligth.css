@@ -1138,3 +1138,1091 @@ body {
     bottom: -20px;
   }
 }
+/* ============================================
+   FLIGHTS PAGE - COMPLETE DARK MODE
+   ============================================ */
+
+/* === GLOBAL DARK VARIABLES === */
+html.dark {
+  --dark-bg: #0f172a;
+  --dark-card: #1e293b;
+  --dark-card-light: rgba(30, 41, 59, 0.8);
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-border-light: rgba(255, 255, 255, 0.12);
+  --dark-text: #f1f5f9;
+  --dark-muted: #94a3b8;
+  --dark-accent: #a78bfa;
+  --dark-accent2: #8b5cf6;
+}
+
+/* === BODY === */
+html.dark body {
+  background: var(--dark-bg) !important;
+  color: var(--dark-text) !important;
+}
+
+/* === NAVBAR === */
+html.dark .nav-wrapper {
+  background: rgba(15, 23, 42, 0.98) !important;
+  border-bottom: 1px solid var(--dark-border) !important;
+  backdrop-filter: blur(10px);
+}
+
+html.dark .logo a {
+  color: var(--dark-text) !important;
+}
+
+html.dark .img-logo {
+  filter: brightness(0) invert(1);
+}
+
+html.dark .nav-links-ul li a {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .nav-links-ul li a:hover,
+html.dark .nav-links-ul li a.active {
+  color: var(--dark-accent) !important;
+}
+
+html.dark .menu-toggle span {
+  background: var(--dark-muted) !important;
+}
+
+/* === DARK MODE TOGGLE BUTTON === */
+html.dark .dark-mode-toggle {
+  background: rgba(167, 139, 250, 0.15) !important;
+  border-color: rgba(167, 139, 250, 0.25) !important;
+  color: var(--dark-accent) !important;
+}
+
+/* === USER MENU === */
+html.dark .nav-button .user-toggle {
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: var(--dark-text) !important;
+  border: 1px solid var(--dark-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .user-text {
+  color: var(--dark-text) !important;
+}
+
+html.dark .user-menu {
+  background: var(--dark-card) !important;
+  border: 1px solid var(--dark-border) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .user-menu a,
+html.dark .user-menu form button {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .user-menu a:hover,
+html.dark .user-menu form button:hover {
+  background: rgba(167, 139, 250, 0.1) !important;
+  color: var(--dark-accent) !important;
+}
+
+/* === SIGN IN/SIGN UP BUTTONS === */
+html.dark .sign_in {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid var(--dark-border) !important;
+  color: var(--dark-text) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .sign_up {
+  background: linear-gradient(135deg, var(--dark-accent), var(--dark-accent2)) !important;
+  color: white !important;
+  box-shadow: 0 14px 30px rgba(167, 139, 250, 0.3) !important;
+}
+
+/* === FLASH SECTION === */
+html.dark .flash-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+html.dark .main-title {
+  color: var(--dark-text) !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .tagline span {
+  color: var(--dark-muted) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--dark-border) !important;
+  backdrop-filter: blur(10px);
+}
+
+html.dark .airplane {
+  color: var(--dark-accent) !important;
+  opacity: 0.6;
+}
+
+/* === TABS SECTION === */
+html.dark .tab-item {
+  background: var(--dark-card) !important;
+  border: 1px solid var(--dark-border) !important;
+  transition: all 0.2s ease;
+}
+
+html.dark .tab-item:hover {
+  border-color: rgba(167, 139, 250, 0.2) !important;
+}
+
+html.dark .tab-item.active {
+  background: rgba(167, 139, 250, 0.1) !important;
+  border-color: rgba(167, 139, 250, 0.3) !important;
+}
+
+html.dark .tab-item h4 {
+  color: var(--dark-text) !important;
+}
+
+html.dark .tab-item p {
+  color: var(--dark-muted) !important;
+}
+
+/* === TRIP TYPE === */
+html.dark .trip-type-wrapper {
+  background: var(--dark-card) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+html.dark .trip-type-label {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .trip-chip {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--dark-muted) !important;
+  border: 1px solid transparent !important;
+}
+
+html.dark .trip-chip:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(167, 139, 250, 0.2) !important;
+}
+
+html.dark .trip-chip.active {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: var(--dark-accent) !important;
+  border-color: rgba(167, 139, 250, 0.3) !important;
+}
+
+/* === RESULTS HEADER === */
+html.dark .results-header h3 {
+  color: var(--dark-text) !important;
+}
+
+html.dark .results-count {
+  color: var(--dark-muted) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+/* ========================
+   FLIGHT CARDS - COMPLETE
+   ======================== */
+
+/* Card Container */
+html.dark .flight-card {
+  background: var(--dark-card) !important;
+  border: 1px solid var(--dark-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.3s ease !important;
+}
+
+html.dark .flight-card:hover {
+  border-color: rgba(167, 139, 250, 0.3) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Ticket Inner */
+html.dark .ticket-inner {
+  border-bottom: 1px solid var(--dark-border) !important;
+}
+
+/* Airline Section */
+html.dark .airline-name {
+  color: var(--dark-text) !important;
+  font-weight: 600;
+}
+
+html.dark .airline-sub {
+  color: var(--dark-muted) !important;
+  font-size: 13px;
+}
+
+html.dark .logo-circle {
+  background: rgba(167, 139, 250, 0.1) !important;
+  color: var(--dark-accent) !important;
+  border: 1px solid rgba(167, 139, 250, 0.2) !important;
+}
+
+html.dark .ticket-code {
+  color: var(--dark-muted) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--dark-border) !important;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* Route */
+html.dark .ticket-route .city {
+  color: var(--dark-text) !important;
+  font-weight: 600;
+}
+
+html.dark .ticket-route .arrow {
+  color: var(--dark-muted) !important;
+}
+
+/* Times Section */
+html.dark .ticket-times .time strong {
+  color: var(--dark-text) !important;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+html.dark .ticket-times .time .code {
+  color: var(--dark-muted) !important;
+  font-size: 13px;
+}
+
+html.dark .time-line {
+  border-color: var(--dark-border) !important;
+}
+
+html.dark .duration-label,
+html.dark .nonstop-label {
+  color: var(--dark-muted) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--dark-border) !important;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Dashed Line */
+html.dark .dashed-line {
+  border-color: var(--dark-border) !important;
+  border-style: dashed !important;
+  opacity: 0.5;
+}
+
+/* Extra Tags */
+html.dark .ticket-extra span {
+  color: var(--dark-muted) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--dark-border) !important;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* Price Section */
+html.dark .ticket-right .fare-label {
+  color: var(--dark-muted) !important;
+  font-size: 13px;
+}
+
+html.dark .ticket-right .price {
+  color: var(--dark-text) !important;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+html.dark .btn-primary {
+  background: linear-gradient(135deg, var(--dark-accent), var(--dark-accent2)) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 10px 20px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+html.dark .btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(167, 139, 250, 0.3) !important;
+}
+
+/* Flight Footer */
+html.dark .flight-footer {
+  border-top: 1px solid var(--dark-border) !important;
+}
+
+html.dark .details-btn {
+  color: var(--dark-muted) !important;
+  transition: all 0.2s ease !important;
+}
+
+html.dark .details-btn:hover {
+  color: var(--dark-accent) !important;
+}
+
+html.dark .chevron {
+  color: var(--dark-muted) !important;
+}
+
+/* ========================
+   FILTER CARD
+   ======================== */
+html.dark .filter-card {
+  background: var(--dark-card) !important;
+  border: 1px solid var(--dark-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+html.dark .filter-card h3 {
+  color: var(--dark-text) !important;
+  border-bottom: 1px solid var(--dark-border) !important;
+}
+
+/* Filter Groups */
+html.dark .filter-group label {
+  color: var(--dark-text) !important;
+  font-weight: 500;
+}
+
+html.dark .filter-label {
+  color: var(--dark-muted) !important;
+}
+
+/* Range Slider */
+html.dark input[type="range"] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  height: 6px;
+  border-radius: 3px;
+}
+
+html.dark input[type="range"]::-webkit-slider-thumb {
+  background: var(--dark-accent) !important;
+  border: 2px solid var(--dark-card) !important;
+  width: 20px;
+  height: 20px;
+}
+
+html.dark #maxPriceValue {
+  color: var(--dark-muted) !important;
+}
+
+/* Checkbox */
+html.dark .checkbox-row span {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .checkbox-row input[type="checkbox"] {
+  border: 1px solid var(--dark-border) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 4px;
+}
+
+html.dark .checkbox-row input[type="checkbox"]:checked {
+  background: var(--dark-accent) !important;
+  border-color: var(--dark-accent) !important;
+}
+
+/* Time Chips */
+html.dark .chip {
+  color: var(--dark-muted) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--dark-border) !important;
+  transition: all 0.2s ease;
+}
+
+html.dark .chip:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(167, 139, 250, 0.2) !important;
+}
+
+html.dark .chip.active {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: var(--dark-accent) !important;
+  border-color: rgba(167, 139, 250, 0.3) !important;
+}
+
+/* Reset Button */
+html.dark .btn-outline {
+  color: var(--dark-muted) !important;
+  border: 1px solid var(--dark-border) !important;
+  background: transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+html.dark .btn-outline:hover {
+  background: rgba(167, 139, 250, 0.1) !important;
+  color: var(--dark-accent) !important;
+  border-color: rgba(167, 139, 250, 0.3) !important;
+}
+
+/* ========================
+   MODAL
+   ======================== */
+html.dark .modal-content {
+  background: var(--dark-card) !important;
+  border: 1px solid var(--dark-border) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .modal-header {
+  border-bottom: 1px solid var(--dark-border) !important;
+}
+
+html.dark .modal-footer {
+  border-top: 1px solid var(--dark-border) !important;
+}
+
+html.dark .modal-title {
+  color: var(--dark-text) !important;
+}
+
+html.dark .text-muted {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .modal-body {
+  color: var(--dark-text) !important;
+}
+
+html.dark .border {
+  border-color: var(--dark-border) !important;
+}
+
+html.dark .btn-outline-secondary {
+  color: var(--dark-muted) !important;
+  border-color: var(--dark-border) !important;
+}
+
+html.dark .btn-outline-secondary:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--dark-text) !important;
+}
+
+html.dark .btn-close {
+  filter: brightness(0.8) invert(0.2) !important;
+}
+
+/* ========================
+   FOOTER
+   ======================== */
+html.dark .footer {
+  background: var(--dark-bg) !important;
+  border-top: 1px solid var(--dark-border) !important;
+}
+
+html.dark .brand-title {
+  color: var(--dark-text) !important;
+}
+
+html.dark .brand-desc {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .linksfoot a {
+  color: var(--dark-muted) !important;
+  transition: color 0.2s ease;
+}
+
+html.dark .linksfoot a:hover {
+  color: var(--dark-accent) !important;
+}
+
+html.dark .footer-links h3 {
+  color: var(--dark-text) !important;
+}
+
+html.dark .footer-links a,
+html.dark .footer-link1 a {
+  color: var(--dark-muted) !important;
+  transition: color 0.2s ease;
+}
+
+html.dark .footer-links a:hover,
+html.dark .footer-link1 a:hover {
+  color: var(--dark-accent) !important;
+}
+
+html.dark .endfoot {
+  background: #0d1524 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+html.dark .copy {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .footicon a img {
+  filter: brightness(0.7);
+}
+
+html.dark .footicon a:hover img {
+  filter: brightness(1);
+}
+
+/* ========================
+   ASK AI BUTTON
+   ======================== */
+html.dark .ask-ai-btn {
+  background: linear-gradient(135deg, var(--dark-accent), var(--dark-accent2)) !important;
+  color: white !important;
+  box-shadow: 0 8px 25px rgba(167, 139, 250, 0.3) !important;
+  border: none !important;
+}
+
+html.dark .ask-ai-btn:hover {
+  box-shadow: 0 12px 35px rgba(167, 139, 250, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ========================
+   SPINNER
+   ======================== */
+html.dark .spinner-overlay {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(10px);
+}
+
+html.dark .spinner {
+  border: 4px solid rgba(167, 139, 250, 0.1) !important;
+  border-top-color: var(--dark-accent) !important;
+}
+
+/* ========================
+   UTILITIES
+   ======================== */
+html.dark .text-muted,
+html.dark .small.text-muted {
+  color: var(--dark-muted) !important;
+}
+
+html.dark .border {
+  border-color: var(--dark-border) !important;
+}
+
+html.dark hr {
+  border-color: var(--dark-border) !important;
+  opacity: 0.5;
+}
+
+/* ========================
+   SCROLLBAR
+   ======================== */
+html.dark ::-webkit-scrollbar {
+  width: 10px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.2);
+  border-radius: 5px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 139, 250, 0.3);
+}
+
+/* ========================
+   SMOOTH TRANSITIONS
+   ======================== */
+html.dark * {
+  transition: background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease,
+              box-shadow 0.3s ease,
+              transform 0.3s ease;
+}
+
+/* ========================
+   RESPONSIVE FIXES
+   ======================== */
+@media (max-width: 768px) {
+  html.dark .tab-item,
+  html.dark .trip-type-wrapper,
+  html.dark .filter-card {
+    background: rgba(30, 41, 59, 0.95) !important;
+    backdrop-filter: blur(10px);
+  }
+}
+/* ============================================
+   FLIGHTS PAGE - DARK MODE COLORS ONLY
+   NO LAYOUT CHANGES - JUST COLORS
+   ============================================ */
+
+/* === DARK MODE ROOT === */
+html.dark {
+  --dark-bg: #0f172a;
+  --dark-card: #1e293b;
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-text: #f1f5f9;
+  --dark-muted: #94a3b8;
+  --dark-accent: #a78bfa;
+}
+
+/* === GLOBAL === */
+html.dark body {
+  background: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+/* === NAVBAR === */
+html.dark .nav-wrapper {
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+html.dark .logo a {
+  color: var(--dark-text);
+}
+
+html.dark .nav-links-ul li a {
+  color: var(--dark-muted);
+}
+
+html.dark .nav-links-ul li a:hover,
+html.dark .nav-links-ul li a.active {
+  color: var(--dark-accent);
+}
+
+html.dark .menu-toggle span {
+  background: var(--dark-muted);
+}
+
+/* === DARK MODE TOGGLE === */
+html.dark .dark-mode-toggle {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: rgba(167, 139, 250, 0.25);
+  color: var(--dark-accent);
+}
+
+/* === USER MENU === */
+html.dark .nav-button .user-toggle {
+  background: rgba(30, 41, 59, 0.9);
+  color: var(--dark-text);
+  border: 1px solid var(--dark-border);
+}
+
+html.dark .user-text {
+  color: var(--dark-text);
+}
+
+html.dark .user-menu {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+html.dark .user-menu a,
+html.dark .user-menu form button {
+  color: var(--dark-muted);
+}
+
+html.dark .user-menu a:hover,
+html.dark .user-menu form button:hover {
+  color: var(--dark-accent);
+}
+
+/* === SIGN IN/UP === */
+html.dark .sign_in {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text);
+}
+
+html.dark .sign_up {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+}
+
+/* === FLASH SECTION === */
+html.dark .flash-section {
+  background: var(--dark-bg);
+}
+
+html.dark .main-title {
+  color: var(--dark-text);
+}
+
+html.dark .tagline span {
+  color: var(--dark-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dark-border);
+}
+
+/* === TABS === */
+html.dark .tab-item {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+html.dark .tab-item.active {
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+html.dark .tab-item h4 {
+  color: var(--dark-text);
+}
+
+html.dark .tab-item p {
+  color: var(--dark-muted);
+}
+
+/* === TRIP TYPE === */
+html.dark .trip-type-wrapper {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+html.dark .trip-type-label {
+  color: var(--dark-muted);
+}
+
+html.dark .trip-chip {
+  color: var(--dark-muted);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html.dark .trip-chip.active {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--dark-accent);
+}
+
+/* === RESULTS === */
+html.dark .results-header h3 {
+  color: var(--dark-text);
+}
+
+html.dark .results-count {
+  color: var(--dark-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dark-border);
+}
+
+/* === FLIGHT CARDS === */
+html.dark .flight-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+/* Airline */
+html.dark .airline-name {
+  color: var(--dark-text);
+}
+
+html.dark .airline-sub {
+  color: var(--dark-muted);
+}
+
+html.dark .logo-circle {
+  background: rgba(167, 139, 250, 0.1);
+  color: var(--dark-accent);
+}
+
+html.dark .ticket-code {
+  color: var(--dark-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dark-border);
+}
+
+/* Route */
+html.dark .ticket-route .city {
+  color: var(--dark-text);
+}
+
+html.dark .ticket-route .arrow {
+  color: var(--dark-muted);
+}
+
+/* Times */
+html.dark .ticket-times .time strong {
+  color: var(--dark-text);
+}
+
+html.dark .ticket-times .time .code {
+  color: var(--dark-muted);
+}
+
+html.dark .time-line {
+  border-color: var(--dark-border);
+}
+
+html.dark .duration-label,
+html.dark .nonstop-label {
+  color: var(--dark-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dark-border);
+}
+
+/* Extras */
+html.dark .ticket-extra span {
+  color: var(--dark-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dark-border);
+}
+
+/* Price */
+html.dark .ticket-right .fare-label {
+  color: var(--dark-muted);
+}
+
+html.dark .ticket-right .price {
+  color: var(--dark-text);
+}
+
+html.dark .btn-primary {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+}
+
+/* Footer */
+html.dark .flight-footer {
+  border-top: 1px solid var(--dark-border);
+}
+
+html.dark .details-btn {
+  color: var(--dark-muted);
+}
+
+/* === FILTER CARD === */
+html.dark .filter-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+html.dark .filter-card h3 {
+  color: var(--dark-text);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+html.dark .filter-group label,
+html.dark .filter-label {
+  color: var(--dark-muted);
+}
+
+/* Checkbox */
+html.dark .checkbox-row span {
+  color: var(--dark-muted);
+}
+
+/* Chips */
+html.dark .chip {
+  color: var(--dark-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dark-border);
+}
+
+html.dark .chip.active {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--dark-accent);
+}
+
+/* Buttons */
+html.dark .btn-outline {
+  color: var(--dark-muted);
+  border: 1px solid var(--dark-border);
+}
+
+/* === MODAL === */
+html.dark .modal-content {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+}
+
+html.dark .modal-header,
+html.dark .modal-footer {
+  border-color: var(--dark-border);
+}
+
+html.dark .modal-title {
+  color: var(--dark-text);
+}
+
+html.dark .modal-body {
+  color: var(--dark-text);
+}
+
+html.dark .text-muted {
+  color: var(--dark-muted);
+}
+
+/* === FOOTER === */
+html.dark .footer {
+  background: var(--dark-bg);
+  border-top: 1px solid var(--dark-border);
+}
+
+html.dark .brand-title,
+html.dark .footer-links h3 {
+  color: var(--dark-text);
+}
+
+html.dark .brand-desc,
+html.dark .footer-links a,
+html.dark .linksfoot a,
+html.dark .copy {
+  color: var(--dark-muted);
+}
+
+html.dark .endfoot {
+  background: #0d1524;
+}
+
+/* === ASK AI === */
+html.dark .ask-ai-btn {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+}
+
+/* === SPINNER === */
+html.dark .spinner-overlay {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+html.dark .spinner {
+  border-color: rgba(167, 139, 250, 0.1);
+  border-top-color: var(--dark-accent);
+}
+/* === TICKET LEFT (فقط ألوان) === */
+html.dark .ticket-left {
+  /* لون الخلفية فقط */
+  background: rgba(30, 41, 59, 0.9);
+}
+
+/* Route */
+html.dark .ticket-route .city {
+  color: #f1f5f9;
+}
+
+html.dark .ticket-route .arrow {
+  color: #94a3b8;
+}
+
+/* Times */
+html.dark .ticket-times .time strong {
+  color: #f1f5f9;
+}
+
+html.dark .ticket-times .time .code {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* الخط المنقط */
+html.dark .dashed-line {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Labels */
+html.dark .duration-label,
+html.dark .nonstop-label {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Extras */
+html.dark .ticket-extra span {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* === TICKET DIVIDER (الخط الفاصل) === */
+html.dark .ticket-divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* === TICKET RIGHT (فقط ألوان) === */
+html.dark .ticket-right {
+  /* لون الخلفية فقط */
+  background: rgba(30, 41, 59, 0.9);
+}
+
+html.dark .ticket-right .fare-label {
+  color: #94a3b8;
+}
+
+html.dark .ticket-right .price {
+  color: #f1f5f9;
+}
+
+/* زر Book Now */
+html.dark .ticket-right .btn-primary {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+  border: none;
+}
+html.dark .ticket-right ::before{
+  color: #F6F1FF;
+}
+
+/* === FLIGHT FOOTER === */
+html.dark .flight-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.dark .details-btn {
+  color: #94a3b8;
+}
+/* === TICKET ROW TOP === */
+html.dark .ticket-row-top {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Airline Name */
+html.dark .airline-name {
+  color: #f1f5f9;
+}
+
+html.dark .airline-sub {
+  color: #94a3b8;
+}
+
+/* === FLIGHT FOOTER === */
+html.dark .flight-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.dark .details-btn {
+  color: #94a3b8;
+}
+
+html.dark .details-btn:hover {
+  color: #a78bfa;
+}
+
+html.dark .chevron {
+  color: #94a3b8;
+}
+/* === TICKET ROUTE === */
+html.dark .ticket-route {
+  background-color: rgba(255, 255, 255, 0.08);;
+}
+
+html.dark .ticket-route .city {
+  color: #f1f5f9;
+}
+
+html.dark .ticket-route .arrow {
+  color: #94a3b8;
+}
+
+/* === FLIGHT FOOTER === */
+html.dark .flight-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.08);;
+}
+
+html.dark .details-btn {
+  color: #94a3b8;
+}

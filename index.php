@@ -645,6 +645,9 @@ html.dark #blogs .btn-danger{
         </div>
 
 <div class="nav-button">
+   <button id="darkModeToggle" class="dark-mode-toggle" type="button" aria-label="Toggle dark mode">
+    <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+  </button>
   <?php if (isset($_SESSION['user_id'])): ?>
     <!-- ====== Logged-in state ====== -->
     <div class="nav-user">

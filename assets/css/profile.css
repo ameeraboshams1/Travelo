@@ -548,3 +548,216 @@
 
   .row2{ grid-template-columns: 1fr; }
 }
+/* ===================== PROFILE PAGE — DARK MODE (scoped) ===================== */
+html.dark .page{
+  color: rgba(226,232,240,.92);
+}
+
+/* ---- Fix: انتِ عاملة override للناف بلون اسود، بالدراك بخرب ---- */
+html.dark .nav-wrapper a,
+html.dark .nav-links-ul li a{
+  color: rgba(226,232,240,.92) !important;
+}
+
+/* ================= HERO (Profile header) ================= */
+html.dark .page .hero{
+  background: transparent;
+}
+
+html.dark .page .hero .cover{
+  background:
+    radial-gradient(circle at 15% 25%, rgba(124,58,237,.22), transparent 55%),
+    radial-gradient(circle at 85% 20%, rgba(108,99,255,.18), transparent 58%),
+    rgba(255,255,255,.03) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+
+html.dark .page .identity{
+  background: rgba(15,23,42,.40);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 50px rgba(0,0,0,.28);
+  border-radius: 18px;
+}
+
+html.dark .page .name{ color: rgba(248,250,252,.96) !important; }
+html.dark .page .email{ color: rgba(148,163,184,.95) !important; }
+
+html.dark .page .chip{
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .page .chip i{ color: rgba(167,139,250,.92) !important; }
+
+/* avatar edit button */
+html.dark .page .avatar__edit{
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .page .avatar__edit:hover{
+  background: rgba(255,255,255,.09) !important;
+}
+
+/* ================= Sections / Panel ================= */
+html.dark .page .section__title{ color: rgba(248,250,252,.96) !important; }
+html.dark .page .section__sub{ color: rgba(148,163,184,.95) !important; }
+
+html.dark .page .panel{
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 18px 50px rgba(0,0,0,.26);
+  border-radius: 18px;
+}
+
+html.dark .page .panel .row{
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+}
+
+html.dark .page .panel .meta{ color: rgba(148,163,184,.95) !important; }
+html.dark .page .panel .val,
+html.dark .page .panel .val strong{
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .page .panel .muted{
+  color: rgba(148,163,184,.92) !important;
+}
+
+html.dark .page .divider{
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent) !important;
+}
+
+/* mini buttons */
+html.dark .page .mini{
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .page .mini:hover{
+  background: rgba(255,255,255,.08) !important;
+  transform: translateY(-1px);
+}
+html.dark .page .mini--danger{
+  background: rgba(239,68,68,.10) !important;
+  border-color: rgba(239,68,68,.22) !important;
+  color: rgba(254,226,226,.95) !important;
+}
+html.dark .page .mini--danger:hover{
+  background: rgba(239,68,68,.14) !important;
+}
+
+/* ================= Buttons (only inside profile page) ================= */
+html.dark .page .btn.btn--ghost{
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .page .btn.btn--ghost:hover{
+  background: rgba(255,255,255,.08) !important;
+}
+
+html.dark .page .btn.btn--primary{
+  box-shadow: 0 16px 34px rgba(124,58,237,.22);
+}
+
+/* ================= Modals ================= */
+html.dark .modal__backdrop{
+  background: rgba(0,0,0,.55) !important;
+}
+
+html.dark .modal__dialog{
+  background: rgba(15,23,42,.92) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  box-shadow: 0 26px 80px rgba(0,0,0,.45);
+}
+
+html.dark .modal__title{ color: rgba(248,250,252,.96) !important; }
+html.dark .modal__sub{ color: rgba(148,163,184,.95) !important; }
+
+html.dark .iconbtn{
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+html.dark .iconbtn:hover{ background: rgba(255,255,255,.10) !important; }
+
+html.dark .modal .field label{ color: rgba(226,232,240,.92) !important; }
+
+html.dark .modal .field input{
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(248,250,252,.96) !important;
+}
+html.dark .modal .field input::placeholder{ color: rgba(148,163,184,.80) !important; }
+html.dark .modal .field input:focus{
+  border-color: rgba(124,58,237,.45) !important;
+  box-shadow: 0 0 0 4px rgba(124,58,237,.16) !important;
+}
+
+/* ================= Testimonials submit (tvt-*) ================= */
+html.dark .page .tvt-card{
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 18px 50px rgba(0,0,0,.26);
+}
+
+html.dark .page .tvt-card--info{
+  background:
+    radial-gradient(circle at 15% 15%, rgba(124,58,237,.22), transparent 60%),
+    radial-gradient(circle at 85% 30%, rgba(108,99,255,.18), transparent 55%),
+    rgba(255,255,255,.03) !important;
+}
+
+html.dark .page .tvt-badge{
+  color: rgba(233,213,255,.95) !important;
+  background: rgba(124,58,237,.14) !important;
+  border-color: rgba(124,58,237,.24) !important;
+}
+
+html.dark .page .tvt-h3{ color: rgba(248,250,252,.96) !important; }
+html.dark .page .tvt-p{ color: rgba(148,163,184,.95) !important; }
+
+html.dark .page .tvt-point{
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(226,232,240,.92) !important;
+}
+
+html.dark .page .tvt-field label{ color: rgba(226,232,240,.92) !important; }
+
+html.dark .page .tvt-field input,
+html.dark .page .tvt-field textarea{
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(248,250,252,.96) !important;
+}
+html.dark .page .tvt-field input::placeholder,
+html.dark .page .tvt-field textarea::placeholder{
+  color: rgba(148,163,184,.80) !important;
+}
+html.dark .page .tvt-field input:focus,
+html.dark .page .tvt-field textarea:focus{
+  border-color: rgba(124,58,237,.45) !important;
+  box-shadow: 0 0 0 4px rgba(124,58,237,.16) !important;
+}
+
+html.dark .page .tvt-star{
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+html.dark .page .tvt-star i{ color: rgba(167,139,250,.55) !important; }
+html.dark .page .tvt-star.is-on{
+  background: rgba(124,58,237,.14) !important;
+  border-color: rgba(124,58,237,.24) !important;
+}
+html.dark .page .tvt-star.is-on i{ color: rgba(233,213,255,.98) !important; }
+
+html.dark .page .tvt-starsText{ color: rgba(226,232,240,.92) !important; }
+html.dark .page .tvt-note{ color: rgba(148,163,184,.95) !important; }
+html.dark .page .tvt-count{ color: rgba(148,163,184,.92) !important; }
+
+/* toast already dark, بس نخليه أنعم */
+html.dark .tvt-toast{
+  background: rgba(2,6,23,.86) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
