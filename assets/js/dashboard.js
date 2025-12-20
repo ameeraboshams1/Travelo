@@ -15,9 +15,7 @@ function toggleTheme() {
   applyDtDarkSkin();
   updateThemeIcon();
   refreshMapTiles();
-
 }
-
 
 function updateThemeIcon() {
   const icon = document.getElementById('themeIcon');
@@ -998,51 +996,50 @@ const initers = {
   })(),
 
   // ---------- Hotels ----------
- // ---------- Hotels ----------
-hotels: (function () {
-  let done = false;
-  return async function () {
-    if (done) return;
-    done = true;
+  hotels: (function () {
+    let done = false;
+    return async function () {
+      if (done) return;
+      done = true;
 
-    const tbody = document.querySelector('#hotelsTable tbody');
-    if (!tbody) return;
+      const tbody = document.querySelector('#hotelsTable tbody');
+      if (!tbody) return;
 
-    let hotels = [];
-    let dests = cache.destinations;
+      let hotels = [];
+      let dests = cache.destinations;
 
-    try {
-      hotels = await apiList('hotels');
-    } catch (e) {
-      console.error('hotels API error:', e);
-      hotels = [];
-    }
-
-    if (!dests || !dests.length) {
       try {
-        dests = await apiList('destinations');
+        hotels = await apiList('hotels');
       } catch (e) {
-        console.error('destinations API error (for hotels):', e);
-        dests = [];
+        console.error('hotels API error:', e);
+        hotels = [];
       }
-    }
 
-    tbody.innerHTML = '';
+      if (!dests || !dests.length) {
+        try {
+          dests = await apiList('destinations');
+        } catch (e) {
+          console.error('destinations API error (for hotels):', e);
+          dests = [];
+        }
+      }
 
-    (hotels || []).forEach((h) => {
-      const dest = (dests || []).find((d) => String(d.id) === String(h.destination_id));
-      const destName = dest ? dest.name : '—';
-      const city = dest ? dest.city : (h.city || '—');
-      const country = dest ? dest.country : (h.country || '—');
+      tbody.innerHTML = '';
 
-      const imgSrc =
-        h.image_url ||
-        h.main_image ||
-        h.cover_image ||
-        'https://picsum.photos/seed/hotel/80/60';
+      (hotels || []).forEach((h) => {
+        const dest = (dests || []).find((d) => String(d.id) === String(h.destination_id));
+        const destName = dest ? dest.name : '—';
+        const city = dest ? dest.city : (h.city || '—');
+        const country = dest ? dest.country : (h.country || '—');
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+        const imgSrc =
+          h.image_url ||
+          h.main_image ||
+          h.cover_image ||
+          'https://picsum.photos/seed/hotel/80/60';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
         <td>
           <img src="${imgSrc}" alt="${h.name || ''}"
                style="width:60px;height:45px;object-fit:cover;border-radius:6px;">
@@ -1059,126 +1056,126 @@ hotels: (function () {
         <td>${h.created_at || '—'}</td>
         <td>${actions({ edit: true, del: true }, h.id, 'hotels')}</td>
       `;
-      tbody.appendChild(tr);
-    });
+        tbody.appendChild(tr);
+      });
 
-    if (typeof $ !== 'undefined' && $.fn && $.fn.DataTable) {
-      if ($.fn.DataTable.isDataTable('#hotelsTable')) {
-        $('#hotelsTable').DataTable().destroy();
+      if (typeof $ !== 'undefined' && $.fn && $.fn.DataTable) {
+        if ($.fn.DataTable.isDataTable('#hotelsTable')) {
+          $('#hotelsTable').DataTable().destroy();
+        }
+
+        $('#hotelsTable').DataTable({
+          pageLength: 7,
+          order: [[1, 'asc']],
+          columnDefs: [{ targets: [11], orderable: false }]
+        });
+
+        applyDtDarkSkin();
       }
 
-      $('#hotelsTable').DataTable({
-        pageLength: 7,
-        order: [[1, 'asc']],
-        columnDefs: [{ targets: [11], orderable: false }]
+      // ====== Charts ======
+      const cityStats = {};
+      (hotels || []).forEach((h) => {
+        const dest = (dests || []).find((d) => String(d.id) === String(h.destination_id));
+        const c = dest ? dest.city : 'Other';
+        const r = parseFloat(h.rating) || 0;
+
+        if (!cityStats[c]) cityStats[c] = { sumRating: 0, count: 0 };
+        cityStats[c].sumRating += r;
+        cityStats[c].count += 1;
       });
 
-      applyDtDarkSkin();
-    }
+      let occLabels = [];
+      let occValues = [];
 
-    // ====== Charts ======
-    const cityStats = {};
-    (hotels || []).forEach((h) => {
-      const dest = (dests || []).find((d) => String(d.id) === String(h.destination_id));
-      const c = dest ? dest.city : 'Other';
-      const r = parseFloat(h.rating) || 0;
+      const cityNames = Object.keys(cityStats);
+      if (cityNames.length > 0) {
+        cityNames.forEach((c) => {
+          const { sumRating, count } = cityStats[c];
+          const avgRating = count ? sumRating / count : 0;
+          const occ = Math.round((avgRating / 5) * 100);
+          occLabels.push(c);
+          occValues.push(occ);
+        });
+      } else {
+        occLabels = ['Amman', 'Istanbul', 'Dubai', 'Cairo'];
+        occValues = [78, 84, 88, 69];
+      }
 
-      if (!cityStats[c]) cityStats[c] = { sumRating: 0, count: 0 };
-      cityStats[c].sumRating += r;
-      cityStats[c].count += 1;
-    });
-
-    let occLabels = [];
-    let occValues = [];
-
-    const cityNames = Object.keys(cityStats);
-    if (cityNames.length > 0) {
-      cityNames.forEach((c) => {
-        const { sumRating, count } = cityStats[c];
-        const avgRating = count ? sumRating / count : 0;
-        const occ = Math.round((avgRating / 5) * 100);
-        occLabels.push(c);
-        occValues.push(occ);
+      const starBuckets = { 5: 0, 4: 0, 3: 0, 2: 0 };
+      (hotels || []).forEach((h) => {
+        const r = parseFloat(h.rating);
+        if (!r) return;
+        if (r >= 4.5) starBuckets[5] += 1;
+        else if (r >= 3.5) starBuckets[4] += 1;
+        else if (r >= 2.5) starBuckets[3] += 1;
+        else starBuckets[2] += 1;
       });
-    } else {
-      occLabels = ['Amman', 'Istanbul', 'Dubai', 'Cairo'];
-      occValues = [78, 84, 88, 69];
-    }
 
-    const starBuckets = { 5: 0, 4: 0, 3: 0, 2: 0 };
-    (hotels || []).forEach((h) => {
-      const r = parseFloat(h.rating);
-      if (!r) return;
-      if (r >= 4.5) starBuckets[5] += 1;
-      else if (r >= 3.5) starBuckets[4] += 1;
-      else if (r >= 2.5) starBuckets[3] += 1;
-      else starBuckets[2] += 1;
-    });
+      let starData = [starBuckets[5], starBuckets[4], starBuckets[3], starBuckets[2]];
+      const totalStars = starData.reduce((s, x) => s + x, 0);
+      if (!totalStars) starData = [25, 45, 22, 8];
 
-    let starData = [starBuckets[5], starBuckets[4], starBuckets[3], starBuckets[2]];
-    const totalStars = starData.reduce((s, x) => s + x, 0);
-    if (!totalStars) starData = [25, 45, 22, 8];
+      const css = getComputedStyle(document.documentElement);
+      const p1 = css.getPropertyValue('--p1').trim();
+      const pink1 =
+        (css.getPropertyValue('--pink1') || css.getPropertyValue('--p3')).trim();
 
-    const css = getComputedStyle(document.documentElement);
-    const p1 = css.getPropertyValue('--p1').trim();
-    const pink1 =
-      (css.getPropertyValue('--pink1') || css.getPropertyValue('--p3')).trim();
-
-    if (document.getElementById('hotelsLine')) {
-      new Chart(document.getElementById('hotelsLine'), {
-        type: 'line',
-        data: {
-          labels: occLabels,
-          datasets: [
-            {
-              label: 'Occupancy %',
-              data: occValues,
-              tension: 0.35,
-              borderWidth: 2,
-              pointRadius: 3,
-              borderColor: p1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              grid: { color: getGridColor() }
+      if (document.getElementById('hotelsLine')) {
+        new Chart(document.getElementById('hotelsLine'), {
+          type: 'line',
+          data: {
+            labels: occLabels,
+            datasets: [
+              {
+                label: 'Occupancy %',
+                data: occValues,
+                tension: 0.35,
+                borderWidth: 2,
+                pointRadius: 3,
+                borderColor: p1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: getGridColor() }
+              }
             }
           }
-        }
-      });
-    }
+        });
+      }
 
-    if (document.getElementById('hotelsPie')) {
-      new Chart(document.getElementById('hotelsPie'), {
-        type: 'pie',
-        data: {
-          labels: ['★5', '★4', '★3', '★2'],
-          datasets: [
-            {
-              data: starData,
-              backgroundColor: [
-                p1,
-                pink1,
-                resolveAlpha(p1, 0.35),
-                resolveAlpha(pink1, 0.35)
-              ]
-            }
-          ]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } },
-          maintainAspectRatio: false
-        }
-      });
-    }
-  };
-})(),
+      if (document.getElementById('hotelsPie')) {
+        new Chart(document.getElementById('hotelsPie'), {
+          type: 'pie',
+          data: {
+            labels: ['★5', '★4', '★3', '★2'],
+            datasets: [
+              {
+                data: starData,
+                backgroundColor: [
+                  p1,
+                  pink1,
+                  resolveAlpha(p1, 0.35),
+                  resolveAlpha(pink1, 0.35)
+                ]
+              }
+            ]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom' } },
+            maintainAspectRatio: false
+          }
+        });
+      }
+    };
+  })(),
 
   // ---------- Packages (FIXED: HOTEL + FLIGHT columns + auto duration) ----------
   packages: (function () {
@@ -1964,76 +1961,186 @@ async function buildForm(entity, mode, data) {
   formModal.show();
 }
 
+// ===================== Booking <-> Payment Sync (NEW) =====================
+// ✅ Refund Payment  => set payment.status='refunded' + booking.booking_status='cancelled'
+// ✅ Cancel Booking  => set booking.booking_status='cancelled' + ALL booking payments status='refunded'
+
+async function ensureListLoaded(entity) {
+  if (!cache[entity] || !cache[entity].length) {
+    try { await apiList(entity); } catch { /* ignore */ }
+  }
+  return cache[entity] || [];
+}
+
+async function getEntityById(entity, id) {
+  const list = await ensureListLoaded(entity);
+  return (list || []).find((x) => String(x.id) === String(id)) || null;
+}
+
+async function refundPaymentAndCancelBooking(paymentId) {
+  const pay = await getEntityById('payments', paymentId);
+
+  const curPay = String(pay?.status || '').toLowerCase();
+  if (curPay === 'refunded') return { already: true };
+
+  const bookingId = pay?.booking_id;
+
+  await apiUpdate('payments', paymentId, { status: 'refunded' });
+
+  if (bookingId != null && bookingId !== '') {
+    const bk = await getEntityById('bookings', bookingId);
+    const curBk = String(bk?.booking_status || '').toLowerCase();
+    if (curBk !== 'cancelled') {
+      await apiUpdate('bookings', bookingId, { booking_status: 'cancelled' });
+    }
+  }
+
+  return { ok: true };
+}
+
+async function cancelBookingAndRefundPayments(bookingId) {
+  const bk = await getEntityById('bookings', bookingId);
+
+  const curBk = String(bk?.booking_status || '').toLowerCase();
+  if (curBk !== 'cancelled') {
+    await apiUpdate('bookings', bookingId, { booking_status: 'cancelled' });
+  }
+
+  let pays = await ensureListLoaded('payments');
+  if (!pays.length) {
+    try { pays = await apiList('payments'); } catch { pays = []; }
+  }
+
+  const related = (pays || []).filter((p) => String(p.booking_id) === String(bookingId));
+  for (const p of related) {
+    const st = String(p.status || '').toLowerCase();
+    if (st !== 'refunded') {
+      await apiUpdate('payments', p.id, { status: 'refunded' });
+    }
+  }
+
+  return { ok: true, refundedCount: related.length };
+}
+
 // ===================== Click Handlers (Add/Edit/Delete) =====================
+// ✅ cancel/refund synced between bookings & payments ✅
 
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('button, a');
   if (!btn) return;
+
   const action = btn.dataset.action;
   const entity = btn.dataset.entity;
   const id = btn.dataset.id;
 
   if (!action || !entity) return;
 
+  // ---------- Add ----------
   if (action === 'add') {
     e.preventDefault();
     await buildForm(entity, 'add', null);
     return;
   }
 
+  // ---------- Edit ----------
   if (action === 'edit') {
     e.preventDefault();
+
     let data = [];
     try {
       if (!cache[entity] || !cache[entity].length) data = await apiList(entity);
       else data = cache[entity];
     } catch (err) {
-      console.error('fetch single entity for edit error', err);
+      console.error('fetch entity for edit error', err);
       data = [];
     }
+
     const item = (data || []).find((x) => String(x.id) === String(id));
     await buildForm(entity, 'edit', item || { id });
     return;
   }
 
-if (['delete', 'cancel', 'refund'].includes(action)) {
-  e.preventDefault();
+  // ---------- Delete / Cancel / Refund ----------
+  if (action === 'delete' || action === 'cancel' || action === 'refund') {
+    e.preventDefault();
 
-  const label =
-    action === 'delete'
-      ? 'Delete this item?'
-      : action === 'cancel'
-      ? 'Cancel this booking?'
-      : 'Refund this payment?';
+    const label =
+      action === 'delete'
+        ? 'Delete this item?'
+        : action === 'cancel'
+        ? "Cancel this booking?\nThis will ALSO refund all related payments."
+        : "Refund this payment?\nThis will ALSO cancel the related booking.";
 
-  document.getElementById('confirmModalBody').textContent = label;
+    const bodyEl = document.getElementById('confirmModalBody');
+    if (bodyEl) bodyEl.textContent = label;
 
-  const yesBtn = document.getElementById('confirmYes');
-  yesBtn.onclick = null; // reset old handlers
+    const yesBtn = document.getElementById('confirmYes');
+    if (!yesBtn) return;
 
-  yesBtn.onclick = async () => {
-    try {
-      if (action === 'delete') {
-        await apiDelete(entity, id);
-        alert('Deleted successfully.');
-      } 
-      else if (action === 'refund') {
-        alert('Refund handled by backend.');
-      }
+    // reset old handlers
+    yesBtn.onclick = null;
 
+    yesBtn.onclick = async () => {
       confirmModal.hide();
-      location.reload();
 
-    } catch (err) {
-      console.error('action error', err);
-      alert('Action failed. Check console / backend.');
-    }
-  };
-  confirmModal.show();
-  return;
-}
+      try {
+        // --- Delete ---
+        if (action === 'delete') {
+          await apiDelete(entity, id);
+          alert('Deleted successfully.');
+          location.reload();
+          return;
+        }
+
+        // --- Cancel booking => cancel + refund all related payments ---
+        if (action === 'cancel') {
+          if (entity !== 'bookings') {
+            alert('Cancel action is only supported for bookings.');
+            return;
+          }
+
+          const bk = await getEntityById('bookings', id);
+          const cur = String(bk?.booking_status || '').toLowerCase();
+          if (cur === 'cancelled') {
+            alert('Booking is already cancelled.');
+            return;
+          }
+
+          await cancelBookingAndRefundPayments(id);
+          alert("Done ✅\nbooking_status='cancelled'\nrelated payments => status='refunded'");
+          location.reload();
+          return;
+        }
+
+        // --- Refund payment => refund + cancel related booking ---
+        if (action === 'refund') {
+          if (entity !== 'payments') {
+            alert('Refund action is only supported for payments.');
+            return;
+          }
+
+          const pay = await getEntityById('payments', id);
+          const cur = String(pay?.status || '').toLowerCase();
+          if (cur === 'refunded') {
+            alert('Payment is already refunded.');
+            return;
+          }
+
+          await refundPaymentAndCancelBooking(id);
+          alert("Done ✅\nstatus='refunded'\nrelated booking => booking_status='cancelled'");
+          location.reload();
+          return;
+        }
+      } catch (err) {
+        console.error('action error', err);
+        alert('Action failed. Check console / backend.');
+      }
+    };
+
+    confirmModal.show();
+    return;
+  }
 });
-
 
 // ===================== Form Submit =====================
 
