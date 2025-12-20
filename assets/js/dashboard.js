@@ -2017,10 +2017,6 @@ if (['delete', 'cancel', 'refund'].includes(action)) {
         await apiDelete(entity, id);
         alert('Deleted successfully.');
       } 
-      else if (action === 'cancel') {
-        await apiUpdate(entity, id, { booking_status: 'cancelled' });
-        alert('Booking cancelled.');
-      } 
       else if (action === 'refund') {
         alert('Refund handled by backend.');
       }
