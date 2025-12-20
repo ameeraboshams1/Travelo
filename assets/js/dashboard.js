@@ -15,7 +15,9 @@ function toggleTheme() {
   applyDtDarkSkin();
   updateThemeIcon();
   refreshMapTiles();
+
 }
+
 
 function updateThemeIcon() {
   const icon = document.getElementById('themeIcon');
@@ -1994,35 +1996,48 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  if (['delete', 'cancel', 'refund'].includes(action)) {
-    e.preventDefault();
-    const label =
-      action === 'delete'
-        ? 'Delete this item?'
-        : action === 'cancel'
-        ? 'Cancel this booking?'
-        : 'Refund this payment?';
+if (['delete', 'cancel', 'refund'].includes(action)) {
+  e.preventDefault();
 
-    document.getElementById('confirmModalBody').textContent = label;
-    document.getElementById('confirmYes').onclick = async () => {
-      confirmModal.hide();
-      try {
-        if (action === 'delete') {
-          await apiDelete(entity, id);
-          alert('Deleted successfully.');
-          location.reload();
-        } else {
-          alert(label + ' (handled by backend later)');
-        }
-      } catch (err) {
-        console.error('action error', err);
-        alert('Action failed. Check console / backend.');
+  const label =
+    action === 'delete'
+      ? 'Delete this item?'
+      : action === 'cancel'
+      ? 'Cancel this booking?'
+      : 'Refund this payment?';
+
+  document.getElementById('confirmModalBody').textContent = label;
+
+  const yesBtn = document.getElementById('confirmYes');
+  yesBtn.onclick = null; // reset old handlers
+
+  yesBtn.onclick = async () => {
+    try {
+      if (action === 'delete') {
+        await apiDelete(entity, id);
+        alert('Deleted successfully.');
+      } 
+      else if (action === 'cancel') {
+        await apiUpdate(entity, id, { booking_status: 'cancelled' });
+        alert('Booking cancelled.');
+      } 
+      else if (action === 'refund') {
+        alert('Refund handled by backend.');
       }
-    };
-    confirmModal.show();
-    return;
-  }
+
+      confirmModal.hide();
+      location.reload();
+
+    } catch (err) {
+      console.error('action error', err);
+      alert('Action failed. Check console / backend.');
+    }
+  };
+  confirmModal.show();
+  return;
+}
 });
+
 
 // ===================== Form Submit =====================
 

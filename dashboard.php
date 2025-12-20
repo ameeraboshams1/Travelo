@@ -962,7 +962,7 @@ require __DIR__ . '/db.php';
           <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
           <input id="globalSearch" class="form-control border-start-0" placeholder="Search (Ctrl + K)" />
         </div>
-
+=
         <button id="themeToggle" class="btn btn-outline-secondary" title="Toggle theme">
           <i class="bi bi-moon-stars" id="themeIcon"></i>
         </button>
