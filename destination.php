@@ -1,16 +1,33 @@
 <?php
-// destination.php
-
-require __DIR__ . '/db.php';   // يجلب $pdo من db.php
+require __DIR__ . '/db.php';
 session_start();
 
-// ===== Pagination settings =====
+/* ===== Pagination settings ===== */
 $perPage = 9;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 
-// ===== Count total active destinations =====
-$countStmt = $pdo->query("SELECT COUNT(*) FROM destinations WHERE is_active = 1");
+/* ===== Read category filter from URL ===== */
+$category = $_GET['category'] ?? 'all';
+
+/* عدّلي القائمة حسب القيم الحقيقية بعمود category عندك */
+$allowed = ['all', 'city', 'mountain', 'forest', 'island'];
+if (!in_array($category, $allowed, true)) $category = 'all';
+
+/* ===== Build WHERE + params ===== */
+$where = "WHERE is_active = 1";
+$params = [];
+
+if ($category !== 'all') {
+  $where .= " AND category = :cat";
+  $params[':cat'] = $category;
+}
+
+/* ===== Count total AFTER filter ===== */
+$countSql = "SELECT COUNT(*) FROM destinations $where";
+$countStmt = $pdo->prepare($countSql);
+foreach ($params as $k => $v) $countStmt->bindValue($k, $v);
+$countStmt->execute();
 $total = (int)$countStmt->fetchColumn();
 
 $totalPages = (int)ceil($total / $perPage);
@@ -19,28 +36,37 @@ if ($page > $totalPages) $page = $totalPages;
 
 $offset = ($page - 1) * $perPage;
 
-// ===== Fetch only 9 destinations for current page =====
+/* ===== Fetch only page results AFTER filter ===== */
 $sql = "SELECT id, name, city, country, category, image_url, short_desc, base_price
         FROM destinations
-        WHERE is_active = 1
+        $where
         ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset";
 
 $stmt = $pdo->prepare($sql);
+foreach ($params as $k => $v) $stmt->bindValue($k, $v);
 $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 
 $destinations = $stmt->fetchAll();
 
-// ===== Helper: keep query params while changing page =====
+/* ===== Helper: keep query params while changing page ===== */
 function pageUrl(int $p): string {
   $params = $_GET;
   $params['page'] = $p;
   return '?' . http_build_query($params);
 }
 
+function filterUrl(string $cat, int $p = 1): string {
+  $params = $_GET;
+  $params['category'] = $cat;
+  $params['page'] = $p;
+  return '?' . http_build_query($params);
+}
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -544,11 +570,13 @@ function pageUrl(int $p): string {
 
         <!-- الفلاتر حسب الكاتيجوري -->
         <div class="category-tabs">
-          <button class="category-btn active" data-category="all">City</button>
-          <button class="category-btn" data-category="mountain">Mountain</button>
-          <button class="category-btn" data-category="forest">Forest</button>
-          <button class="category-btn" data-category="island">Island</button>
-        </div>
+  <a class="category-btn <?= $category==='all'?'active':'' ?>" href="<?= htmlspecialchars(filterUrl('all', 1)) ?>">All</a>
+  <a class="category-btn <?= $category==='city'?'active':'' ?>" href="<?= htmlspecialchars(filterUrl('city', 1)) ?>">City</a>
+  <a class="category-btn <?= $category==='mountain'?'active':'' ?>" href="<?= htmlspecialchars(filterUrl('mountain', 1)) ?>">Mountain</a>
+  <a class="category-btn <?= $category==='forest'?'active':'' ?>" href="<?= htmlspecialchars(filterUrl('forest', 1)) ?>">Forest</a>
+  <a class="category-btn <?= $category==='island'?'active':'' ?>" href="<?= htmlspecialchars(filterUrl('island', 1)) ?>">Island</a>
+</div>
+
       </div>
 
       <!-- CARDS من الداتا بيس -->

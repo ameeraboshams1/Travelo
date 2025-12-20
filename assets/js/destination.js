@@ -1,91 +1,26 @@
-/* =========  SQUARE CARDS  +  PAGINATION  ========= */
-const ITEMS_PER_PAGE = 8;
-let   currentPage    = 1;
+/* ===========================
+   destination.js (Server-side filter)
+   - NO JS filtering
+   - NO JS pagination
+   - Keeps: modal, booking buttons, spinner, user-menu
+   =========================== */
 
-/* ----------  utilities  ---------- */
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
 
-function getVisibleCards(){
-  return Array.from($$('.destination-col'))
-              .filter(c => !c.classList.contains('hidden'));
-}
-
-function renderPagination() {
-    if (!this.paginationContainer) return;
-
-    this.paginationContainer.innerHTML = "";
-
-    if (this.totalPages <= 1) {
-      const single = document.createElement("div");
-      single.className = "page-link active";
-      single.textContent = "1";
-      single.dataset.type = "page";
-      single.dataset.page = "1";
-      this.paginationContainer.appendChild(single);
-      return;
-    }
-
-    const prev = document.createElement("div");
-    prev.className = "page-link";
-    prev.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
-    prev.dataset.type = "prev";
-    if (this.currentPage === 1) prev.classList.add("disabled");
-    this.paginationContainer.appendChild(prev);
-
-    for (let p = 1; p <= this.totalPages; p++) {
-      const pageEl = document.createElement("div");
-      pageEl.className = "page-link";
-      if (p === this.currentPage) pageEl.classList.add("active");
-      pageEl.textContent = String(p);
-      pageEl.dataset.type = "page";
-      pageEl.dataset.page = String(p);
-      this.paginationContainer.appendChild(pageEl);
-    }
-
-    const next = document.createElement("div");
-    next.className = "page-link";
-    next.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
-    next.dataset.type = "next";
-    if (this.currentPage === this.totalPages) next.classList.add("disabled");
-    this.paginationContainer.appendChild(next);
-  }
-
- 
-
-/* ----------  category filter  ---------- */
-function applyFilter(){
-  const active = $('.category-btn.active');
-  const cat    = active ? active.dataset.category : 'all';
-  $$('.destination-col').forEach(c=>{
-    const t = c.dataset.category;
-    c.classList.toggle('hidden', cat!=='all' && t!==cat);
+document.addEventListener("DOMContentLoaded", () => {
+  /* (Optional) keep your square card look */
+  $$(".destination-col").forEach(col => {
+    col.style.aspectRatio = "1/1";
+    col.style.minHeight = "320px";
   });
-  currentPage = 1;
-  renderPage();
-}
-$$('.category-btn').forEach(t=>{
-  t.addEventListener('click',()=>{
-    $$('.category-btn').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    applyFilter();
-  });
+
+  /* NOTE:
+     Category filter is server-side now.
+     Buttons/links in PHP should be <a href="?category=...&page=1">.
+     So we do NOTHING here for filters.
+  */
 });
-
-/* ----------  run once on load  ---------- */
-document.addEventListener('DOMContentLoaded',()=>{
-  /* force big square */
-  $$('.destination-col').forEach(col=>{
-    col.style.aspectRatio = '1/1';          // make it square
-    col.style.minHeight   = '320px';        // enforce minimum size
-  });
-  applyFilter();   // draws pagination for the first time
-});
-
-/* =========================================================
-   everything below is 100 % identical to your old file
-   (modal, booking buttons, spinner, user-menu …)
-   ========================================================= */
 
 /* ----------  modal  ---------- */
 const modalOverlay   = $('#destinationModal');
@@ -118,67 +53,99 @@ function openModalFromButton(btn){
   const visitors = btn.dataset.visitors || '—';
   const season   = btn.dataset.season   || '—';
 
-  modalTitle.textContent    = name;
-  modalLocation.textContent = location;
-  modalImg.src              = image;
-  modalImg.alt              = name;
-  modalDesc.textContent     = desc;
-  modalPrice.textContent    = price;
-  if(modalRatingEl) modalRatingEl.textContent = `★ ${rating}`;
-  modalVisitors.textContent = visitors;
-  modalSeason.textContent   = season;
+  if (modalTitle)    modalTitle.textContent = name;
+  if (modalLocation) modalLocation.textContent = location;
 
-  modalOverlay.classList.add('show');
-  document.body.classList.add('no-scroll');
+  if (modalImg) {
+    modalImg.src = image;
+    modalImg.alt = name;
+  }
+
+  if (modalDesc) modalDesc.textContent = desc;
+  if (modalPrice) modalPrice.textContent = price;
+
+  if (modalRatingEl) modalRatingEl.textContent = `★ ${rating}`;
+  if (modalVisitors) modalVisitors.textContent = visitors;
+  if (modalSeason) modalSeason.textContent = season;
+
+  if (modalOverlay) {
+    modalOverlay.classList.add('show');
+    document.body.classList.add('no-scroll');
+  }
 }
+
 function closeModal(){
+  if (!modalOverlay) return;
   modalOverlay.classList.remove('show');
   document.body.classList.remove('no-scroll');
 }
-$$('.view-btn').forEach(btn=>
-  btn.addEventListener('click',e=>{
+
+$$('.view-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
     e.preventDefault();
     openModalFromButton(btn);
-  })
-);
-modalClose.addEventListener('click',closeModal);
-modalOverlay.addEventListener('click',e=>{ if(e.target===modalOverlay) closeModal(); });
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape' && modalOverlay.classList.contains('show')) closeModal();
+  });
+});
+
+if (modalClose) modalClose.addEventListener('click', closeModal);
+
+if (modalOverlay) {
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('show')) {
+    closeModal();
+  }
 });
 
 /* ----------  booking buttons  ---------- */
-bookFlightBtn.addEventListener('click',()=>{
-  if(!currentDestId) return;
-  location.href = `fligths.php?destination_id=${encodeURIComponent(currentDestId)}`;
-});
-bookHotelBtn.addEventListener('click',()=>{
-  if(!currentDestId) return;
-  location.href = `hotel.php?destination_id=${encodeURIComponent(currentDestId)}`;
-});
-bookPackageBtn.addEventListener('click',()=>{
-  if(!currentDestId) return;
-  location.href = `packages.php?destination_id=${encodeURIComponent(currentDestId)}`;
-});
+if (bookFlightBtn) {
+  bookFlightBtn.addEventListener('click', () => {
+    if(!currentDestId) return;
+    location.href = `fligths.php?destination_id=${encodeURIComponent(currentDestId)}`;
+  });
+}
+
+if (bookHotelBtn) {
+  bookHotelBtn.addEventListener('click', () => {
+    if(!currentDestId) return;
+    location.href = `hotel.php?destination_id=${encodeURIComponent(currentDestId)}`;
+  });
+}
+
+if (bookPackageBtn) {
+  bookPackageBtn.addEventListener('click', () => {
+    if(!currentDestId) return;
+    location.href = `packages.php?destination_id=${encodeURIComponent(currentDestId)}`;
+  });
+}
 
 /* ----------  spinner for login / signup  ---------- */
 const spinner = $('#spinner');
-['btnLogin','btnLogin1'].forEach(id=>{
+['btnLogin','btnLogin1'].forEach(id => {
   const b = $(`#${id}`);
-  if(!b) return;
-  b.addEventListener('click',e=>{
+  if(!b || !spinner) return;
+
+  b.addEventListener('click', (e) => {
     e.preventDefault();
     spinner.classList.add('show');
-    setTimeout(()=> location.href = id==='btnLogin'?'login.html':'signup.html', 600);
+    setTimeout(() => {
+      location.href = id === 'btnLogin' ? 'login.html' : 'signup.html';
+    }, 600);
   });
 });
 
 /* ----------  user-menu toggle  ---------- */
 const userToggle = $('#userMenuToggle');
 const userMenu   = $('#userMenu');
-if(userToggle){
-  userToggle.addEventListener('click',()=> userMenu.classList.toggle('show'));
-  document.addEventListener('click',e=>{
+
+if(userToggle && userMenu){
+  userToggle.addEventListener('click', () => userMenu.classList.toggle('show'));
+
+  document.addEventListener('click', (e) => {
     if(!e.target.closest('.nav-user')) userMenu.classList.remove('show');
   });
 }
