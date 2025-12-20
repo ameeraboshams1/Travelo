@@ -2023,39 +2023,45 @@ async function cancelBookingAndRefundPayments(bookingId) {
 }
 
 // ===================== Click Handlers (Add/Edit/Delete) =====================
-// ✅✅✅ MODIFIED: cancel/refund are synced between bookings & payments ✅✅✅
+// ✅ cancel/refund synced between bookings & payments ✅
 
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('button, a');
   if (!btn) return;
+
   const action = btn.dataset.action;
   const entity = btn.dataset.entity;
   const id = btn.dataset.id;
 
   if (!action || !entity) return;
 
+  // ---------- Add ----------
   if (action === 'add') {
     e.preventDefault();
     await buildForm(entity, 'add', null);
     return;
   }
 
+  // ---------- Edit ----------
   if (action === 'edit') {
     e.preventDefault();
+
     let data = [];
     try {
       if (!cache[entity] || !cache[entity].length) data = await apiList(entity);
       else data = cache[entity];
     } catch (err) {
-      console.error('fetch single entity for edit error', err);
+      console.error('fetch entity for edit error', err);
       data = [];
     }
+
     const item = (data || []).find((x) => String(x.id) === String(id));
     await buildForm(entity, 'edit', item || { id });
     return;
   }
 
-  if (['delete', 'cancel', 'refund'].includes(action)) {
+  // ---------- Delete / Cancel / Refund ----------
+  if (action === 'delete' || action === 'cancel' || action === 'refund') {
     e.preventDefault();
 
     const label =
@@ -2065,11 +2071,20 @@ document.addEventListener('click', async (e) => {
         ? "Cancel this booking?\nThis will ALSO refund all related payments."
         : "Refund this payment?\nThis will ALSO cancel the related booking.";
 
-    document.getElementById('confirmModalBody').textContent = label;
+    const bodyEl = document.getElementById('confirmModalBody');
+    if (bodyEl) bodyEl.textContent = label;
 
-    document.getElementById('confirmYes').onclick = async () => {
+    const yesBtn = document.getElementById('confirmYes');
+    if (!yesBtn) return;
+
+    // reset old handlers
+    yesBtn.onclick = null;
+
+    yesBtn.onclick = async () => {
       confirmModal.hide();
+
       try {
+        // --- Delete ---
         if (action === 'delete') {
           await apiDelete(entity, id);
           alert('Deleted successfully.');
@@ -2077,7 +2092,7 @@ document.addEventListener('click', async (e) => {
           return;
         }
 
-        // Cancel booking => cancelled + refund all related payments
+        // --- Cancel booking => cancel + refund all related payments ---
         if (action === 'cancel') {
           if (entity !== 'bookings') {
             alert('Cancel action is only supported for bookings.');
@@ -2097,7 +2112,7 @@ document.addEventListener('click', async (e) => {
           return;
         }
 
-        // Refund payment => refunded + cancel related booking
+        // --- Refund payment => refund + cancel related booking ---
         if (action === 'refund') {
           if (entity !== 'payments') {
             alert('Refund action is only supported for payments.');
